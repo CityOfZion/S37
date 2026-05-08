@@ -1,0 +1,40 @@
+{
+  "app": {
+    "subtitle": "AI-powered batch payment processor for the Stellar blockchain",
+    "tagline": "Upload a file, let AI extract payment data, execute on Stellar."
+  },
+  "upload": {
+    "title": "Upload payment file",
+    "description": "Drag & drop or click to upload your payment file",
+    "formats": "Supported formats: CSV, XLS, XLSX, PDF, TXT",
+    "button": "Choose File",
+    "processing": "Processing file…",
+    "analyzing": "AI analyzing payments…",
+    "success": "File processed successfully!",
+    "error": "Failed to process file",
+    "dragActive": "Drop the file here…"
+  },
+  "payments": {
+    "title": "Extracted Payments",
+    "address": "Stellar address",
+    "amount": "Amount",
+    "description": "Description",
+    "total": "Total",
+    "count": "{{count}} payment",
+    "count_plural": "{{count}} payments",
+    "execute": "Execute eayments",
+    "executing": "Executing…",
+    "empty": "No payments extracted yet. Upload a file to get started.",
+    "copy": "Copy address",
+    "copied": "Copied!"
+  },
+  "errors": {
+    "NO_FILE": "No file provided",
+    "UNSUPPORTED_FILE_TYPE": "Unsupported file type, allowed: CSV, XLS, XLSX, PDF, TXT",
+    "AI_RESPONSE_TYPE": "Unexpected response from AI",
+    "AI_PARSE_FAILED": "Could not parse AI response",
+    "FILE_PARSE_FAILED": "Failed to parse file",
+    "NETWORK_ERROR": "Network error, please, try again",
+    "UNKNOWN": "An unexpected error occurred"
+  }
+}
