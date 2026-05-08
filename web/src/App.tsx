@@ -9,7 +9,7 @@ import { FileUpload } from './components/FileUpload'
 import { Header } from './components/Header'
 import { PaymentList } from './components/PaymentList'
 
-export function App() {
+export const App = () => {
   const { t } = useTranslation()
   const [payments, setPayments] = useState<TPayment[]>([])
 

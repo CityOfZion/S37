@@ -118,3 +118,4 @@ web (FileUpload component)
 - **No abbreviations in variable/parameter names**: use full words (e.g. `message` not `msg`, `error` not `err`, `request` not `req`, `response` not `res`, `index` not `idx`, `parameter` not `param`).
 - **Blank line before `return`**: always leave one blank line before a `return` statement unless it is the very first statement in a block.
 - **Trailing newline**: every file must end with a single blank line (newline character at EOF).
+- **Arrow functions for components**: use `export const Name = () => {}` for React components — never `export function`. Hooks use `export function useHook() {}` (regular function declaration).

@@ -1,11 +1,10 @@
 import { useTranslation } from 'react-i18next'
 
-import { twMerge } from 'tailwind-merge'
-
 import { APP_NAME, LANGUAGE_NAMES } from '../constants'
 import type { TLanguage } from '../types'
+import { Button } from './Button'
 
-export function Header() {
+export const Header = () => {
   const { i18n } = useTranslation()
 
   const toggleLanguage = () => {
@@ -25,17 +24,11 @@ export function Header() {
           </div>
         </div>
 
-        <button
-          onClick={toggleLanguage}
-          className={twMerge(
-            'text-xs font-medium px-3 py-1.5 rounded-lg border transition-colors',
-            'border-white/10 text-gray-400 hover:text-white hover:border-white/20'
-          )}
-        >
+        <Button variant="outline" size="xs" onClick={toggleLanguage}>
           {i18n.language === 'en-US'
             ? `🇧🇷 ${LANGUAGE_NAMES['pt-BR']}`
             : `🇺🇸 ${LANGUAGE_NAMES['en-US']}`}
-        </button>
+        </Button>
       </div>
     </header>
   )
