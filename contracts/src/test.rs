@@ -29,8 +29,8 @@ fn test_batch_pay_single() {
     // Mint 1000 XLM (in stroops) to sender
     token_admin.mint(&sender, &10_000_000_000_i128);
 
-    let contract_id = env.register_contract(None, OmniSplitContract);
-    let contract = OmniSplitContractClient::new(&env, &contract_id);
+    let contract_id = env.register_contract(None, FractaPayContract);
+    let contract = FractaPayContractClient::new(&env, &contract_id);
 
     let payments = vec![
         &env,
@@ -61,8 +61,8 @@ fn test_batch_pay_multiple() {
     let (token, token_admin) = create_token(&env, &admin);
     token_admin.mint(&sender, &100_000_000_000_i128);
 
-    let contract_id = env.register_contract(None, OmniSplitContract);
-    let contract = OmniSplitContractClient::new(&env, &contract_id);
+    let contract_id = env.register_contract(None, FractaPayContract);
+    let contract = FractaPayContractClient::new(&env, &contract_id);
 
     let payments = vec![
         &env,
@@ -91,8 +91,8 @@ fn test_batch_pay_multiple() {
 #[test]
 fn test_version() {
     let env = Env::default();
-    let contract_id = env.register_contract(None, OmniSplitContract);
-    let contract = OmniSplitContractClient::new(&env, &contract_id);
+    let contract_id = env.register_contract(None, FractaPayContract);
+    let contract = FractaPayContractClient::new(&env, &contract_id);
 
     let version = contract.version();
     assert_eq!(version, soroban_sdk::String::from_str(&env, "0.1.0"));

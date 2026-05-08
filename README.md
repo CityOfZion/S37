@@ -1,7 +1,7 @@
 <div align="center">
-  <img src="./web/public/logo.png" alt="OmniSplit Logo" width="120" />
+  <img src="./web/public/logo.png" alt="FractaPay Logo" width="120" />
 
-  <h1>OmniSplit</h1>
+  <h1>FractaPay</h1>
 
   <p><strong>AI-powered batch payment processor for the Stellar blockchain</strong></p>
 
@@ -21,9 +21,9 @@
 
 ---
 
-## What is OmniSplit?
+## What is FractaPay?
 
-OmniSplit eliminates the pain of manual batch payments on Stellar. Upload any spreadsheet, PDF, or CSV containing payment data, and let Claude AI parse it into a structured list of recipients and amounts. One click executes all payments via a Soroban smart contract.
+FractaPay eliminates the pain of manual batch payments on Stellar. Upload any spreadsheet, PDF, or CSV containing payment data, and let Claude AI parse it into a structured list of recipients and amounts. One click executes all payments via a Soroban smart contract.
 
 ---
 

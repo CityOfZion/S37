@@ -22,17 +22,17 @@ clean:
 
 optimize: build
 	@if command -v stellar >/dev/null 2>&1; then \
-		stellar contract optimize --wasm target/wasm32-unknown-unknown/release/omnisplit.wasm; \
+		stellar contract optimize --wasm target/wasm32-unknown-unknown/release/fractapay.wasm; \
 	elif command -v wasm-opt >/dev/null 2>&1; then \
-		wasm-opt -Oz -o target/wasm32-unknown-unknown/release/omnisplit_optimized.wasm \
-			target/wasm32-unknown-unknown/release/omnisplit.wasm; \
+		wasm-opt -Oz -o target/wasm32-unknown-unknown/release/fractapay_optimized.wasm \
+			target/wasm32-unknown-unknown/release/fractapay.wasm; \
 	else \
 		echo "Install stellar CLI or wasm-opt for optimization"; \
 	fi
 
 deploy-testnet: build
 	stellar contract deploy \
-		--wasm target/wasm32-unknown-unknown/release/omnisplit.wasm \
+		--wasm target/wasm32-unknown-unknown/release/fractapay.wasm \
 		--network testnet
 
 install-tools:

@@ -1,8 +1,8 @@
 [package]
-name = "omnisplit"
+name = "fractapay"
 version = "0.1.0"
 edition = "2021"
-description = "OmniSplit — Batch payment smart contract for Stellar/Soroban"
+description = "FractaPay — Batch payment smart contract for Stellar"
 license = "GPL-3.0"
 
 [lib]

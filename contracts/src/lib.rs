@@ -17,10 +17,10 @@ pub struct Payment {
 const BATCH_PAID: Symbol = symbol_short!("BATCHPAID");
 
 #[contract]
-pub struct OmniSplitContract;
+pub struct FractaPayContract;
 
 #[contractimpl]
-impl OmniSplitContract {
+impl FractaPayContract {
     /// Execute batch payments from `from` to multiple recipients.
     ///
     /// # Arguments

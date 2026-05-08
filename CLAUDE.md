@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-**OmniSplit** — AI-powered batch payment processor for the Stellar blockchain. Built for Hackathon Stellar 37° × NearX.
+**FractaPay** — AI-powered batch payment processor for the Stellar blockchain. Built for Hackathon Stellar 37° × NearX.
 
 Upload a payment file (CSV/XLS/XLSX/PDF/TXT) → Claude AI extracts `{ amount, address }` pairs → Soroban smart contract executes batch transfers.
 
@@ -112,6 +112,6 @@ web (FileUpload component)
 
 - **TypeScript strict mode** in both `server/` and `web/`.
 - **Prettier**: no semicolons, single quotes, trailing commas (ES5), 100-char width.
-- **Server imports**: use `.js` extensions (e.g. `from './config.js'`) — required for ESM-compatible TypeScript with `tsx`.
+- **Server imports**: no file extensions (e.g. `from './config'`) — `commonjs` module, TypeScript resolves `.ts` files automatically.
 - **Husky pre-commit**: runs `lint-staged` + `typecheck` in both `server/` and `web/`.
 - **Rust**: `rustfmt` max_width 100, 4-space tabs; Clippy `-D warnings`.
