@@ -2,6 +2,7 @@ import eslint from '@eslint/js'
 import tsPlugin from '@typescript-eslint/eslint-plugin'
 import tsParser from '@typescript-eslint/parser'
 import globals from 'globals'
+import simpleImportSort from 'eslint-plugin-simple-import-sort'
 
 export default [
   eslint.configs.recommended,
@@ -19,12 +20,22 @@ export default [
     },
     plugins: {
       '@typescript-eslint': tsPlugin,
+      'simple-import-sort': simpleImportSort,
     },
     rules: {
       ...tsPlugin.configs.recommended.rules,
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
       '@typescript-eslint/explicit-function-return-type': 'warn',
       '@typescript-eslint/no-explicit-any': 'warn',
+      'simple-import-sort/imports': ['error', {
+        groups: [
+          ['^node:'],
+          ['^@?\\w'],
+          ['^fractapay-shared'],
+          ['^\\.'],
+        ],
+      }],
+      'simple-import-sort/exports': 'error',
     },
   },
   {

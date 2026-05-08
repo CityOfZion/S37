@@ -1,8 +1,10 @@
 import type { FastifyInstance } from 'fastify'
+
+import type { TUploadResult } from 'fractapay-shared'
+import { ErrorCode } from 'fractapay-shared'
+
 import { analyzePayments } from '../services/ai.service'
 import { parseFile } from '../services/file.service'
-import { ErrorCode } from 'fractapay-shared'
-import type { TUploadResult } from 'fractapay-shared'
 
 export async function uploadRoutes(fastify: FastifyInstance): Promise<void> {
   fastify.post<{ Reply: TUploadResult }>('/upload', async (request, reply) => {

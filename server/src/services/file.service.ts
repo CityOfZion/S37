@@ -1,6 +1,7 @@
 import { parse as csvParse } from 'csv-parse/sync'
 import ExcelJS from 'exceljs'
 import pdfParse from 'pdf-parse'
+
 import type { TSupportedFileType } from '../types'
 
 export async function parseFile(

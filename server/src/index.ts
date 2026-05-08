@@ -1,6 +1,7 @@
 import cors from '@fastify/cors'
 import multipart from '@fastify/multipart'
 import Fastify from 'fastify'
+
 import { config } from './config'
 import { uploadRoutes } from './routes/upload.route'
 
