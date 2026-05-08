@@ -3,7 +3,7 @@
 
   <h1>FractaPay</h1>
 
-  <p><strong>AI-powered batch payment processor for the Stellar blockchain</strong></p>
+  <p><strong>AI-powered batch payment processor for the Stellar blockchain.</strong></p>
 
   <p>
     <img src="https://img.shields.io/badge/Stellar-Soroban-blue?style=flat-square&logo=stellar" alt="Stellar" />
@@ -15,7 +15,7 @@
   </p>
 
   <p>
-    Upload a payment file → AI extracts recipients and amounts → Execute on Stellar in one transaction.
+    Upload a payment file → AI extracts recipients and amounts → Execute on Stellar in one transaction
   </p>
 </div>
 

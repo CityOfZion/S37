@@ -8,20 +8,20 @@ export async function parseFile(
   mimeType: string,
   filename: string
 ): Promise<string> {
-  const ext = filename.split('.').pop()?.toLowerCase() as TSupportedFileType | undefined
+  const extension = filename.split('.').pop()?.toLowerCase() as TSupportedFileType | undefined
 
-  if (mimeType === 'text/csv' || ext === 'csv') {
+  if (mimeType === 'text/csv' || extension === 'csv') {
     return parseCsv(buffer)
   }
 
   if (
     mimeType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
-    ext === 'xlsx'
+    extension === 'xlsx'
   ) {
     return parseExcel(buffer)
   }
 
-  if (mimeType === 'application/pdf' || ext === 'pdf') {
+  if (mimeType === 'application/pdf' || extension === 'pdf') {
     return parsePdf(buffer)
   }
 

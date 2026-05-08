@@ -20,9 +20,9 @@ export async function uploadRoutes(fastify: FastifyInstance): Promise<void> {
     ]
 
     const allowedExtensions = ['csv', 'xlsx', 'pdf', 'txt']
-    const ext = data.filename.split('.').pop()?.toLowerCase() ?? ''
+    const extension = data.filename.split('.').pop()?.toLowerCase() ?? ''
 
-    if (!allowedMimeTypes.includes(data.mimetype) && !allowedExtensions.includes(ext)) {
+    if (!allowedMimeTypes.includes(data.mimetype) && !allowedExtensions.includes(extension)) {
       return reply.status(400).send({
         success: false,
         payments: [],
