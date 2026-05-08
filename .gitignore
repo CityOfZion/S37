@@ -1,2 +1,29 @@
 # IDE
 .idea
+.vscode
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+
+# Rust / WASM
+target/
+*.wasm
+
+# Environment variables
+.env
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# TypeScript
+*.tsbuildinfo
