@@ -96,14 +96,14 @@ make deploy-testnet  # Deploy to Stellar testnet
 
 **Available make targets:**
 
-| Target | Description |
-|---|---|
-| `make build` | Compile to `wasm32` |
-| `make test` | Run Rust unit tests |
-| `make fmt` | Format code with rustfmt |
-| `make lint` | Run Clippy linter |
-| `make check` | fmt-check + lint |
-| `make optimize` | Optimize WASM binary |
+| Target | Description                |
+|---|----------------------------|
+| `make build` | Compile to `wasm32-unknown-unknown`       |
+| `make test` | Run Rust unit tests        |
+| `make fmt` | Format code with rustfmt   |
+| `make lint` | Run Clippy linter          |
+| `make check` | fmt-check + lint           |
+| `make optimize` | Optimize WASM binary       |
 | `make deploy-testnet` | Deploy contract to testnet |
 
 ---
