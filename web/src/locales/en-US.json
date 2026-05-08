@@ -33,7 +33,6 @@
     "UNSUPPORTED_FILE_TYPE": "Unsupported file type, allowed: CSV, XLS, XLSX, PDF, TXT",
     "AI_RESPONSE_TYPE": "Unexpected response from AI",
     "AI_PARSE_FAILED": "Could not parse AI response",
-    "FILE_PARSE_FAILED": "Failed to parse file",
     "NETWORK_ERROR": "Network error, please, try again",
     "UNKNOWN": "An unexpected error occurred"
   }
