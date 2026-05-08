@@ -1,7 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { config } from '../config'
-import { ErrorCode } from '../types'
-import type { TPaymentResponse } from '../types'
+import { ErrorCode } from 'fractapay-shared'
+import type { TPaymentResponse } from 'fractapay-shared'
 
 const client = new Anthropic({ apiKey: config.anthropicApiKey })
 
