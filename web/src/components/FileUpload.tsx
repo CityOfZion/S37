@@ -139,11 +139,7 @@ export const FileUpload = ({ onPaymentsExtracted }: TFileUploadProps) => {
           <p className="text-gray-500 text-sm">{t('upload.formats')}</p>
         </div>
 
-        {!isPending && (
-          <Button size="sm">
-            {t('upload.button')}
-          </Button>
-        )}
+        {!isPending && <Button size="sm">{t('upload.button')}</Button>}
 
         {errorCode && (
           <p className="text-red-400 text-sm font-medium">{t(`errors.${errorCode}`)}</p>
