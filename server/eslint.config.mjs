@@ -2,7 +2,7 @@ import eslint from '@eslint/js'
 import tsPlugin from '@typescript-eslint/eslint-plugin'
 import tsParser from '@typescript-eslint/parser'
 import globals from 'globals'
-import simpleImportSort from 'eslint-plugin-simple-import-sort'
+import simpleImportSortPlugin from 'eslint-plugin-simple-import-sort'
 
 export default [
   eslint.configs.recommended,
@@ -20,7 +20,7 @@ export default [
     },
     plugins: {
       '@typescript-eslint': tsPlugin,
-      'simple-import-sort': simpleImportSort,
+      'simple-import-sort': simpleImportSortPlugin,
     },
     rules: {
       ...tsPlugin.configs.recommended.rules,
