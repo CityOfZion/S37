@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { config } from '../config'
+import { ErrorCode } from '../types'
 import type { TPaymentResponse } from '../types'
 
 const client = new Anthropic({ apiKey: config.anthropicApiKey })
@@ -51,13 +52,13 @@ export async function analyzePayments(fileContent: string): Promise<TPaymentResp
   const content = message.content[0]
 
   if (content.type !== 'text') {
-    throw new Error('Unexpected response type from Claude')
+    throw new Error(ErrorCode.AI_RESPONSE_TYPE)
   }
 
   const jsonMatch = content.text.match(/\{[\s\S]*}/)
 
   if (!jsonMatch) {
-    throw new Error('Could not extract JSON from AI response')
+    throw new Error(ErrorCode.AI_PARSE_FAILED)
   }
 
   return JSON.parse(jsonMatch[0]) as TPaymentResponse
