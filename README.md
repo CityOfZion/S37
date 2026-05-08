@@ -3,14 +3,14 @@
 
   <h1>FractaPay</h1>
 
-  <p><strong>AI-powered batch payment processor for the Stellar blockchain.</strong></p>
+  <p><strong>AI-powered batch payment processor.</strong></p>
 
   <p>
-    <img src="https://img.shields.io/badge/Stellar-Soroban-blue?style=flat-square&logo=stellar" alt="Stellar" />
-    <img src="https://img.shields.io/badge/Claude-AI-orange?style=flat-square" alt="Claude AI" />
-    <img src="https://img.shields.io/badge/Node.js-Fastify-green?style=flat-square&logo=node.js" alt="Node.js" />
     <img src="https://img.shields.io/badge/React-Vite-61DAFB?style=flat-square&logo=react" alt="React" />
+    <img src="https://img.shields.io/badge/Node.js-Fastify-green?style=flat-square&logo=node.js" alt="Node.js" />
+    <img src="https://img.shields.io/badge/Stellar-Soroban-blue?style=flat-square&logo=stellar" alt="Stellar" />
     <img src="https://img.shields.io/badge/Rust-Soroban-B7410E?style=flat-square&logo=rust" alt="Rust" />
+    <img src="https://img.shields.io/badge/Claude-AI-orange?style=flat-square" alt="Claude AI" />
     <img src="https://img.shields.io/badge/Hackathon-Stellar%20×%20NearX-1F75FE?style=flat-square" alt="Hackathon" />
   </p>
 

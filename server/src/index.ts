@@ -3,6 +3,7 @@ import multipart from '@fastify/multipart'
 import Fastify from 'fastify'
 
 import { config } from './config'
+import { healthRoutes } from './routes/health.route'
 import { uploadRoutes } from './routes/upload.route'
 
 const fastify = Fastify({
@@ -26,6 +27,7 @@ async function bootstrap(): Promise<void> {
     },
   })
 
+  await fastify.register(healthRoutes)
   await fastify.register(uploadRoutes)
 
   await fastify.listen({ port: config.port, host: '0.0.0.0' })

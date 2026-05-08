@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-**FractaPay** — AI-powered batch payment processor for the Stellar blockchain. Built for Hackathon Stellar 37° × NearX.
+**FractaPay** — AI-powered batch payment processor. Built for Hackathon Stellar 37° × NearX.
 
 Upload a payment file (CSV/XLS/XLSX/PDF/TXT) → Claude AI extracts `{ amount, address }` pairs → Soroban smart contract executes batch transfers.
 
@@ -118,4 +118,4 @@ web (FileUpload component)
 - **No abbreviations in variable/parameter names**: use full words (e.g. `message` not `msg`, `error` not `err`, `request` not `req`, `response` not `res`, `index` not `idx`, `parameter` not `param`).
 - **Blank line before `return`**: always leave one blank line before a `return` statement unless it is the very first statement in a block.
 - **Trailing newline**: every file must end with a single blank line (newline character at EOF).
-- **Arrow functions for components**: use `export const Name = () => {}` for React components — never `export function`. Hooks use `export function useHook() {}` (regular function declaration).
+- **Arrow functions for components and routes**: use `export const Name = () => {}` — never `export function`. Applies to React components (`web/`) and Fastify route handlers (`server/`). Hooks use `export function useHook() {}` (regular function declaration).

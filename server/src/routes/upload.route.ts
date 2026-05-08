@@ -1,12 +1,12 @@
 import type { FastifyInstance } from 'fastify'
 
 import type { TUploadResult } from 'fractapay-shared'
-import { ErrorCode } from 'fractapay-shared'
+import { ALLOWED_EXTENSIONS, ALLOWED_MIME_TYPES, ErrorCode } from 'fractapay-shared'
 
 import { analyzePayments } from '../services/ai.service'
 import { parseFile } from '../services/file.service'
 
-export async function uploadRoutes(fastify: FastifyInstance): Promise<void> {
+export const uploadRoutes = async (fastify: FastifyInstance): Promise<void> => {
   fastify.post<{ Reply: TUploadResult }>('/upload', async (request, reply) => {
     const data = await request.file()
 
@@ -14,17 +14,12 @@ export async function uploadRoutes(fastify: FastifyInstance): Promise<void> {
       return reply.status(400).send({ success: false, payments: [], error: ErrorCode.NO_FILE })
     }
 
-    const allowedMimeTypes = [
-      'text/csv',
-      'text/plain',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      'application/pdf',
-    ]
-
-    const allowedExtensions = ['csv', 'xlsx', 'pdf', 'txt']
     const extension = data.filename.split('.').pop()?.toLowerCase() ?? ''
 
-    if (!allowedMimeTypes.includes(data.mimetype) && !allowedExtensions.includes(extension)) {
+    if (
+      !ALLOWED_MIME_TYPES.includes(data.mimetype as (typeof ALLOWED_MIME_TYPES)[number]) &&
+      !ALLOWED_EXTENSIONS.includes(extension as (typeof ALLOWED_EXTENSIONS)[number])
+    ) {
       return reply.status(400).send({
         success: false,
         payments: [],
@@ -33,6 +28,7 @@ export async function uploadRoutes(fastify: FastifyInstance): Promise<void> {
     }
 
     const chunks: Buffer[] = []
+
     for await (const chunk of data.file) {
       chunks.push(chunk)
     }
@@ -53,9 +49,5 @@ export async function uploadRoutes(fastify: FastifyInstance): Promise<void> {
 
       return reply.status(500).send({ success: false, payments: [], error: code })
     }
-  })
-
-  fastify.get('/health', async (_request, reply) => {
-    return reply.status(200).send({ status: 'ok', service: 'fractapay-server' })
   })
 }

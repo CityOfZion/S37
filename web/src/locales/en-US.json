@@ -1,6 +1,6 @@
 {
   "app": {
-    "subtitle": "AI-powered batch payment processor for the Stellar blockchain",
+    "subtitle": "AI-powered batch payment processor.",
     "tagline": "Upload a file, let AI extract payment data, execute on Stellar."
   },
   "upload": {

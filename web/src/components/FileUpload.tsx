@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { match } from 'ts-pattern'
 
 import type { TPayment } from 'fractapay-shared'
+import { ALLOWED_INPUT_ACCEPT } from 'fractapay-shared'
 
 import { StyleHelper } from '../helpers/StyleHelper'
 import { useUpload } from '../hooks/useUpload'
@@ -75,7 +76,7 @@ export const FileUpload = ({ onPaymentsExtracted }: TFileUploadProps) => {
     >
       <input
         type="file"
-        accept=".csv,.xls,.xlsx,.pdf,.txt"
+        accept={ALLOWED_INPUT_ACCEPT}
         onChange={handleChange}
         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
         disabled={isPending}
