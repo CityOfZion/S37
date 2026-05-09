@@ -1,8 +1,11 @@
 import { useTranslation } from 'react-i18next'
 
 import { APP_NAME, LANGUAGE_NAMES } from '../constants'
+import { StringHelper } from '../helpers/StringHelper'
 import type { TLanguage } from '../types'
 import { Button } from './Button'
+
+const PUBLIC_KEY = import.meta.env.VITE_PUBLIC_KEY
 
 export const Header = () => {
   const { i18n } = useTranslation()
@@ -24,11 +27,19 @@ export const Header = () => {
           </div>
         </div>
 
-        <Button variant="outline" size="xs" onClick={toggleLanguage}>
-          {i18n.language === 'en-US'
-            ? `🇧🇷 ${LANGUAGE_NAMES['pt-BR']}`
-            : `🇺🇸 ${LANGUAGE_NAMES['en-US']}`}
-        </Button>
+        <div className="flex items-center gap-3">
+          {PUBLIC_KEY && (
+            <p className="font-mono text-xs text-gray-400 bg-white/5 px-3 py-1.5 rounded-lg border border-white/10">
+              {StringHelper.truncateMiddle(PUBLIC_KEY, 10)}
+            </p>
+          )}
+
+          <Button variant="outline" size="xs" onClick={toggleLanguage}>
+            {i18n.language === 'en-US'
+              ? `🇧🇷 ${LANGUAGE_NAMES['pt-BR']}`
+              : `🇺🇸 ${LANGUAGE_NAMES['en-US']}`}
+          </Button>
+        </div>
       </div>
     </header>
   )
