@@ -27,6 +27,14 @@
     font-family: var(--font-sans), sans-serif;
   }
 
+  button {
+    cursor: pointer;
+  }
+
+  button:disabled {
+    cursor: default;
+  }
+
   ::-webkit-scrollbar {
     width: 6px;
   }
