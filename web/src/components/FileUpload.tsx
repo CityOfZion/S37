@@ -10,6 +10,9 @@ import { StyleHelper } from '../helpers/StyleHelper'
 import { useUpload } from '../hooks/useUpload'
 import { Button } from './Button'
 
+import LoadingSpinnerIcon from '../assets/icons/loading-spinner-icon.svg?react'
+import UploadIcon from '../assets/icons/upload-icon.svg?react'
+
 type TFileUploadProps = {
   onPaymentsExtracted: (payments: TPayment[]) => void
 }
@@ -85,7 +88,7 @@ export const FileUpload = ({ onPaymentsExtracted }: TFileUploadProps) => {
       <div className="flex flex-col items-center gap-4">
         <div
           className={StyleHelper.merge(
-            'w-16 h-16 rounded-2xl flex items-center justify-center transition-colors',
+            'size-16 rounded-2xl flex items-center justify-center transition-colors',
             {
               'bg-primary/20': isDragActive,
               'bg-white/5 group-hover:bg-primary/10': !isDragActive,
@@ -93,40 +96,15 @@ export const FileUpload = ({ onPaymentsExtracted }: TFileUploadProps) => {
           )}
         >
           {isPending ? (
-            <svg className="animate-spin w-8 h-8 text-primary" fill="none" viewBox="0 0 24 24">
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              />
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-              />
-            </svg>
+            <LoadingSpinnerIcon className="animate-spin size-8 text-primary" aria-hidden="true" />
           ) : (
-            <svg
-              width="32"
-              height="32"
-              viewBox="0 0 32 32"
-              fill="none"
-              className={StyleHelper.merge('transition-colors', {
+            <UploadIcon
+              className={StyleHelper.merge('size-8 transition-colors', {
                 'text-primary': isDragActive,
                 'text-gray-400 group-hover:text-primary': !isDragActive,
               })}
-            >
-              <path
-                d="M16 4L8 12H13V22H19V12H24L16 4Z"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinejoin="round"
-              />
-              <path d="M6 26H26" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-            </svg>
+              aria-hidden="true"
+            />
           )}
         </div>
 

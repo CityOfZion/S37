@@ -8,10 +8,12 @@ import { Button } from './Button'
 const PUBLIC_KEY = import.meta.env.VITE_PUBLIC_KEY
 
 export const Header = () => {
-  const { i18n } = useTranslation()
+  const { t, i18n } = useTranslation()
+
+  const isEnUs = i18n.language === 'en-US'
 
   const toggleLanguage = () => {
-    const next: TLanguage = i18n.language === 'en-US' ? 'pt-BR' : 'en-US'
+    const next: TLanguage = isEnUs ? 'pt-BR' : 'en-US'
 
     void i18n.changeLanguage(next)
   }
@@ -20,10 +22,10 @@ export const Header = () => {
     <header className="border-b border-white/10 bg-gray-950/80 backdrop-blur-sm sticky top-0 z-50">
       <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <img src="/logo.png" alt={APP_NAME} className="w-9 h-9 rounded-xl object-contain" />
-          <div>
+          <img src="/logo.png" alt={APP_NAME} className="size-9 rounded-xl object-contain" />
+          <div className="flex gap-1 flex-col">
             <h1 className="text-white font-bold text-lg leading-none">{APP_NAME}</h1>
-            <p className="text-gray-500 text-xs">Powered by Stellar</p>
+            <p className="text-gray-500 text-xs leading-2">{t('app.poweredBy')}</p>
           </div>
         </div>
 
@@ -34,10 +36,14 @@ export const Header = () => {
             </p>
           )}
 
-          <Button variant="outline" size="xs" onClick={toggleLanguage}>
-            {i18n.language === 'en-US'
-              ? `🇧🇷 ${LANGUAGE_NAMES['pt-BR']}`
-              : `🇺🇸 ${LANGUAGE_NAMES['en-US']}`}
+          <Button
+            aria-label={t('header.switchLanguage')}
+            variant="outline"
+            size="xs"
+            className="min-w-26 max-w-26 w-26"
+            onClick={toggleLanguage}
+          >
+            {isEnUs ? `🇺🇸 ${LANGUAGE_NAMES['en-US']}` : `🇧🇷 ${LANGUAGE_NAMES['pt-BR']}`}
           </Button>
         </div>
       </div>

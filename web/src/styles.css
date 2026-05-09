@@ -1,6 +1,20 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #1F75FE;
+  --color-primary-50: #EBF2FF;
+  --color-primary-100: #D6E6FF;
+  --color-primary-200: #ADCCFF;
+  --color-primary-300: #85B3FF;
+  --color-primary-400: #5C99FF;
+  --color-primary-500: #1F75FE;
+  --color-primary-600: #0A5FE8;
+  --color-primary-700: #084BC4;
+  --color-primary-800: #063799;
+  --color-primary-900: #04236E;
+
+  --font-sans: 'Inter';
+}
 
 @layer base {
   * {
@@ -10,7 +24,7 @@
   body {
     @apply bg-gray-950 text-white antialiased;
 
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: var(--font-sans), sans-serif;
   }
 
   ::-webkit-scrollbar {

@@ -1,7 +1,8 @@
 {
   "app": {
     "subtitle": "AI-powered batch payment processor.",
-    "tagline": "Upload a file, let AI extract payment data, execute on Stellar."
+    "tagline": "Upload a file, let AI extract payment data, execute on Stellar.",
+    "poweredBy": "Powered by Stellar"
   },
   "upload": {
     "title": "Upload payment file",
@@ -27,6 +28,9 @@
     "empty": "No payments extracted yet. Upload a file to get started.",
     "copy": "Copy address",
     "copied": "Copied!"
+  },
+  "header": {
+    "switchLanguage": "Switch language"
   },
   "errors": {
     "NO_FILE": "No file provided",

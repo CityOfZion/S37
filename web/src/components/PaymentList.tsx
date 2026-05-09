@@ -5,6 +5,11 @@ import type { TPayment } from 'fractapay-shared'
 
 import { Button } from './Button'
 
+import CheckIcon from '../assets/icons/check-icon.svg?react'
+import ClipboardIcon from '../assets/icons/clipboard-icon.svg?react'
+import EmptyStateIcon from '../assets/icons/empty-state-icon.svg?react'
+import ExecuteIcon from '../assets/icons/execute-icon.svg?react'
+
 type TPaymentListProps = {
   payments: TPayment[]
 }
@@ -24,10 +29,7 @@ export const PaymentList = ({ payments }: TPaymentListProps) => {
   if (payments.length === 0) {
     return (
       <div className="text-center py-16 text-gray-500">
-        <svg className="w-12 h-12 mx-auto mb-4 opacity-30" fill="none" viewBox="0 0 48 48">
-          <path d="M24 4L4 16V32L24 44L44 32V16L24 4Z" stroke="currentColor" strokeWidth="2" />
-          <path d="M24 4V44M4 16L44 16M4 32L44 32" stroke="currentColor" strokeWidth="2" />
-        </svg>
+        <EmptyStateIcon className="size-12 mx-auto mb-4 opacity-30" aria-hidden="true" />
         <p>{t('payments.empty')}</p>
       </div>
     )
@@ -67,7 +69,7 @@ export const PaymentList = ({ payments }: TPaymentListProps) => {
               <tr key={index} className="hover:bg-white/5 transition-colors">
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
-                    <span className="font-mono text-sm text-gray-300 truncate max-w-[200px]">
+                    <span className="font-mono text-sm text-gray-300 truncate max-w-50">
                       {payment.address}
                     </span>
                     <Button
@@ -77,31 +79,9 @@ export const PaymentList = ({ payments }: TPaymentListProps) => {
                       title={t('payments.copy')}
                     >
                       {copied === payment.address ? (
-                        <svg className="w-4 h-4 text-green-400" fill="none" viewBox="0 0 16 16">
-                          <path
-                            d="M3 8L6.5 11.5L13 5"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                          />
-                        </svg>
+                        <CheckIcon className="size-4 text-green-400" aria-hidden="true" />
                       ) : (
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 16 16">
-                          <rect
-                            x="5"
-                            y="5"
-                            width="9"
-                            height="9"
-                            rx="1"
-                            stroke="currentColor"
-                            strokeWidth="1.5"
-                          />
-                          <path
-                            d="M11 5V3a1 1 0 00-1-1H3a1 1 0 00-1 1v7a1 1 0 001 1h2"
-                            stroke="currentColor"
-                            strokeWidth="1.5"
-                          />
-                        </svg>
+                        <ClipboardIcon className="size-4" aria-hidden="true" />
                       )}
                     </Button>
                   </div>
@@ -131,14 +111,7 @@ export const PaymentList = ({ payments }: TPaymentListProps) => {
       </div>
 
       <Button className="w-full">
-        <svg className="size-5" fill="none" viewBox="0 0 20 20">
-          <path
-            d="M10 2L2 10H6V18H14V10H18L10 2Z"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinejoin="round"
-          />
-        </svg>
+        <ExecuteIcon className="size-5" aria-hidden="true" />
 
         {t('payments.execute')}
       </Button>
