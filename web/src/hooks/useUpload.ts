@@ -1,11 +1,11 @@
 import { useMutation } from '@tanstack/react-query'
 
-import type { TUploadResult } from 'fractapay-shared'
+import type { TUploadPayload, TUploadResult } from 'fractapay-shared'
 
-import { uploadPaymentFile } from '../services/api'
+import { upload } from '../services/api'
 
 export function useUpload() {
-  return useMutation<TUploadResult, Error, File>({
-    mutationFn: uploadPaymentFile,
+  return useMutation<TUploadResult, Error, TUploadPayload>({
+    mutationFn: upload,
   })
 }
