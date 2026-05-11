@@ -1,15 +1,24 @@
 import axios, { isAxiosError } from 'axios'
 
-import type { TUploadResult } from 'fractapay-shared'
+import type { TUploadPayload, TUploadResult } from 'fractapay-shared'
 import { ErrorCode } from 'fractapay-shared'
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000',
 })
 
-export async function uploadPaymentFile(file: File): Promise<TUploadResult> {
+export async function upload({
+  file,
+  token,
+  destinationAddress,
+}: TUploadPayload): Promise<TUploadResult> {
   const formData = new FormData()
 
+  if (destinationAddress) {
+    formData.append('destinationAddress', destinationAddress)
+  }
+
+  formData.append('token', token)
   formData.append('file', file)
 
   try {
