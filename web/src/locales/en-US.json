@@ -29,6 +29,10 @@
     "copy": "Copy address",
     "copied": "Copied!"
   },
+  "footer": {
+    "builtFor": "Built for Hackathon Stellar 37°",
+    "linkedin": "LinkedIn"
+  },
   "header": {
     "switchLanguage": "Switch language"
   },

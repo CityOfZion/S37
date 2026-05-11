@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { toast,Toaster } from 'sonner'
+import { toast, Toaster } from 'sonner'
 
 import type { TPayment } from 'fractapay-shared'
 
 import { FileUpload } from './components/FileUpload'
+import { Footer } from './components/Footer'
 import { Header } from './components/Header'
 import { PaymentList } from './components/PaymentList'
 
@@ -34,7 +35,7 @@ export const App = () => {
             Stellar 37°
           </div>
 
-          <h2 className="text-4xl font-bold bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+          <h2 className="text-4xl font-bold bg-linear-to-r from-white to-gray-400 bg-clip-text text-transparent">
             {t('app.subtitle')}
           </h2>
 
@@ -45,6 +46,8 @@ export const App = () => {
 
         <PaymentList payments={payments} />
       </main>
+
+      <Footer />
     </div>
   )
 }
