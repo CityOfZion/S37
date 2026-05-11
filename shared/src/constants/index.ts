@@ -8,3 +8,7 @@ export const ALLOWED_MIME_TYPES = [
 ] as const
 
 export const ALLOWED_INPUT_ACCEPT = ALLOWED_EXTENSIONS.map(extension => `.${extension}`).join(',')
+
+export const SUPPORTED_TOKENS = ['XLM', 'USDC', 'EURC'] as const
+
+export const STELLAR_DECIMALS = 7
