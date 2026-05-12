@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk'
 import BigNumber from 'bignumber.js'
+import * as uuid from 'uuid'
 
 import type { TPaymentResponse, TToken } from 'fractapay-shared'
 import { ErrorCode, STELLAR_DECIMALS } from 'fractapay-shared'
@@ -109,6 +110,7 @@ export async function analyzePayments(
       return amount.isGreaterThan(0) && payment.address.trim().length > 0
     })
     .map(payment => ({
+      id: uuid.v4(),
       address: payment.address,
       amount: new BigNumber(payment.amount).decimalPlaces(STELLAR_DECIMALS, BigNumber.ROUND_DOWN),
       token: options.token,
