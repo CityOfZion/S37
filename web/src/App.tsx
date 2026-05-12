@@ -9,17 +9,17 @@ import type { TPayment } from 'fractapay-shared'
 import { FileUpload } from './components/FileUpload'
 import { Footer } from './components/Footer'
 import { Header } from './components/Header'
-import { PaymentList } from './components/PaymentList'
+import { PaymentsList } from './components/PaymentsList'
 
 export const App = () => {
-  const { t } = useTranslation()
+  const { t } = useTranslation('common', { keyPrefix: 'app' })
   const [payments, setPayments] = useState<TPayment[]>([])
 
   const handlePaymentsExtracted = (extracted: TPayment[]) => {
     setPayments(extracted)
 
-    toast.success(t('upload.success'), {
-      description: t('payments.count', { count: extracted.length }),
+    toast.success(t('uploadSuccess'), {
+      description: t('paymentsCount', { count: extracted.length }),
     })
   }
 
@@ -34,19 +34,19 @@ export const App = () => {
           <div className="text-center space-y-3">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-4">
               <span className="size-1.5 rounded-full bg-primary animate-pulse" />
-              Stellar 37°
+              {t('hackathon')}
             </div>
 
             <h2 className="text-4xl font-bold bg-linear-to-r from-white to-gray-400 bg-clip-text text-transparent">
-              {t('app.subtitle')}
+              {t('subtitle')}
             </h2>
 
-            <p className="text-gray-400 max-w-lg mx-auto">{t('app.tagline')}</p>
+            <p className="text-gray-400 max-w-lg mx-auto">{t('tagline')}</p>
           </div>
 
           <FileUpload onPaymentsExtracted={handlePaymentsExtracted} />
 
-          <PaymentList payments={payments} onPaymentsChange={setPayments} />
+          <PaymentsList payments={payments} onPaymentsChange={setPayments} />
         </main>
 
         <Footer />

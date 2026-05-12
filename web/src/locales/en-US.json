@@ -1,61 +1,77 @@
 {
-  "app": {
-    "subtitle": "AI-powered batch payment processor.",
-    "tagline": "Upload a file, let AI extract payment data, execute on Stellar.",
-    "poweredBy": "Powered by Stellar"
-  },
-  "form": {
-    "token": {
-      "label": "Token",
-      "placeholder": "Select a token",
-      "hint": "Select the token you want to use for payments."
-    },
-    "address": {
-      "label": "Destination address",
-      "placeholder": "E.g.: GABCD…VWXYZ",
-      "hint": "Optional. If set, all payments go to this address. Otherwise, addresses are extracted from the file."
+  "common": {
+    "app": {
+      "subtitle": "AI-powered batch payment processor.",
+      "tagline": "Upload a file, let AI extract payment data, execute on Stellar.",
+      "uploadSuccess": "File processed successfully!",
+      "paymentsCount": "{{count}} payment",
+      "paymentsCount_plural": "{{count}} payments",
+      "hackathon": "Stellar 37°"
     }
   },
-  "upload": {
-    "description": "Drag & drop or click to upload your payment file",
-    "formats": "Supported formats: CSV, XLS, XLSX, PDF, TXT",
-    "button": "Choose File",
-    "analyzing": "AI analyzing payments…",
-    "success": "File processed successfully!",
-    "dragActive": "Drop the file here…",
-    "submit": "Analyze payments"
-  },
-  "payments": {
-    "title": "Extracted Payments",
-    "address": "Stellar address",
-    "amount": "Amount",
-    "description": "Description",
-    "count": "{{count}} payment",
-    "count_plural": "{{count}} payments",
-    "execute": "Execute payments",
-    "empty": "No payments extracted yet. Upload a file to get started.",
-    "copy": "Copy address",
-    "edit": "Edit payment",
-    "save": "Save",
-    "cancel": "Cancel",
-    "delete": "Delete payment",
-    "addPayment": "Add payment",
-    "actions": "Actions"
-  },
-  "footer": {
-    "builtFor": "Built for Hackathon Stellar 37°",
-    "linkedin": "LinkedIn"
-  },
-  "header": {
-    "switchLanguage": "Switch language"
-  },
-  "errors": {
-    "NO_FILE": "No file provided",
-    "UNSUPPORTED_FILE_TYPE": "Unsupported file type, allowed: CSV, XLS, XLSX, PDF, TXT",
-    "INVALID_TOKEN": "Invalid token selected",
-    "AI_RESPONSE_TYPE": "Unexpected response from AI",
-    "AI_PARSE_FAILED": "Could not parse AI response",
-    "NETWORK_ERROR": "Network error, please, try again",
-    "UNKNOWN": "An unexpected error occurred"
+  "components": {
+    "header": {
+      "poweredBy": "Powered by Stellar"
+    },
+    "footer": {
+      "builtFor": "Built for Hackathon Stellar 37°",
+      "linkedin": "LinkedIn",
+      "switchLanguage": "Switch language"
+    },
+    "fileUpload": {
+      "form": {
+        "token": {
+          "label": "Token",
+          "placeholder": "Select a token",
+          "hint": "Select the token you want to use for payments."
+        },
+        "address": {
+          "label": "Destination address",
+          "placeholder": "E.g.: GABCD…VWXYZ",
+          "info": "Optional. If set, all payments go to this address. Otherwise, addresses are extracted from the file.",
+          "error": "Invalid Stellar address"
+        }
+      },
+      "upload": {
+        "description": "Drag & drop or click to upload your payment file",
+        "formats": "Supported formats: CSV, XLSX, XLS, PDF and TXT",
+        "button": "Choose File",
+        "analyzing": "AI analyzing payments…",
+        "dragActive": "Drop the file here…",
+        "submit": "Analyze payments"
+      },
+      "errors": {
+        "NO_FILE": "No file provided",
+        "UNSUPPORTED_FILE_TYPE": "Unsupported file type, allowed: CSV, XLSX, XLS, PDF and TXT",
+        "INVALID_TOKEN": "Invalid token selected",
+        "AI_RESPONSE_TYPE": "Unexpected response from AI",
+        "AI_PARSE_FAILED": "Could not parse AI response",
+        "NETWORK_ERROR": "Network error, please, try again",
+        "UNKNOWN": "An unexpected error occurred"
+      }
+    },
+    "paymentsList": {
+      "title": "Extracted Payments",
+      "address": "Stellar address",
+      "amount": "Amount",
+      "description": "Description",
+      "count": "{{count}} payment",
+      "count_plural": "{{count}} payments",
+      "execute": "Execute payments",
+      "empty": "No payments extracted yet. Upload a file to get started.",
+      "copy": "Copy address",
+      "edit": "Edit payment",
+      "save": "Save",
+      "cancel": "Cancel",
+      "delete": "Delete payment",
+      "addPayment": "Add payment",
+      "actions": "Actions"
+    },
+    "input": {
+      "paste": "Paste from clipboard"
+    },
+    "info": {
+      "label": "Info"
+    }
   }
 }

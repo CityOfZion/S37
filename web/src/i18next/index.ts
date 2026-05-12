@@ -19,9 +19,10 @@ const detectLanguage = (): TLanguage => {
 
 void i18n.use(initReactI18next).init({
   resources: {
-    [defaultLang]: { translation: enUS },
-    'pt-BR': { translation: ptBR },
+    [defaultLang]: enUS,
+    'pt-BR': ptBR,
   },
+  defaultNS: 'common',
   lng: detectLanguage(),
   fallbackLng: defaultLang,
   interpolation: { escapeValue: false },
