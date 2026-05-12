@@ -12,6 +12,7 @@ build/
 # Rust / WASM
 target/
 *.wasm
+test_snapshots/
 
 # Environment variables
 .env
