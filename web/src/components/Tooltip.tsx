@@ -14,12 +14,11 @@ export const Tooltip = ({ content, children }: TProps) => (
     <RadixTooltip.Portal>
       <RadixTooltip.Content
         sideOffset={6}
-        className="z-50 rounded-lg bg-gray-800 px-2.5 py-1.5 text-xs text-white shadow-lg border border-white/10 animate-in fade-in-0 zoom-in-95"
+        className="z-50 rounded-lg max-w-48 text-center break-all bg-gray-800 px-2.5 py-1.5 text-xs text-white shadow-lg border border-white/10 animate-in fade-in-0 zoom-in-95"
       >
-        {content}
+        <span className="block">{content}</span>
         <RadixTooltip.Arrow className="fill-gray-800" />
       </RadixTooltip.Content>
     </RadixTooltip.Portal>
   </RadixTooltip.Root>
 )
-

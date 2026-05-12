@@ -1,4 +1,4 @@
-import { type ButtonHTMLAttributes } from 'react'
+import { type ButtonHTMLAttributes, forwardRef } from 'react'
 
 import { StyleHelper } from '../helpers/StyleHelper'
 
@@ -25,17 +25,13 @@ const SIZE_CLASSES: Record<TButtonSize, string> = {
   md: 'text-base px-6 py-3',
 }
 
-export const Button = ({
-  variant = 'primary',
-  size = 'md',
-  className,
-  children,
-  ...props
-}: TProps) => {
-  return (
+export const Button = forwardRef<HTMLButtonElement, TProps>(
+  ({ variant = 'primary', size = 'md', className, children, ...props }, ref) => (
     <button
+      ref={ref}
       className={StyleHelper.merge(
         'flex items-center justify-center gap-2',
+        'disabled:opacity-50 disabled:select-none disabled:pointer-events-none disabled:bg-gray-600 disabled:shadow-none disabled:text-gray-300',
         VARIANT_CLASSES[variant],
         variant !== 'ghost' && SIZE_CLASSES[size],
         className
@@ -45,4 +41,6 @@ export const Button = ({
       {children}
     </button>
   )
-}
+)
+
+Button.displayName = 'Button'

@@ -20,8 +20,8 @@ export const Field = ({ className, children, ...props }: TProps) => (
 Field.Label = ({ required, className, children, ...props }: TLabelProps) => (
   <label
     className={StyleHelper.merge(
-      'text-sm font-medium text-gray-300',
-      { "after:content-['*'] after:ml-0.5 after:text-red-400": !!required },
+      'text-sm font-medium text-gray-300 flex items-center gap-1',
+      { "after:content-['*'] after:-ml-0.5 after:text-red-400": !!required },
       className
     )}
     {...props}
