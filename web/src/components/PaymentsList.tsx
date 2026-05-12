@@ -29,8 +29,8 @@ type TProps = {
   onPaymentsChange: (payments: TPayment[]) => void
 }
 
-export const PaymentList = ({ payments, onPaymentsChange }: TProps) => {
-  const { t } = useTranslation()
+export const PaymentsList = ({ payments, onPaymentsChange }: TProps) => {
+  const { t } = useTranslation('components', { keyPrefix: 'paymentsList' })
   const [copied, setCopied] = useState<string | null>(null)
   const [editingPayment, setEditingPayment] = useState<TPayment | null>(null)
   const [defaultToken, setDefaultToken] = useState<TToken>()
@@ -131,7 +131,7 @@ export const PaymentList = ({ payments, onPaymentsChange }: TProps) => {
     return (
       <div className="text-center py-16 text-gray-500">
         <EmptyStateIcon className="size-12 mx-auto mb-4 opacity-30" aria-hidden="true" />
-        <p>{t('payments.empty')}</p>
+        <p>{t('empty')}</p>
       </div>
     )
   }
@@ -139,8 +139,8 @@ export const PaymentList = ({ payments, onPaymentsChange }: TProps) => {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-white font-semibold text-lg">{t('payments.title')}</h2>
-        <p className="text-sm text-gray-400">{t('payments.count', { count: payments.length })}</p>
+        <h2 className="text-white font-semibold text-lg">{t('title')}</h2>
+        <p className="text-sm text-gray-400">{t('count', { count: payments.length })}</p>
       </div>
 
       <div className="rounded-xl border border-white/10 overflow-hidden">
@@ -148,16 +148,16 @@ export const PaymentList = ({ payments, onPaymentsChange }: TProps) => {
           <thead className="bg-white/5">
             <tr>
               <th className="text-left px-4 py-3 text-xs font-medium text-gray-400 uppercase tracking-wider">
-                {t('payments.address')}
+                {t('address')}
               </th>
               <th className="text-right px-4 py-3 text-xs font-medium text-gray-400 uppercase tracking-wider">
-                {t('payments.amount')}
+                {t('amount')}
               </th>
               <th className="text-left px-4 py-3 text-xs font-medium text-gray-400 uppercase tracking-wider hidden md:table-cell">
-                {t('payments.description')}
+                {t('description')}
               </th>
               <th className="text-right px-4 py-3 text-xs font-medium text-gray-400 uppercase tracking-wider w-24">
-                {t('payments.actions')}
+                {t('actions')}
               </th>
             </tr>
           </thead>
@@ -168,8 +168,8 @@ export const PaymentList = ({ payments, onPaymentsChange }: TProps) => {
                   <td className="px-4 py-3">
                     <input
                       name="address"
-                      aria-label={t('payments.address')}
-                      placeholder={t('payments.address')}
+                      aria-label={t('address')}
+                      placeholder={t('address')}
                       type="text"
                       className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none focus:border-primary"
                       value={editingPayment.address}
@@ -179,8 +179,8 @@ export const PaymentList = ({ payments, onPaymentsChange }: TProps) => {
                   <td className="px-4 py-3">
                     <input
                       name="amount"
-                      aria-label={t('payments.amount')}
-                      placeholder={t('payments.amount')}
+                      aria-label={t('amount')}
+                      placeholder={t('amount')}
                       type="text"
                       inputMode="decimal"
                       className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none focus:border-primary"
@@ -192,8 +192,8 @@ export const PaymentList = ({ payments, onPaymentsChange }: TProps) => {
                   <td className="px-4 py-3 hidden md:table-cell">
                     <input
                       name="description"
-                      aria-label={t('payments.description')}
-                      placeholder={t('payments.description')}
+                      aria-label={t('description')}
+                      placeholder={t('description')}
                       type="text"
                       className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none focus:border-primary"
                       value={editingPayment.description || ''}
@@ -202,21 +202,13 @@ export const PaymentList = ({ payments, onPaymentsChange }: TProps) => {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-1">
-                      <Tooltip content={t('payments.save')}>
-                        <Button
-                          variant="ghost"
-                          onClick={saveEditing}
-                          aria-label={t('payments.save')}
-                        >
+                      <Tooltip content={t('save')}>
+                        <Button variant="ghost" onClick={saveEditing} aria-label={t('save')}>
                           <SaveIcon className="size-4 text-green-400" aria-hidden="true" />
                         </Button>
                       </Tooltip>
-                      <Tooltip content={t('payments.cancel')}>
-                        <Button
-                          variant="ghost"
-                          onClick={cancelEditing}
-                          aria-label={t('payments.cancel')}
-                        >
+                      <Tooltip content={t('cancel')}>
+                        <Button variant="ghost" onClick={cancelEditing} aria-label={t('cancel')}>
                           <DeleteIcon className="size-4 text-red-400" aria-hidden="true" />
                         </Button>
                       </Tooltip>
@@ -227,15 +219,17 @@ export const PaymentList = ({ payments, onPaymentsChange }: TProps) => {
                 <tr key={payment.id} className="hover:bg-white/5 transition-colors">
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
-                      <span className="font-mono text-sm text-gray-300">
-                        {StringHelper.truncateMiddle(payment.address, 20)}
-                      </span>
-                      <Tooltip content={t('payments.copy')}>
+                      <Tooltip content={payment.address}>
+                        <span className="font-mono text-sm text-gray-300">
+                          {StringHelper.truncateMiddle(payment.address, 20)}
+                        </span>
+                      </Tooltip>
+                      <Tooltip content={t('copy')}>
                         <Button
                           variant="ghost"
                           onClick={() => void copyAddress(payment.address)}
                           className="shrink-0"
-                          aria-label={t('payments.copy')}
+                          aria-label={t('copy')}
                         >
                           {copied === payment.address ? (
                             <CheckIcon className="size-4 text-green-400" aria-hidden="true" />
@@ -255,20 +249,20 @@ export const PaymentList = ({ payments, onPaymentsChange }: TProps) => {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-1">
-                      <Tooltip content={t('payments.edit')}>
+                      <Tooltip content={t('edit')}>
                         <Button
                           variant="ghost"
                           onClick={() => startEditing(payment)}
-                          aria-label={t('payments.edit')}
+                          aria-label={t('edit')}
                         >
                           <EditIcon className="size-4" aria-hidden="true" />
                         </Button>
                       </Tooltip>
-                      <Tooltip content={t('payments.delete')}>
+                      <Tooltip content={t('delete')}>
                         <Button
                           variant="ghost"
                           onClick={() => deletePayment(payment.id)}
-                          aria-label={t('payments.delete')}
+                          aria-label={t('delete')}
                         >
                           <DeleteIcon className="size-4 text-red-400" aria-hidden="true" />
                         </Button>
@@ -285,12 +279,12 @@ export const PaymentList = ({ payments, onPaymentsChange }: TProps) => {
       <div className="flex gap-3">
         <Button variant="outline" className="flex-1" onClick={addPayment}>
           <AddIcon className="size-4" aria-hidden="true" />
-          {t('payments.addPayment')}
+          {t('addPayment')}
         </Button>
 
         <Button className="flex-1">
           <ExecuteIcon className="size-5" aria-hidden="true" />
-          {t('payments.execute')}
+          {t('execute')}
         </Button>
       </div>
     </div>

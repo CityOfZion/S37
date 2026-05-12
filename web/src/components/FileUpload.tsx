@@ -1,4 +1,12 @@
-import { type ChangeEvent, type DragEvent, type FormEvent, useCallback, useState } from 'react'
+import {
+  type ChangeEvent,
+  type DragEvent,
+  type FormEvent,
+  Fragment,
+  useCallback,
+  useEffect,
+  useState,
+} from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { match } from 'ts-pattern'
@@ -13,9 +21,11 @@ import { InputHelper } from '../helpers/InputHelper'
 import { StyleHelper } from '../helpers/StyleHelper'
 import { useUpload } from '../hooks/useUpload'
 import { Button } from './Button'
+import { Info } from './Info'
 import { Input } from './Input'
 import { Select } from './Select'
 
+import InfoIcon from '../assets/icons/info-icon.svg?react'
 import LoadingSpinnerIcon from '../assets/icons/loading-spinner-icon.svg?react'
 import UploadIcon from '../assets/icons/upload-icon.svg?react'
 
@@ -42,20 +52,22 @@ type TProps = {
 }
 
 export const FileUpload = ({ onPaymentsExtracted }: TProps) => {
-  const { t } = useTranslation()
+  const { t } = useTranslation('components', { keyPrefix: 'fileUpload' })
   const { mutate, isPending, data } = useUpload()
   const [isDragActive, setIsDragActive] = useState(false)
   const [token, setToken] = useState<TToken>('XLM')
   const [destinationAddress, setDestinationAddress] = useState('')
+  const [destinationAddressError, setDestinationAddressError] = useState<string | undefined>()
   const [file, setFile] = useState<File | null>(null)
 
   const errorCode = data && !data.success ? (data.error ?? ErrorCode.UNKNOWN) : null
+  const isInvalid = !token || !file || !!destinationAddressError || isPending
 
   const handleSubmit = useCallback(
     (event: FormEvent<HTMLFormElement>) => {
       event.preventDefault()
 
-      if (!file) return
+      if (isInvalid) return
 
       mutate(
         {
@@ -72,8 +84,16 @@ export const FileUpload = ({ onPaymentsExtracted }: TProps) => {
         }
       )
     },
-    [mutate, onPaymentsExtracted, token, destinationAddress, file]
+    [isInvalid, mutate, file, token, destinationAddress, onPaymentsExtracted]
   )
+
+  const handleDestinationAddressPaste = (value: string) => {
+    setDestinationAddress(InputHelper.sanitizeAddress(value))
+  }
+
+  const handleDestinationAddressChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setDestinationAddress(InputHelper.sanitizeAddressEvent(event))
+  }
 
   const handleDrop = (event: DragEvent<HTMLDivElement>) => {
     event.preventDefault()
@@ -91,6 +111,16 @@ export const FileUpload = ({ onPaymentsExtracted }: TProps) => {
     if (newFile) setFile(newFile)
   }
 
+  useEffect(() => {
+    setDestinationAddressError(
+      destinationAddress && !InputHelper.isValidAddress(destinationAddress)
+        ? t('form.address.error')
+        : undefined
+    )
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [destinationAddress])
+
   return (
     <form className="space-y-4" onSubmit={handleSubmit}>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -107,11 +137,17 @@ export const FileUpload = ({ onPaymentsExtracted }: TProps) => {
 
         <Input
           name="destinationAddress"
-          label={t('form.address.label')}
+          label={
+            <Fragment>
+              {t('form.address.label')}
+              <Info content={t('form.address.info')} icon={<InfoIcon aria-hidden="true" />} />
+            </Fragment>
+          }
           placeholder={t('form.address.placeholder')}
-          hint={t('form.address.hint')}
           value={destinationAddress}
-          onChange={event => setDestinationAddress(InputHelper.sanitizeAddressEvent(event))}
+          error={destinationAddressError}
+          onChange={handleDestinationAddressChange}
+          onPaste={handleDestinationAddressPaste}
         />
       </div>
 
@@ -139,6 +175,7 @@ export const FileUpload = ({ onPaymentsExtracted }: TProps) => {
           aria-label={t('upload.button')}
           name="file"
           type="file"
+          required
           accept={ALLOWED_INPUT_ACCEPT}
           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
           disabled={isPending}
@@ -189,7 +226,7 @@ export const FileUpload = ({ onPaymentsExtracted }: TProps) => {
         </div>
       </div>
 
-      <Button type="submit" className="w-full" disabled={!file || isPending}>
+      <Button type="submit" className="w-full" disabled={isInvalid}>
         {isPending ? t('upload.analyzing') : t('upload.submit')}
       </Button>
     </form>
