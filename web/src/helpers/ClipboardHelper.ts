@@ -10,9 +10,9 @@ export class ClipboardHelper {
 
     try {
       await navigator.clipboard.writeText(value)
-  
+
       onSuccess?.()
-  
+
       if (onAfterSuccess) {
         setTimeout(() => onAfterSuccess(), afterSuccessMilliseconds ?? 2000)
       }
