@@ -1,13 +1,13 @@
+import * as XLSX from '@e965/xlsx'
 import { parse as csvParse } from 'csv-parse/sync'
-import ExcelJS from 'exceljs'
 import pdfParse from 'pdf-parse'
 
 import type { TSupportedFileType } from '../types'
 
 export async function parseFile(
   buffer: Buffer,
-  mimeType: string,
-  filename: string
+  filename: string,
+  mimeType: string
 ): Promise<string> {
   const extension = filename.split('.').pop()?.toLowerCase() as TSupportedFileType | undefined
 
@@ -17,17 +17,18 @@ export async function parseFile(
 
   if (
     mimeType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
-    extension === 'xlsx'
+    mimeType === 'application/vnd.ms-excel' ||
+    extension === 'xlsx' ||
+    extension === 'xls'
   ) {
     return parseExcel(buffer)
   }
 
   if (mimeType === 'application/pdf' || extension === 'pdf') {
-    return parsePdf(buffer)
+    return await parsePdf(buffer)
   }
 
-  // Default: treat as plain text
-  return buffer.toString('utf-8')
+  return parseTxt(buffer)
 }
 
 function parseCsv(buffer: Buffer): string {
@@ -37,35 +38,31 @@ function parseCsv(buffer: Buffer): string {
     trim: true,
   }) as Record<string, string>[]
 
-  return JSON.stringify(records, null, 2)
+  return JSON.stringify(records, null, 2).trim()
 }
 
-async function parseExcel(buffer: Buffer): Promise<string> {
-  const workbook = new ExcelJS.Workbook()
-
-  await workbook.xlsx.load(buffer as unknown as Parameters<typeof workbook.xlsx.load>[0])
-
+function parseExcel(buffer: Buffer): string {
+  const workbook = XLSX.read(buffer, { type: 'buffer' })
   const results: string[] = []
 
-  workbook.eachSheet(sheet => {
-    const rows: string[][] = []
+  for (const sheetName of workbook.SheetNames) {
+    const sheet = workbook.Sheets[sheetName]
+    const value = XLSX.utils.sheet_to_csv(sheet).trim()
 
-    sheet.eachRow({ includeEmpty: false }, row => {
-      const values = (row.values as ExcelJS.CellValue[]).slice(1)
-
-      rows.push(values.map(value => (value === null || value === undefined ? '' : String(value))))
-    })
-
-    if (rows.length > 0) {
-      results.push(`Sheet: ${sheet.name}\n${rows.map(row => row.join(',')).join('\n')}`)
+    if (value) {
+      results.push(`Sheet: ${sheetName}\n${value}`)
     }
-  })
+  }
 
-  return results.join('\n\n')
+  return results.join('\n\n').trim()
 }
 
 async function parsePdf(buffer: Buffer): Promise<string> {
   const data = await pdfParse(buffer)
 
-  return data.text
+  return data.text.trim()
+}
+
+function parseTxt(buffer: Buffer): string {
+  return buffer.toString('utf-8').trim()
 }

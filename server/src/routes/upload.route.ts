@@ -58,7 +58,7 @@ export const uploadRoutes = async (fastify: FastifyInstance): Promise<void> => {
     const buffer = Buffer.concat(chunks)
 
     try {
-      const fileContent = await parseFile(buffer, data.mimetype, data.filename)
+      const fileContent = await parseFile(buffer, data.filename, data.mimetype)
 
       const result = await analyzePayments(fileContent, {
         token,
