@@ -4,30 +4,43 @@
     "tagline": "Upload a file, let AI extract payment data, execute on Stellar.",
     "poweredBy": "Powered by Stellar"
   },
+  "form": {
+    "token": {
+      "label": "Token",
+      "placeholder": "Select a token",
+      "hint": "Select the token you want to use for payments."
+    },
+    "address": {
+      "label": "Destination address",
+      "placeholder": "E.g.: GABCD…VWXYZ",
+      "hint": "Optional. If set, all payments go to this address. Otherwise, addresses are extracted from the file."
+    }
+  },
   "upload": {
-    "title": "Upload payment file",
     "description": "Drag & drop or click to upload your payment file",
     "formats": "Supported formats: CSV, XLS, XLSX, PDF, TXT",
     "button": "Choose File",
-    "processing": "Processing file…",
     "analyzing": "AI analyzing payments…",
     "success": "File processed successfully!",
-    "error": "Failed to process file",
-    "dragActive": "Drop the file here…"
+    "dragActive": "Drop the file here…",
+    "submit": "Analyze payments"
   },
   "payments": {
     "title": "Extracted Payments",
     "address": "Stellar address",
     "amount": "Amount",
     "description": "Description",
-    "total": "Total",
     "count": "{{count}} payment",
     "count_plural": "{{count}} payments",
-    "execute": "Execute eayments",
-    "executing": "Executing…",
+    "execute": "Execute payments",
     "empty": "No payments extracted yet. Upload a file to get started.",
     "copy": "Copy address",
-    "copied": "Copied!"
+    "edit": "Edit payment",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete payment",
+    "addPayment": "Add payment",
+    "actions": "Actions"
   },
   "footer": {
     "builtFor": "Built for Hackathon Stellar 37°",
@@ -39,6 +52,7 @@
   "errors": {
     "NO_FILE": "No file provided",
     "UNSUPPORTED_FILE_TYPE": "Unsupported file type, allowed: CSV, XLS, XLSX, PDF, TXT",
+    "INVALID_TOKEN": "Invalid token selected",
     "AI_RESPONSE_TYPE": "Unexpected response from AI",
     "AI_PARSE_FAILED": "Could not parse AI response",
     "NETWORK_ERROR": "Network error, please, try again",

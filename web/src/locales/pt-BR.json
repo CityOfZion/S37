@@ -4,30 +4,43 @@
     "tagline": "Envie um arquivo, deixe a IA extrair os dados de pagamento e execute na Stellar.",
     "poweredBy": "Com tecnologia da Stellar"
   },
+  "form": {
+    "token": {
+      "label": "Token",
+      "placeholder": "Selecione um token",
+      "hint": "Selecione o token que deseja usar para pagamentos."
+    },
+    "address": {
+      "label": "Endereço de destino",
+      "placeholder": "Ex.: GABCD…VWXYZ",
+      "hint": "Opcional. Se definido, todos os pagamentos serão enviados para este endereço. Caso contrário, os endereços são extraídos do arquivo."
+    }
+  },
   "upload": {
-    "title": "Enviar Arquivo de Pagamentos",
     "description": "Arraste & solte ou clique para enviar seu arquivo",
     "formats": "Formatos suportados: CSV, XLS, XLSX, PDF, TXT",
     "button": "Escolher arquivo",
-    "processing": "Processando arquivo…",
     "analyzing": "IA analisando pagamentos…",
     "success": "Arquivo processado com sucesso!",
-    "error": "Falha ao processar arquivo",
-    "dragActive": "Solte o arquivo aqui…"
+    "dragActive": "Solte o arquivo aqui…",
+    "submit": "Analisar pagamentos"
   },
   "payments": {
     "title": "Pagamentos extraídos",
     "address": "Endereço Stellar",
     "amount": "Valor",
     "description": "Descrição",
-    "total": "Total",
     "count": "{{count}} pagamento",
     "count_plural": "{{count}} pagamentos",
-    "execute": "Executar Pagamentos",
-    "executing": "Executando…",
+    "execute": "Executar pagamentos",
     "empty": "Nenhum pagamento extraído ainda. Envie um arquivo para começar.",
     "copy": "Copiar endereço",
-    "copied": "Copiado!"
+    "edit": "Editar pagamento",
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "delete": "Excluir pagamento",
+    "addPayment": "Adicionar pagamento",
+    "actions": "Ações"
   },
   "footer": {
     "builtFor": "Construído para o Hackathon Stellar 37°",
@@ -39,6 +52,7 @@
   "errors": {
     "NO_FILE": "Nenhum arquivo fornecido",
     "UNSUPPORTED_FILE_TYPE": "Tipo de arquivo não suportado, permitidos: CSV, XLS, XLSX, PDF, TXT",
+    "INVALID_TOKEN": "Token selecionado inválido",
     "AI_RESPONSE_TYPE": "Resposta inesperada da IA",
     "AI_PARSE_FAILED": "Não foi possível processar a resposta da IA",
     "NETWORK_ERROR": "Erro de rede, tente novamente",
