@@ -5,7 +5,7 @@ import { StyleHelper } from '../helpers/StyleHelper'
 type TButtonVariant = 'primary' | 'outline' | 'ghost'
 type TButtonSize = 'xs' | 'sm' | 'md'
 
-type TButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
+type TProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: TButtonVariant
   size?: TButtonSize
 }
@@ -31,7 +31,7 @@ export const Button = ({
   className,
   children,
   ...props
-}: TButtonProps) => {
+}: TProps) => {
   return (
     <button
       className={StyleHelper.merge(

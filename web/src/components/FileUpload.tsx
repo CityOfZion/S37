@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 
 import { match } from 'ts-pattern'
 
-import type { TPayment, TToken } from 'fractapay-shared'
+import { ErrorCode, TPayment, TToken } from 'fractapay-shared'
 import { ALLOWED_INPUT_ACCEPT } from 'fractapay-shared'
 
 import eurcIconUrl from '../assets/icons/eurc-icon.png'
@@ -36,11 +36,11 @@ const TOKEN_OPTIONS = [
   },
 ]
 
-type TFileUploadProps = {
+type TProps = {
   onPaymentsExtracted: (payments: TPayment[]) => void
 }
 
-export const FileUpload = ({ onPaymentsExtracted }: TFileUploadProps) => {
+export const FileUpload = ({ onPaymentsExtracted }: TProps) => {
   const { t } = useTranslation()
   const { mutate, isPending, data } = useUpload()
   const [isDragActive, setIsDragActive] = useState(false)
@@ -48,7 +48,7 @@ export const FileUpload = ({ onPaymentsExtracted }: TFileUploadProps) => {
   const [destinationAddress, setDestinationAddress] = useState('')
   const [file, setFile] = useState<File | null>(null)
 
-  const errorCode = data && !data.success ? (data.error ?? 'UNKNOWN') : null
+  const errorCode = data && !data.success ? (data.error ?? ErrorCode.UNKNOWN) : null
 
   const handleSubmit = useCallback(
     (event: FormEvent<HTMLFormElement>) => {

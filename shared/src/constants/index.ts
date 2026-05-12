@@ -3,6 +3,7 @@ export const ALLOWED_EXTENSIONS = ['csv', 'xls', 'xlsx', 'pdf', 'txt'] as const
 export const ALLOWED_MIME_TYPES = [
   'text/csv',
   'text/plain',
+  'application/vnd.ms-excel',
   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   'application/pdf',
 ] as const
