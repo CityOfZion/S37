@@ -15,7 +15,7 @@ Three independent packages, each with its own `node_modules` / `Cargo.lock`:
 ```
 server/     Node.js + Fastify + TypeScript  (port 3000)
 web/        React + Vite + TypeScript       (port 5173)
-contracts/  Rust + Soroban SDK 22
+contracts/  Rust + Soroban SDK 26
 ```
 
 All three must be set up and run independently. There is no root-level `package.json`.
