@@ -9,6 +9,7 @@ import { ALLOWED_INPUT_ACCEPT } from 'fractapay-shared'
 import eurcIconUrl from '../assets/icons/eurc-icon.png'
 import usdcIconUrl from '../assets/icons/usdc-icon.png'
 import xlmIconUrl from '../assets/icons/xlm-icon.png'
+import { InputHelper } from '../helpers/InputHelper'
 import { StyleHelper } from '../helpers/StyleHelper'
 import { useUpload } from '../hooks/useUpload'
 import { Button } from './Button'
@@ -110,7 +111,7 @@ export const FileUpload = ({ onPaymentsExtracted }: TProps) => {
           placeholder={t('form.address.placeholder')}
           hint={t('form.address.hint')}
           value={destinationAddress}
-          onChange={event => setDestinationAddress(event.target.value.trim())}
+          onChange={event => setDestinationAddress(InputHelper.sanitizeAddressEvent(event))}
         />
       </div>
 

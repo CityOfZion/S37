@@ -10,6 +10,7 @@ import { STELLAR_DECIMALS } from 'fractapay-shared'
 
 import { EMPTY_COLUMN } from '../constants'
 import { ClipboardHelper } from '../helpers/ClipboardHelper'
+import { InputHelper } from '../helpers/InputHelper'
 import { StringHelper } from '../helpers/StringHelper'
 import { Button } from './Button'
 import { Tooltip } from './Tooltip'
@@ -113,8 +114,10 @@ export const PaymentList = ({ payments, onPaymentsChange }: TProps) => {
         STELLAR_DECIMALS,
         BigNumber.ROUND_DOWN
       )
-    } else if (field === 'address' || field === 'description') {
-      updated[field] = value
+    } else if (field === 'address') {
+      updated.address = InputHelper.sanitizeAddressEvent(event)
+    } else if (field === 'description') {
+      updated.description = value
     }
 
     setEditingPayment(updated)
