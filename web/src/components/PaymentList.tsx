@@ -59,7 +59,9 @@ export const PaymentList = ({ payments, onPaymentsChange }: TProps) => {
     }
 
     onPaymentsChange(
-      payments.map(payment => (payment.id === editingPayment.id ? cloneDeep(editingPayment) : payment))
+      payments.map(payment =>
+        payment.id === editingPayment.id ? cloneDeep(editingPayment) : payment
+      )
     )
 
     setEditingPayment(null)

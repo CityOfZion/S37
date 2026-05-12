@@ -8,12 +8,21 @@ import { TLanguage } from '../types'
 
 const defaultLang: TLanguage = 'en-US'
 
+const detectLanguage = (): TLanguage => {
+  const browserLang = navigator.language.toLowerCase()
+
+  if (browserLang.startsWith('pt')) return 'pt-BR'
+  if (browserLang.startsWith('en')) return defaultLang
+
+  return defaultLang
+}
+
 void i18n.use(initReactI18next).init({
   resources: {
     [defaultLang]: { translation: enUS },
     'pt-BR': { translation: ptBR },
   },
-  lng: defaultLang,
+  lng: detectLanguage(),
   fallbackLng: defaultLang,
   interpolation: { escapeValue: false },
 })
