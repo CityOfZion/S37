@@ -5,10 +5,12 @@ import * as RadixTooltip from '@radix-ui/react-tooltip'
 type TProps = {
   content: string
   children: ReactNode
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
 }
 
-export const Tooltip = ({ content, children }: TProps) => (
-  <RadixTooltip.Root>
+export const Tooltip = ({ content, children, open, onOpenChange }: TProps) => (
+  <RadixTooltip.Root open={open} onOpenChange={onOpenChange}>
     <RadixTooltip.Trigger asChild>{children}</RadixTooltip.Trigger>
 
     <RadixTooltip.Portal>
