@@ -5,6 +5,7 @@ import {
   Fragment,
   useCallback,
   useEffect,
+  useMemo,
   useState,
 } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -14,9 +15,6 @@ import { match } from 'ts-pattern'
 import { ErrorCode, TPayment, TToken } from 'fractapay-shared'
 import { ALLOWED_INPUT_ACCEPT } from 'fractapay-shared'
 
-import eurcIconUrl from '../assets/icons/eurc-icon.png'
-import usdcIconUrl from '../assets/icons/usdc-icon.png'
-import xlmIconUrl from '../assets/icons/xlm-icon.png'
 import { InputHelper } from '../helpers/InputHelper'
 import { StyleHelper } from '../helpers/StyleHelper'
 import { useUpload } from '../hooks/useUpload'
@@ -25,27 +23,12 @@ import { Info } from './Info'
 import { Input } from './Input'
 import { Select } from './Select'
 
+import EurcIcon from '../assets/icons/eurc-icon.svg?react'
 import InfoIcon from '../assets/icons/info-icon.svg?react'
 import LoadingSpinnerIcon from '../assets/icons/loading-spinner-icon.svg?react'
 import UploadIcon from '../assets/icons/upload-icon.svg?react'
-
-const TOKEN_OPTIONS = [
-  {
-    value: 'XLM',
-    label: 'XLM',
-    icon: <img src={xlmIconUrl} alt="XLM" className="size-5 rounded-full" />,
-  },
-  {
-    value: 'USDC',
-    label: 'USDC',
-    icon: <img src={usdcIconUrl} alt="USDC" className="size-5 rounded-full" />,
-  },
-  {
-    value: 'EURC',
-    label: 'EURC',
-    icon: <img src={eurcIconUrl} alt="EURC" className="size-5 rounded-full" />,
-  },
-]
+import UsdcIcon from '../assets/icons/usdc-logo.svg?react'
+import XlmIcon from '../assets/icons/xlm-icon.svg?react'
 
 type TProps = {
   onPaymentsExtracted: (payments: TPayment[]) => void
@@ -62,6 +45,27 @@ export const FileUpload = ({ onPaymentsExtracted }: TProps) => {
 
   const errorCode = data && !data.success ? (data.error ?? ErrorCode.UNKNOWN) : null
   const isInvalid = !token || !file || !!destinationAddressError || isPending
+
+  const tokenOptions = useMemo(
+    () => [
+      {
+        value: 'XLM',
+        label: t('form.token.options.XLM'),
+        icon: <XlmIcon aria-hidden="true" className="size-5" />,
+      },
+      {
+        value: 'USDC',
+        label: t('form.token.options.USDC'),
+        icon: <UsdcIcon aria-hidden="true" className="size-5" />,
+      },
+      {
+        value: 'EURC',
+        label: t('form.token.options.EURC'),
+        icon: <EurcIcon aria-hidden="true" className="size-5" />,
+      },
+    ],
+    [t]
+  )
 
   const handleSubmit = useCallback(
     (event: FormEvent<HTMLFormElement>) => {
@@ -130,7 +134,7 @@ export const FileUpload = ({ onPaymentsExtracted }: TProps) => {
           placeholder={t('form.token.placeholder')}
           hint={t('form.token.hint')}
           required
-          options={TOKEN_OPTIONS}
+          options={tokenOptions}
           value={token}
           onValueChange={value => setToken(value as TToken)}
         />

@@ -23,7 +23,12 @@
         "token": {
           "label": "Token",
           "placeholder": "Select a token",
-          "hint": "Select the token you want to use for payments."
+          "hint": "Select the token you want to use for payments.",
+          "options": {
+            "XLM": "XLM (Lumens)",
+            "USDC": "USDC (USD)",
+            "EURC": "EURC (EUR)"
+          }
         },
         "address": {
           "label": "Destination address",
