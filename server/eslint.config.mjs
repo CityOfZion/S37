@@ -27,14 +27,12 @@ export default [
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
       '@typescript-eslint/explicit-function-return-type': 'warn',
       '@typescript-eslint/no-explicit-any': 'warn',
-      'simple-import-sort/imports': ['error', {
-        groups: [
-          ['^node:'],
-          ['^@?\\w'],
-          ['^fractapay-shared'],
-          ['^\\.'],
-        ],
-      }],
+      'simple-import-sort/imports': [
+        'error',
+        {
+          groups: [['^node:'], ['^@?\\w'], ['^fractapay-shared'], ['^\\.']],
+        },
+      ],
       'simple-import-sort/exports': 'error',
       'object-shorthand': 'error',
     },

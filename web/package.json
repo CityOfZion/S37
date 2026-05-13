@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "lint": "npx lint-staged",
+    "lint": "eslint . --fix && prettier . --write",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
