@@ -56,7 +56,7 @@
       }
     },
     "paymentsList": {
-      "title": "Extracted Payments",
+      "title": "Extracted payments",
       "address": "Stellar address",
       "amount": "Amount",
       "description": "Description",
