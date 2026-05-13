@@ -16,7 +16,7 @@ const VARIANT_CLASSES: Record<TButtonVariant, string> = {
   outline:
     'border border-white/10 text-gray-400 hover:text-white hover:border-white/20 active:border-white/30 active:text-white focus:ring-2 focus:ring-white/20 font-medium rounded-xl transition-colors',
   ghost:
-    'text-gray-500 hover:text-primary active:text-primary/70 focus:ring-2 focus:ring-primary/30 rounded-xl transition-colors',
+    'text-gray-500 hover:text-primary active:text-primary/70 focus:ring-2 focus:ring-primary/30 rounded transition-colors',
 }
 
 const SIZE_CLASSES: Record<TButtonSize, string> = {

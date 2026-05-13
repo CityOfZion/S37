@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Provider as TooltipProvider } from '@radix-ui/react-tooltip'
-import { toast, Toaster } from 'sonner'
+import { Toaster } from 'sonner'
 
 import type { TPayment } from 'fractapay-shared'
 
@@ -10,24 +10,24 @@ import { FileUpload } from './components/FileUpload'
 import { Footer } from './components/Footer'
 import { Header } from './components/Header'
 import { PaymentsList } from './components/PaymentsList'
+import { ToastHelper } from './helpers/ToastHelper'
 
 export const App = () => {
   const { t } = useTranslation('common', { keyPrefix: 'app' })
+
   const [payments, setPayments] = useState<TPayment[]>([])
 
   const handlePaymentsExtracted = (extracted: TPayment[]) => {
     setPayments(extracted)
 
-    toast.success(t('uploadSuccess'), {
-      description: t('paymentsCount', { count: extracted.length }),
-    })
+    ToastHelper.success(t('uploadSuccess'), t('paymentsCount', { count: extracted.length }))
   }
 
   return (
     <TooltipProvider delayDuration={0} skipDelayDuration={0}>
-      <div className="min-h-screen bg-gray-950 text-white">
-        <Toaster theme="dark" richColors position="top-right" />
+      <Toaster theme="dark" richColors position="top-right" />
 
+      <div className="min-h-screen bg-gray-950 text-white">
         <Header />
 
         <main className="max-w-4xl mx-auto px-4 py-12 space-y-8">

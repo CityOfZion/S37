@@ -1,4 +1,4 @@
-import { type ChangeEvent, useEffect, useState } from 'react'
+import { type ChangeEvent, type KeyboardEvent, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import BigNumber from 'bignumber.js'
@@ -12,12 +12,16 @@ import { EMPTY_COLUMN } from '../constants'
 import { ClipboardHelper } from '../helpers/ClipboardHelper'
 import { InputHelper } from '../helpers/InputHelper'
 import { StringHelper } from '../helpers/StringHelper'
+import { ToastHelper } from '../helpers/ToastHelper'
+import { useDebounce } from '../hooks/useDebounce'
 import { Button } from './Button'
+import { Input } from './Input'
 import { Tooltip } from './Tooltip'
 
 import AddIcon from '../assets/icons/add-icon.svg?react'
 import CheckIcon from '../assets/icons/check-icon.svg?react'
 import ClipboardIcon from '../assets/icons/clipboard-icon.svg?react'
+import CloseIcon from '../assets/icons/close-icon.svg?react'
 import DeleteIcon from '../assets/icons/delete-icon.svg?react'
 import EditIcon from '../assets/icons/edit-icon.svg?react'
 import EmptyStateIcon from '../assets/icons/empty-state-icon.svg?react'
@@ -31,96 +35,153 @@ type TProps = {
 
 export const PaymentsList = ({ payments, onPaymentsChange }: TProps) => {
   const { t } = useTranslation('components', { keyPrefix: 'paymentsList' })
-  const [copied, setCopied] = useState<string | null>(null)
+  const { debounce, isDebouncePending } = useDebounce()
+  const [copiedId, setCopiedId] = useState<string | null>(null)
   const [editingPayment, setEditingPayment] = useState<TPayment | null>(null)
+  const [isAddingPayment, setIsAddingPayment] = useState(false)
   const [defaultToken, setDefaultToken] = useState<TToken>()
 
-  const copyAddress = async (address: string) => {
-    await ClipboardHelper.copy(address, {
-      onSuccess: () => setCopied(address),
-      onAfterSuccess: () => setCopied(null),
+  const hasEditingAddressError = useMemo(
+    () =>
+      !!editingPayment &&
+      (!editingPayment.address || !InputHelper.isValidAddress(editingPayment.address)),
+    [editingPayment]
+  )
+
+  const isEditingInvalid = useMemo(
+    () =>
+      !editingPayment ||
+      hasEditingAddressError ||
+      editingPayment.amount.isLessThanOrEqualTo(0) ||
+      isDebouncePending,
+    [hasEditingAddressError, editingPayment, isDebouncePending]
+  )
+
+  const isAddPaymentInvalid = !defaultToken || !!editingPayment || isAddingPayment
+
+  const copyAddress = async (payment: TPayment) => {
+    await ClipboardHelper.copy(payment.address, {
+      onSuccess: () => {
+        setCopiedId(payment.id)
+        ToastHelper.success(t('copySuccess'))
+      },
+      onAfterSuccess: () => setCopiedId(null),
     })
   }
 
+  const discardAddingPayment = () => {
+    if (isAddingPayment && editingPayment) {
+      onPaymentsChange(payments.filter(payment => payment.id !== editingPayment.id))
+      setIsAddingPayment(false)
+    }
+  }
+
   const startEditing = (payment: TPayment) => {
+    discardAddingPayment()
     setEditingPayment(cloneDeep(payment))
   }
 
   const cancelEditing = () => {
+    discardAddingPayment()
     setEditingPayment(null)
   }
 
   const saveEditing = () => {
-    if (
-      !editingPayment ||
-      !editingPayment.address ||
-      editingPayment.amount.isLessThanOrEqualTo(0)
-    ) {
+    if (isEditingInvalid) {
       return
     }
 
     onPaymentsChange(
       payments.map(payment =>
-        payment.id === editingPayment.id ? cloneDeep(editingPayment) : payment
+        payment.id === editingPayment?.id ? cloneDeep(editingPayment) : payment
       )
     )
 
+    setIsAddingPayment(false)
     setEditingPayment(null)
   }
 
   const deletePayment = (id: string) => {
     onPaymentsChange(payments.filter(payment => payment.id !== id))
-
-    if (editingPayment?.id === id) {
-      setEditingPayment(null)
-    }
   }
 
   const addPayment = () => {
-    if (!defaultToken) return
+    if (isAddPaymentInvalid) return
 
     const newPayment: TPayment = {
       id: uuid.v4(),
       address: '',
-      amount: new BigNumber(0),
+      amount: new BigNumber('1'),
       token: defaultToken,
       description: '',
     }
 
     onPaymentsChange([...payments, newPayment])
 
+    setIsAddingPayment(true)
     setEditingPayment(newPayment)
   }
 
-  const handleEditingChange = (field: keyof TPayment, event: ChangeEvent<HTMLInputElement>) => {
-    if (!editingPayment) return
+  const handleEditingKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') saveEditing()
+  }
 
-    const updated = cloneDeep<TPayment>(editingPayment)
-    const value = event.target.value
+  const handleEditingAddressPaste = (value: string) => {
+    setEditingPayment(previous => {
+      if (!previous) return previous
 
-    if (field === 'amount') {
-      let sanitized = '0'
+      previous.address = value
+
+      return cloneDeep(previous)
+    })
+  }
+
+  const handleEditingAddressChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setEditingPayment(previous => {
+      if (!previous) return previous
+
+      previous.address = InputHelper.sanitizeAddressEvent(event)
+
+      return cloneDeep(previous)
+    })
+  }
+
+  const handleEditingAmountChange = (event: ChangeEvent<HTMLInputElement>) => {
+    debounce(() => {
+      setEditingPayment(previous => {
+        if (!previous) return previous
+
+        const amount = previous.amount.isLessThanOrEqualTo('0')
+          ? new BigNumber('1')
+          : previous.amount
+
+        previous.amount = amount.decimalPlaces(STELLAR_DECIMALS, BigNumber.ROUND_DOWN)
+
+        return cloneDeep(previous)
+      })
+    })
+
+    setEditingPayment(previous => {
+      if (!previous) return previous
 
       try {
-        sanitized = value
-          .replace(',', '.')
-          .replace(/[^0-9.]/g, '')
-          .replace(/(\.\d*)\..*/, '$1')
+        previous.amount = new BigNumber(event.target.value)
       } catch {
-        /* empty */
+        if (previous.amount.toFixed().length === 1) previous.amount = new BigNumber('1')
       }
 
-      updated.amount = new BigNumber(sanitized).decimalPlaces(
-        STELLAR_DECIMALS,
-        BigNumber.ROUND_DOWN
-      )
-    } else if (field === 'address') {
-      updated.address = InputHelper.sanitizeAddressEvent(event)
-    } else if (field === 'description') {
-      updated.description = value
-    }
+      return cloneDeep(previous)
+    })
+  }
 
-    setEditingPayment(updated)
+  const handleEditingDescriptionChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setEditingPayment(previous => {
+      if (!previous) return previous
+
+      previous.description = event.target.value
+
+      return cloneDeep(previous)
+    })
   }
 
   useEffect(() => {
@@ -143,7 +204,7 @@ export const PaymentsList = ({ payments, onPaymentsChange }: TProps) => {
         <p className="text-sm text-gray-400">{t('count', { count: payments.length })}</p>
       </div>
 
-      <div className="rounded-xl border border-white/10 overflow-hidden">
+      <div className="rounded-xl border border-white/10 overflow-x-auto">
         <table className="w-full">
           <thead className="bg-white/5">
             <tr>
@@ -153,7 +214,7 @@ export const PaymentsList = ({ payments, onPaymentsChange }: TProps) => {
               <th className="text-right px-4 py-3 text-xs font-medium text-gray-400 uppercase tracking-wider">
                 {t('amount')}
               </th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-gray-400 uppercase tracking-wider hidden md:table-cell">
+              <th className="text-left px-4 py-3 text-xs font-medium text-gray-400 uppercase tracking-wider">
                 {t('description')}
               </th>
               <th className="text-right px-4 py-3 text-xs font-medium text-gray-400 uppercase tracking-wider w-24">
@@ -166,59 +227,74 @@ export const PaymentsList = ({ payments, onPaymentsChange }: TProps) => {
               editingPayment?.id === payment.id ? (
                 <tr key={payment.id} className="bg-white/5">
                   <td className="px-4 py-3">
-                    <input
+                    <Input
                       name="address"
                       aria-label={t('address')}
                       placeholder={t('address')}
                       type="text"
-                      className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none focus:border-primary"
+                      className="p-2 text-sm min-w-32 pr-8"
+                      pasteClassName="right-2"
                       value={editingPayment.address}
-                      onChange={event => handleEditingChange('address', event)}
+                      error={hasEditingAddressError}
+                      autoFocus
+                      onKeyDown={handleEditingKeyDown}
+                      onPaste={handleEditingAddressPaste}
+                      onChange={handleEditingAddressChange}
                     />
                   </td>
                   <td className="px-4 py-3">
-                    <input
+                    <Input
                       name="amount"
                       aria-label={t('amount')}
                       placeholder={t('amount')}
                       type="text"
                       inputMode="decimal"
-                      className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none focus:border-primary"
-                      maxLength={20}
+                      className="p-2 text-sm min-w-32 text-right"
+                      maxLength={16}
                       value={editingPayment.amount.toFixed()}
-                      onChange={event => handleEditingChange('amount', event)}
+                      onKeyDown={handleEditingKeyDown}
+                      onChange={handleEditingAmountChange}
                     />
                   </td>
-                  <td className="px-4 py-3 hidden md:table-cell">
-                    <input
+                  <td className="px-4 py-3">
+                    <Input
                       name="description"
                       aria-label={t('description')}
                       placeholder={t('description')}
                       type="text"
-                      className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none focus:border-primary"
+                      className="p-2 text-sm min-w-32"
                       value={editingPayment.description || ''}
-                      onChange={event => handleEditingChange('description', event)}
+                      onKeyDown={handleEditingKeyDown}
+                      onChange={handleEditingDescriptionChange}
                     />
                   </td>
                   <td className="px-4 py-3">
-                    <div className="flex items-center justify-end gap-1">
+                    <div className="flex items-center justify-end gap-2">
                       <Tooltip content={t('save')}>
-                        <Button variant="ghost" onClick={saveEditing} aria-label={t('save')}>
+                        <Button
+                          aria-label={t('save')}
+                          variant="ghost"
+                          disabled={isEditingInvalid}
+                          onClick={saveEditing}
+                        >
                           <SaveIcon className="size-4 text-green-400" aria-hidden="true" />
                         </Button>
                       </Tooltip>
                       <Tooltip content={t('cancel')}>
-                        <Button variant="ghost" onClick={cancelEditing} aria-label={t('cancel')}>
-                          <DeleteIcon className="size-4 text-red-400" aria-hidden="true" />
+                        <Button aria-label={t('cancel')} variant="ghost" onClick={cancelEditing}>
+                          <CloseIcon className="size-4 text-red-400" aria-hidden="true" />
                         </Button>
                       </Tooltip>
                     </div>
                   </td>
                 </tr>
               ) : (
-                <tr key={payment.id} className="hover:bg-white/5 transition-colors">
+                <tr
+                  key={payment.id}
+                  className="hover:bg-white/5 focus:bg-white/5 transition-colors"
+                >
                   <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 whitespace-nowrap">
                       <Tooltip content={payment.address}>
                         <span className="font-mono text-sm text-gray-300">
                           {StringHelper.truncateMiddle(payment.address, 20)}
@@ -226,12 +302,12 @@ export const PaymentsList = ({ payments, onPaymentsChange }: TProps) => {
                       </Tooltip>
                       <Tooltip content={t('copy')}>
                         <Button
-                          variant="ghost"
-                          onClick={() => void copyAddress(payment.address)}
-                          className="shrink-0"
                           aria-label={t('copy')}
+                          variant="ghost"
+                          className="shrink-0"
+                          onClick={copyAddress.bind(null, payment)}
                         >
-                          {copied === payment.address ? (
+                          {copiedId === payment.id ? (
                             <CheckIcon className="size-4 text-green-400" aria-hidden="true" />
                           ) : (
                             <ClipboardIcon className="size-4" aria-hidden="true" />
@@ -240,29 +316,29 @@ export const PaymentsList = ({ payments, onPaymentsChange }: TProps) => {
                       </Tooltip>
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-right">
+                  <td className="px-4 py-3 text-right whitespace-nowrap">
                     <span className="font-semibold text-white">{payment.amount.toFixed()}</span>
-                    <span className="text-gray-500 text-sm ml-1">{payment.token}</span>
+                    <span className="text-gray-500 text-xs">{` ${payment.token}`}</span>
                   </td>
-                  <td className="px-4 py-3 text-gray-400 text-sm hidden md:table-cell">
+                  <td className="px-4 py-3 text-gray-400 text-sm min-w-56">
                     {payment.description || EMPTY_COLUMN}
                   </td>
                   <td className="px-4 py-3">
-                    <div className="flex items-center justify-end gap-1">
+                    <div className="flex items-center justify-end gap-2">
                       <Tooltip content={t('edit')}>
                         <Button
-                          variant="ghost"
-                          onClick={() => startEditing(payment)}
                           aria-label={t('edit')}
+                          variant="ghost"
+                          onClick={startEditing.bind(null, payment)}
                         >
                           <EditIcon className="size-4" aria-hidden="true" />
                         </Button>
                       </Tooltip>
                       <Tooltip content={t('delete')}>
                         <Button
-                          variant="ghost"
-                          onClick={() => deletePayment(payment.id)}
                           aria-label={t('delete')}
+                          variant="ghost"
+                          onClick={deletePayment.bind(null, payment.id)}
                         >
                           <DeleteIcon className="size-4 text-red-400" aria-hidden="true" />
                         </Button>
@@ -276,14 +352,19 @@ export const PaymentsList = ({ payments, onPaymentsChange }: TProps) => {
         </table>
       </div>
 
-      <div className="flex gap-3">
-        <Button variant="outline" className="flex-1" onClick={addPayment}>
+      <div className="flex gap-3 flex-col md:flex-row">
+        <Button
+          variant="outline"
+          className="flex-1"
+          disabled={isAddPaymentInvalid}
+          onClick={addPayment}
+        >
           <AddIcon className="size-4" aria-hidden="true" />
           {t('addPayment')}
         </Button>
 
-        <Button className="flex-1">
-          <ExecuteIcon className="size-5" aria-hidden="true" />
+        <Button className="flex-1" disabled={!!editingPayment}>
+          <ExecuteIcon className="size-4" aria-hidden="true" />
           {t('execute')}
         </Button>
       </div>
