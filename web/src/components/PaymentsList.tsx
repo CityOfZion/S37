@@ -263,6 +263,7 @@ export const PaymentsList = ({ payments, onPaymentsChange }: TProps) => {
                       placeholder={t('description')}
                       type="text"
                       className="p-2 text-sm min-w-32"
+                      maxLength={200}
                       value={editingPayment.description || ''}
                       onKeyDown={handleEditingKeyDown}
                       onChange={handleEditingDescriptionChange}
@@ -320,7 +321,7 @@ export const PaymentsList = ({ payments, onPaymentsChange }: TProps) => {
                     <span className="font-semibold text-white">{payment.amount.toFixed()}</span>
                     <span className="text-gray-500 text-xs">{` ${payment.token}`}</span>
                   </td>
-                  <td className="px-4 py-3 text-gray-400 text-sm min-w-56">
+                  <td className="px-4 py-3 text-gray-400 text-sm min-w-56 break-all">
                     {payment.description || EMPTY_COLUMN}
                   </td>
                   <td className="px-4 py-3">
