@@ -6,25 +6,22 @@ import { enUsResources } from '../locales/en-US'
 import { ptBrResources } from '../locales/pt-BR'
 import { TLanguage } from '../types'
 
-const defaultLang: TLanguage = 'en-US'
-
 const detectLanguage = (): TLanguage => {
-  const browserLang = navigator.language.toLowerCase()
+  const browserLanguage = navigator.language.toLowerCase()
 
-  if (browserLang.startsWith('pt')) return 'pt-BR'
-  if (browserLang.startsWith('en')) return defaultLang
+  if (browserLanguage.startsWith('pt')) return 'pt-BR'
 
-  return defaultLang
+  return 'en-US'
 }
 
 void i18n.use(initReactI18next).init({
   resources: {
-    [defaultLang]: enUsResources,
+    'en-US': enUsResources,
     'pt-BR': ptBrResources,
   },
   defaultNS: 'common',
   lng: detectLanguage(),
-  fallbackLng: defaultLang,
+  fallbackLng: 'en-US',
   interpolation: { escapeValue: false },
 })
 

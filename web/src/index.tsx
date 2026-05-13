@@ -3,10 +3,10 @@ import ReactDOM from 'react-dom/client'
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
-import { App } from './App'
+import { App } from './components/App'
 
 import './i18next'
-import './styles.css'
+import './assets/css/styles.css'
 
 const queryClient = new QueryClient({
   defaultOptions: {

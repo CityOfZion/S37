@@ -34,6 +34,9 @@
       "dragActive": "Solte o arquivo aqui…",
       "submit": "Analisar pagamentos"
     },
+    "uploadSuccess": "Arquivo processado com sucesso",
+    "paymentsCount": "{{count}} pagamento",
+    "paymentsCount_other": "{{count}} pagamentos",
     "errors": {
       "NO_FILE": "Nenhum arquivo fornecido",
       "UNSUPPORTED_FILE_TYPE": "Tipo de arquivo não suportado, permitidos: CSV, XLSX, XLS, PDF e TXT",

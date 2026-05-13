@@ -2,9 +2,6 @@
   "app": {
     "subtitle": "Pagamentos em lote com IA.",
     "tagline": "Envie um arquivo, deixe a IA extrair os dados de pagamento e execute na Stellar.",
-    "uploadSuccess": "Arquivo processado com sucesso",
-    "paymentsCount": "{{count}} pagamento",
-    "paymentsCount_other": "{{count}} pagamentos",
     "hackathon": "Stellar 37°"
   }
 }
