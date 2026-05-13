@@ -31,7 +31,7 @@ npm install
 cp .env.example .env      # then set ANTHROPIC_API_KEY
 npm run dev               # tsx watch — hot reload
 npm run build             # tsc → dist/
-npm run lint              # ESLint (auto-fixes)
+npm run lint              # ESLint and Prettier
 npm run typecheck         # tsc --noEmit
 ```
 
@@ -42,7 +42,7 @@ npm install
 cp .env.example .env      # set VITE_API_URL and VITE_PUBLIC_KEY
 npm run dev               # Vite dev server
 npm run build             # tsc + vite build
-npm run lint              # ESLint (auto-fixes)
+npm run lint              # ESLint and Prettier
 npm run typecheck
 ```
 
@@ -113,7 +113,7 @@ web (FileUpload component)
 - **TypeScript strict mode** in both `server/` and `web/`.
 - **Prettier**: no semicolons, single quotes, trailing commas (ES5), 100-char width.
 - **Server imports**: no file extensions (e.g. `from './config'`) — `commonjs` module, TypeScript resolves `.ts` files automatically.
-- **Husky pre-commit**: runs `lint-staged` + `typecheck` in both `server/` and `web/`.
+- **Husky pre-commit**: runs `lint` + `typecheck` in both `server/` and `web/`.
 - **Rust**: `rustfmt` max_width 100, 4-space tabs; Clippy `-D warnings`.
 - **No abbreviations in variable/parameter names**: use full words (e.g. `message` not `msg`, `error` not `err`, `request` not `req`, `response` not `res`, `index` not `idx`, `parameter` not `param`).
 - **Blank line before `return`**: always leave one blank line before a `return` statement unless it is the very first statement in a block.

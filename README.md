@@ -57,7 +57,7 @@ The server starts at `http://localhost:3000`.
 | `npm run dev` | Start with hot reload |
 | `npm run build` | Compile TypeScript |
 | `npm start` | Run compiled output |
-| `npm run lint` | Run ESLint (auto-fixes) |
+| `npm run lint` | Run ESLint and Prettier |
 | `npm run typecheck` | TypeScript type check |
 
 ---
@@ -79,7 +79,7 @@ The app opens at `http://localhost:5173`.
 | `npm run dev` | Start dev server |
 | `npm run build` | Production build |
 | `npm run preview` | Preview production build |
-| `npm run lint` | Run ESLint (auto-fixes) |
+| `npm run lint` | Run ESLint and Prettier |
 | `npm run typecheck` | TypeScript type check |
 
 ---

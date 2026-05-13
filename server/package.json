@@ -6,7 +6,7 @@
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
-    "lint": "eslint src --fix",
+    "lint": "npx lint-staged",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
