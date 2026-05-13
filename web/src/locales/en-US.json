@@ -3,9 +3,9 @@
     "app": {
       "subtitle": "AI-powered batch payment processor.",
       "tagline": "Upload a file, let AI extract payment data, execute on Stellar.",
-      "uploadSuccess": "File processed successfully!",
+      "uploadSuccess": "File processed successfully",
       "paymentsCount": "{{count}} payment",
-      "paymentsCount_plural": "{{count}} payments",
+      "paymentsCount_other": "{{count}} payments",
       "hackathon": "Stellar 37°"
     }
   },
@@ -56,14 +56,15 @@
       "amount": "Amount",
       "description": "Description",
       "count": "{{count}} payment",
-      "count_plural": "{{count}} payments",
+      "count_other": "{{count}} payments",
       "execute": "Execute payments",
       "empty": "No payments extracted yet. Upload a file to get started.",
       "copy": "Copy address",
-      "edit": "Edit payment",
+      "copySuccess": "Address copied to clipboard",
+      "edit": "Edit",
       "save": "Save",
       "cancel": "Cancel",
-      "delete": "Delete payment",
+      "delete": "Delete",
       "addPayment": "Add payment",
       "actions": "Actions"
     },

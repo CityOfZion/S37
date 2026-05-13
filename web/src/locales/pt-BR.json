@@ -3,9 +3,9 @@
     "app": {
       "subtitle": "Pagamentos em lote com IA.",
       "tagline": "Envie um arquivo, deixe a IA extrair os dados de pagamento e execute na Stellar.",
-      "uploadSuccess": "Arquivo processado com sucesso!",
+      "uploadSuccess": "Arquivo processado com sucesso",
       "paymentsCount": "{{count}} pagamento",
-      "paymentsCount_plural": "{{count}} pagamentos",
+      "paymentsCount_other": "{{count}} pagamentos",
       "hackathon": "Stellar 37°"
     }
   },
@@ -56,14 +56,15 @@
       "amount": "Valor",
       "description": "Descrição",
       "count": "{{count}} pagamento",
-      "count_plural": "{{count}} pagamentos",
+      "count_other": "{{count}} pagamentos",
       "execute": "Executar pagamentos",
       "empty": "Nenhum pagamento extraído ainda. Envie um arquivo para começar.",
       "copy": "Copiar endereço",
-      "edit": "Editar pagamento",
+      "copySuccess": "Endereço copiado para a área de transferência",
+      "edit": "Editar",
       "save": "Salvar",
       "cancel": "Cancelar",
-      "delete": "Excluir pagamento",
+      "delete": "Excluir",
       "addPayment": "Adicionar pagamento",
       "actions": "Ações"
     },
