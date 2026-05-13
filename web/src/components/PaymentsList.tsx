@@ -26,7 +26,6 @@ import DeleteIcon from '../assets/icons/delete-icon.svg?react'
 import EditIcon from '../assets/icons/edit-icon.svg?react'
 import EmptyStateIcon from '../assets/icons/empty-state-icon.svg?react'
 import ExecuteIcon from '../assets/icons/execute-icon.svg?react'
-import SaveIcon from '../assets/icons/save-icon.svg?react'
 
 type TProps = {
   payments: TPayment[]
@@ -278,7 +277,7 @@ export const PaymentsList = ({ payments, onPaymentsChange }: TProps) => {
                           disabled={isEditingInvalid}
                           onClick={saveEditing}
                         >
-                          <SaveIcon className="size-4 text-green-400" aria-hidden="true" />
+                          <CheckIcon className="size-4 text-green-400" aria-hidden="true" />
                         </Button>
                       </Tooltip>
                       <Tooltip content={t('cancel')}>
