@@ -3,7 +3,7 @@ import BigNumber from 'bignumber.js'
 import * as uuid from 'uuid'
 
 import type { TPaymentResponse, TToken } from 'fractapay-shared'
-import { ErrorCode, STELLAR_DECIMALS } from 'fractapay-shared'
+import { ErrorCode, STELLAR_DECIMALS, StellarHelper } from 'fractapay-shared'
 
 import { config } from '../config'
 
@@ -113,7 +113,7 @@ export async function analyzePayments(
     .filter(payment => {
       const amount = new BigNumber(payment.amount)
 
-      return amount.isGreaterThan(0) && payment.address.trim().length > 0
+      return amount.isGreaterThan(0) && StellarHelper.isValidAddress(payment.address)
     })
     .map(payment => ({
       id: uuid.v4(),
