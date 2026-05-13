@@ -36,6 +36,8 @@ function parseCsv(buffer: Buffer): string {
     columns: true,
     skip_empty_lines: true,
     trim: true,
+    relax_quotes: true,
+    relax_column_count: true,
   }) as Record<string, string>[]
 
   return JSON.stringify(records, null, 2).trim()
