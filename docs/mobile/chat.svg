@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 375 812" font-family="Manrope, system-ui, sans-serif">
+  <defs>
+    <linearGradient id="brand" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7B61FF"/><stop offset="1" stop-color="#B388FF"/>
+    </linearGradient>
+    <clipPath id="phone"><rect width="375" height="812" rx="44"/></clipPath>
+  </defs>
+  <g clip-path="url(#phone)">
+    <rect width="375" height="812" fill="#F8F7FB"/>
+
+    <!-- Status bar -->
+    <text x="32" y="34" fill="#1A1832" font-size="14" font-weight="700">9:41</text>
+    <g transform="translate(310, 22)" fill="#1A1832">
+      <circle cx="0" cy="8" r="2"/><circle cx="8" cy="8" r="2"/><circle cx="16" cy="8" r="2"/>
+      <rect x="22" y="3" width="20" height="10" rx="2" stroke="#1A1832" stroke-width="1" fill="none"/>
+      <rect x="24" y="5" width="14" height="6" fill="#1A1832"/>
+    </g>
+
+    <!-- Header -->
+    <rect x="0" y="44" width="375" height="64" fill="#FFFFFF"/>
+    <line x1="0" y1="108" x2="375" y2="108" stroke="#EFEDF5"/>
+    <text x="20" y="84" fill="#3F3954" font-size="22">←</text>
+
+    <text x="56" y="78" fill="#1A1832" font-size="14" font-weight="700">✨ Assistente FractaPay</text>
+    <circle cx="60" cy="94" r="3" fill="#00C9A7"/>
+    <text x="68" y="98" fill="#00A085" font-size="11">online · responde em segundos</text>
+
+    <text x="355" y="84" text-anchor="end" fill="#3F3954" font-size="20" font-weight="700">⋯</text>
+
+    <!-- Chat body -->
+    <!-- Agent bubble 1 -->
+    <rect x="20" y="124" width="240" height="62" rx="16" fill="#FFFFFF" filter="drop-shadow(0 1px 2px rgba(0,0,0,0.06))"/>
+    <path d="M 20 184 L 20 178 L 26 184 Z" fill="#FFFFFF"/>
+    <text x="32" y="148" fill="#1A1832" font-size="13">Olá, Caroline! 👋</text>
+    <text x="32" y="166" fill="#1A1832" font-size="13">Posso te ajudar a criar um contrato,</text>
+    <text x="32" y="182" fill="#1A1832" font-size="13">conferir pagamentos ou ajustar regras.</text>
+
+    <!-- User bubble + attachment -->
+    <rect x="100" y="200" width="255" height="40" rx="16" fill="#7B61FF"/>
+    <path d="M 355 240 L 355 234 L 349 240 Z" fill="#7B61FF"/>
+    <text x="115" y="224" fill="#FFFFFF" font-size="13">Quero distribuir os royalties de abril.</text>
+
+    <!-- Attachment in user bubble -->
+    <rect x="100" y="248" width="255" height="56" rx="14" fill="#7B61FF"/>
+    <rect x="115" y="262" width="40" height="40" rx="10" fill="#FFFFFF" fill-opacity="0.25"/>
+    <text x="135" y="287" text-anchor="middle" fill="#FFFFFF" font-size="11" font-weight="700">XLS</text>
+    <text x="165" y="280" fill="#FFFFFF" font-size="13" font-weight="600">royalties_abril.xlsx</text>
+    <text x="165" y="296" fill="#FFFFFF" fill-opacity="0.75" font-size="11">128 KB · 42 linhas</text>
+
+    <!-- Agent bubble 2 -->
+    <rect x="20" y="316" width="270" height="62" rx="16" fill="#FFFFFF" filter="drop-shadow(0 1px 2px rgba(0,0,0,0.06))"/>
+    <path d="M 20 376 L 20 370 L 26 376 Z" fill="#FFFFFF"/>
+    <text x="32" y="340" fill="#1A1832" font-size="13">Identifiquei <tspan font-weight="700">8 autoras</tspan> no relatório,</text>
+    <text x="32" y="358" fill="#1A1832" font-size="13">somando <tspan font-weight="700">R$ 12.450</tspan> em royalties.</text>
+    <text x="32" y="374" fill="#1A1832" font-size="13">Aqui está o que eu proponho:</text>
+
+    <!-- Agent card -->
+    <rect x="20" y="392" width="335" height="240" rx="16" fill="#FFFFFF" filter="drop-shadow(0 4px 12px rgba(26,24,50,0.08))"/>
+    <rect x="20" y="392" width="3" height="240" fill="#7B61FF"/>
+    <text x="36" y="416" fill="#1A1832" font-size="13" font-weight="700">📋 Royalties abril · 8 destinatárias</text>
+
+    <g font-size="12">
+      <text x="36" y="442" fill="#3F3954">Beatriz Souza</text>
+      <text x="339" y="442" text-anchor="end" fill="#4D33B5" font-weight="700">15% · R$ 1.867,50</text>
+      <line x1="36" y1="452" x2="339" y2="452" stroke="#EFEDF5" stroke-dasharray="2 2"/>
+
+      <text x="36" y="468" fill="#3F3954">Lúcia Martins</text>
+      <text x="339" y="468" text-anchor="end" fill="#4D33B5" font-weight="700">12% · R$ 1.494,00</text>
+      <line x1="36" y1="478" x2="339" y2="478" stroke="#EFEDF5" stroke-dasharray="2 2"/>
+
+      <text x="36" y="494" fill="#3F3954">Mariana Reis</text>
+      <text x="339" y="494" text-anchor="end" fill="#4D33B5" font-weight="700">10% · R$ 1.245,00</text>
+      <line x1="36" y1="504" x2="339" y2="504" stroke="#EFEDF5" stroke-dasharray="2 2"/>
+
+      <text x="36" y="520" fill="#6E6884">+ 5 destinatárias</text>
+      <text x="339" y="520" text-anchor="end" fill="#4D33B5" font-weight="700">R$ 7.843,50</text>
+      <line x1="36" y1="530" x2="339" y2="530" stroke="#E0DCEC"/>
+
+      <text x="36" y="552" fill="#1A1832" font-weight="700">Taxa FractaPay (1,5%)</text>
+      <text x="339" y="552" text-anchor="end" fill="#4D33B5" font-weight="700">R$ 186,75</text>
+    </g>
+
+    <!-- CTAs in card -->
+    <rect x="36" y="574" width="142" height="40" rx="10" fill="#EFEDF5"/>
+    <text x="107" y="600" text-anchor="middle" fill="#3F3954" font-size="13" font-weight="600">Ajustar</text>
+
+    <rect x="186" y="574" width="153" height="40" rx="10" fill="#7B61FF"/>
+    <text x="262" y="600" text-anchor="middle" fill="#FFFFFF" font-size="13" font-weight="600">Revisar e ativar →</text>
+
+    <!-- Chat input bar -->
+    <line x1="0" y1="724" x2="375" y2="724" stroke="#EFEDF5"/>
+    <rect x="0" y="724" width="375" height="84" fill="#FFFFFF"/>
+
+    <rect x="20" y="744" width="40" height="44" rx="12" fill="#EFEDF5"/>
+    <text x="40" y="772" text-anchor="middle" fill="#3F3954" font-size="16">📎</text>
+
+    <rect x="68" y="744" width="227" height="44" rx="22" fill="#EFEDF5"/>
+    <text x="84" y="772" fill="#9690AE" font-size="13">Pergunte ou anexe um arquivo…</text>
+
+    <rect x="303" y="744" width="44" height="44" rx="22" fill="#7B61FF"/>
+    <text x="325" y="772" text-anchor="middle" fill="#FFFFFF" font-size="16">➤</text>
+
+    <!-- Home indicator -->
+    <rect x="125" y="796" width="125" height="5" rx="3" fill="#1A1832"/>
+  </g>
+</svg>

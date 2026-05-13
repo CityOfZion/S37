@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" font-family="Manrope, system-ui, sans-serif">
+  <defs>
+    <linearGradient id="brand" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7B61FF"/><stop offset="1" stop-color="#B388FF"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1440" height="900" fill="#F8F7FB"/>
+
+  <!-- Modal-like full-screen review (no sidebar — focus mode) -->
+  <!-- Top bar -->
+  <rect x="0" y="0" width="1440" height="72" fill="#FFFFFF"/>
+  <line x1="0" y1="72" x2="1440" y2="72" stroke="#EFEDF5"/>
+
+  <text x="48" y="44" fill="#3F3954" font-size="22">←</text>
+  <text x="80" y="44" fill="#6E6884" font-size="13">Chat IA</text>
+  <text x="125" y="44" fill="#9690AE" font-size="13">/</text>
+  <text x="135" y="44" fill="#1A1832" font-size="13" font-weight="700">Revisar contrato</text>
+
+  <rect x="1340" y="20" width="80" height="32" rx="8" fill="#F8F7FB" stroke="#E0DCEC"/>
+  <text x="1380" y="40" text-anchor="middle" fill="#3F3954" font-size="12" font-weight="600">✏️ Editar</text>
+
+  <!-- Warning banner -->
+  <rect x="48" y="96" width="1344" height="64" rx="12" fill="#FFF1D6"/>
+  <rect x="48" y="96" width="4" height="64" fill="#FFB020"/>
+  <text x="72" y="125" font-size="18">⚠️</text>
+  <text x="100" y="125" fill="#7A5200" font-size="14" font-weight="700">Revise atentamente antes de ativar.</text>
+  <text x="100" y="144" fill="#7A5200" font-size="13">Depois de ativar, esta regra começa a executar nas datas programadas. Você pode pausar a qualquer momento sem perder o saldo.</text>
+
+  <!-- Main grid: summary card + recipients table -->
+  <g transform="translate(48, 184)">
+    <!-- LEFT: Summary card -->
+    <rect width="380" height="528" rx="16" fill="#FFFFFF" filter="drop-shadow(0 4px 12px rgba(26,24,50,0.06))"/>
+
+    <text x="32" y="48" fill="#6E6884" font-size="11" font-weight="700" letter-spacing="1.5">CONTRATO</text>
+    <text x="32" y="78" fill="#1A1832" font-size="22" font-weight="800" letter-spacing="-0.5">Royalties — Editora</text>
+
+    <line x1="32" y1="100" x2="348" y2="100" stroke="#EFEDF5"/>
+
+    <g font-size="14">
+      <text x="32" y="132" fill="#6E6884">Recorrência</text>
+      <text x="348" y="132" text-anchor="end" fill="#1A1832" font-weight="700">Bimestral · dia 14</text>
+
+      <text x="32" y="164" fill="#6E6884">Próxima execução</text>
+      <text x="348" y="164" text-anchor="end" fill="#1A1832" font-weight="700">14/mai/2026</text>
+
+      <text x="32" y="196" fill="#6E6884">Destinatárias</text>
+      <text x="348" y="196" text-anchor="end" fill="#1A1832" font-weight="700">8 pessoas</text>
+
+      <text x="32" y="228" fill="#6E6884">Estado inicial</text>
+      <text x="312" y="228" text-anchor="end" fill="#003D33" font-weight="700">● Ativo</text>
+      <rect x="304" y="216" width="44" height="20" rx="10" fill="#C0F3E2"/>
+      <text x="326" y="231" text-anchor="middle" fill="#003D33" font-size="11" font-weight="700">Ativo</text>
+    </g>
+
+    <line x1="32" y1="260" x2="348" y2="260" stroke="#EFEDF5"/>
+
+    <text x="32" y="292" fill="#6E6884" font-size="11" font-weight="700" letter-spacing="1.5">VALORES</text>
+
+    <rect x="32" y="304" width="316" height="80" rx="12" fill="#F3EFFF"/>
+    <text x="48" y="328" fill="#4D33B5" font-size="11" font-weight="700">TOTAL ESTIMADO A DISTRIBUIR</text>
+    <text x="48" y="364" fill="#1A1832" font-size="28" font-weight="800" letter-spacing="-0.5">R$ 12.450,00</text>
+
+    <g font-size="13">
+      <text x="32" y="416" fill="#6E6884">Taxa FractaPay (1,5%)</text>
+      <text x="348" y="416" text-anchor="end" fill="#1A1832" font-weight="600">R$ 186,75</text>
+      <text x="32" y="442" fill="#6E6884">Líquido aos destinatários</text>
+      <text x="348" y="442" text-anchor="end" fill="#1A1832" font-weight="600">R$ 12.263,25</text>
+    </g>
+
+    <line x1="32" y1="466" x2="348" y2="466" stroke="#EFEDF5"/>
+
+    <text x="32" y="498" fill="#9690AE" font-size="11">A taxa é debitada do balde antes da</text>
+    <text x="32" y="514" fill="#9690AE" font-size="11">distribuição. Você pode acompanhar tudo em</text>
+    <text x="32" y="514" fill="transparent"></text>
+
+    <!-- RIGHT: Recipients table -->
+    <g transform="translate(412, 0)">
+      <rect width="932" height="528" rx="16" fill="#FFFFFF" filter="drop-shadow(0 4px 12px rgba(26,24,50,0.06))"/>
+
+      <text x="32" y="48" fill="#1A1832" font-size="18" font-weight="800">Destinatárias</text>
+      <text x="900" y="48" text-anchor="end" fill="#7B61FF" font-size="13" font-weight="600">+ Adicionar destinatária</text>
+
+      <!-- Table header -->
+      <line x1="0" y1="72" x2="932" y2="72" stroke="#EFEDF5"/>
+      <g font-size="11" font-weight="700" letter-spacing="1" fill="#6E6884">
+        <text x="32" y="98">NOME</text>
+        <text x="320" y="98">REGRA</text>
+        <text x="500" y="98">CHAVE PIX</text>
+        <text x="700" y="98">PERIODICIDADE</text>
+        <text x="900" y="98" text-anchor="end">VALOR</text>
+      </g>
+      <line x1="0" y1="112" x2="932" y2="112" stroke="#EFEDF5"/>
+
+      <!-- Rows -->
+      <g font-size="13">
+        <!-- Row 1 -->
+        <g>
+          <rect x="32" y="124" width="28" height="28" rx="8" fill="#E4DAFF"/>
+          <text x="46" y="143" text-anchor="middle" fill="#4D33B5" font-size="10" font-weight="700">BS</text>
+          <text x="72" y="143" fill="#1A1832" font-weight="600">Beatriz Souza</text>
+
+          <rect x="320" y="128" width="44" height="20" rx="4" fill="#F3EFFF"/>
+          <text x="342" y="143" text-anchor="middle" fill="#4D33B5" font-weight="700" font-size="11">15%</text>
+          <text x="372" y="143" fill="#6E6884" font-size="12">do saldo</text>
+
+          <text x="500" y="143" fill="#3F3954">***.456.***-21</text>
+
+          <text x="700" y="143" fill="#6E6884">Bimestral</text>
+
+          <text x="900" y="143" text-anchor="end" fill="#1A1832" font-weight="700">R$ 1.867,50</text>
+          <line x1="0" y1="164" x2="932" y2="164" stroke="#EFEDF5"/>
+        </g>
+
+        <!-- Row 2 -->
+        <g transform="translate(0, 56)">
+          <rect x="32" y="124" width="28" height="28" rx="8" fill="#E4DAFF"/>
+          <text x="46" y="143" text-anchor="middle" fill="#4D33B5" font-size="10" font-weight="700">LM</text>
+          <text x="72" y="143" fill="#1A1832" font-weight="600">Lúcia Martins</text>
+
+          <rect x="320" y="128" width="44" height="20" rx="4" fill="#F3EFFF"/>
+          <text x="342" y="143" text-anchor="middle" fill="#4D33B5" font-weight="700" font-size="11">12%</text>
+          <text x="372" y="143" fill="#6E6884" font-size="12">do saldo</text>
+
+          <text x="500" y="143" fill="#3F3954">lucia@email.com</text>
+          <text x="700" y="143" fill="#6E6884">Bimestral</text>
+          <text x="900" y="143" text-anchor="end" fill="#1A1832" font-weight="700">R$ 1.494,00</text>
+          <line x1="0" y1="164" x2="932" y2="164" stroke="#EFEDF5"/>
+        </g>
+
+        <!-- Row 3 -->
+        <g transform="translate(0, 112)">
+          <rect x="32" y="124" width="28" height="28" rx="8" fill="#E4DAFF"/>
+          <text x="46" y="143" text-anchor="middle" fill="#4D33B5" font-size="10" font-weight="700">MR</text>
+          <text x="72" y="143" fill="#1A1832" font-weight="600">Mariana Reis</text>
+
+          <rect x="320" y="128" width="44" height="20" rx="4" fill="#F3EFFF"/>
+          <text x="342" y="143" text-anchor="middle" fill="#4D33B5" font-weight="700" font-size="11">10%</text>
+          <text x="372" y="143" fill="#6E6884" font-size="12">do saldo</text>
+
+          <text x="500" y="143" fill="#3F3954">(11) 9****-1234</text>
+          <text x="700" y="143" fill="#6E6884">Bimestral</text>
+          <text x="900" y="143" text-anchor="end" fill="#1A1832" font-weight="700">R$ 1.245,00</text>
+          <line x1="0" y1="164" x2="932" y2="164" stroke="#EFEDF5"/>
+        </g>
+
+        <!-- Row 4 -->
+        <g transform="translate(0, 168)">
+          <rect x="32" y="124" width="28" height="28" rx="8" fill="#E4DAFF"/>
+          <text x="46" y="143" text-anchor="middle" fill="#4D33B5" font-size="10" font-weight="700">JA</text>
+          <text x="72" y="143" fill="#1A1832" font-weight="600">Júlia Andrade</text>
+
+          <rect x="320" y="128" width="80" height="20" rx="4" fill="#F3EFFF"/>
+          <text x="360" y="143" text-anchor="middle" fill="#4D33B5" font-weight="700" font-size="11">R$ 980 fixo</text>
+
+          <text x="500" y="143" fill="#3F3954">***.789.***-44</text>
+          <text x="700" y="143" fill="#6E6884">Bimestral</text>
+          <text x="900" y="143" text-anchor="end" fill="#1A1832" font-weight="700">R$ 980,00</text>
+          <line x1="0" y1="164" x2="932" y2="164" stroke="#EFEDF5"/>
+        </g>
+
+        <!-- Row 5 -->
+        <g transform="translate(0, 224)">
+          <rect x="32" y="124" width="28" height="28" rx="8" fill="#E4DAFF"/>
+          <text x="46" y="143" text-anchor="middle" fill="#4D33B5" font-size="10" font-weight="700">RP</text>
+          <text x="72" y="143" fill="#1A1832" font-weight="600">Renata Prado</text>
+
+          <rect x="320" y="128" width="40" height="20" rx="4" fill="#F3EFFF"/>
+          <text x="340" y="143" text-anchor="middle" fill="#4D33B5" font-weight="700" font-size="11">8%</text>
+
+          <text x="500" y="143" fill="#3F3954">11.222.333/0001</text>
+          <text x="700" y="143" fill="#6E6884">Bimestral</text>
+          <text x="900" y="143" text-anchor="end" fill="#1A1832" font-weight="700">R$ 996,00</text>
+          <line x1="0" y1="164" x2="932" y2="164" stroke="#EFEDF5"/>
+        </g>
+
+        <!-- Row 6: collapsed -->
+        <g transform="translate(0, 280)">
+          <text x="72" y="143" fill="#6E6884" font-style="italic">+ 3 destinatárias adicionais</text>
+          <text x="900" y="143" text-anchor="end" fill="#1A1832" font-weight="700">R$ 5.867,50</text>
+        </g>
+      </g>
+
+      <!-- Total row -->
+      <line x1="0" y1="480" x2="932" y2="480" stroke="#1A1832"/>
+      <rect x="0" y="480" width="932" height="48" rx="0" fill="#F3EFFF"/>
+      <text x="32" y="510" fill="#1A1832" font-size="14" font-weight="700">TOTAL · 8 DESTINATÁRIAS</text>
+      <text x="900" y="510" text-anchor="end" fill="#1A1832" font-size="18" font-weight="800">R$ 12.450,00</text>
+    </g>
+  </g>
+
+  <!-- Footer fixed -->
+  <rect x="0" y="740" width="1440" height="80" fill="#FFFFFF"/>
+  <line x1="0" y1="740" x2="1440" y2="740" stroke="#EFEDF5"/>
+
+  <text x="48" y="775" fill="#6E6884" font-size="13">Você está revisando uma proposta gerada pelo agente IA.</text>
+  <text x="48" y="794" fill="#6E6884" font-size="13">Após confirmar, o contrato fica disponível para execução automática.</text>
+
+  <rect x="1112" y="755" width="120" height="48" rx="12" fill="#FFFFFF" stroke="#E0DCEC"/>
+  <text x="1172" y="784" text-anchor="middle" fill="#3F3954" font-size="14" font-weight="600">← Voltar</text>
+
+  <g transform="translate(1244, 755)" filter="drop-shadow(0 8px 24px rgba(123,97,255,0.4))">
+    <rect width="160" height="48" rx="12" fill="url(#brand)"/>
+    <text x="80" y="30" text-anchor="middle" fill="#FFFFFF" font-size="14" font-weight="600">Ativar contrato</text>
+  </g>
+</svg>

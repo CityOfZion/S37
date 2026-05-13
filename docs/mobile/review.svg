@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 375 812" font-family="Manrope, system-ui, sans-serif">
+  <defs>
+    <linearGradient id="brand" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7B61FF"/><stop offset="1" stop-color="#B388FF"/>
+    </linearGradient>
+    <clipPath id="phone"><rect width="375" height="812" rx="44"/></clipPath>
+  </defs>
+  <g clip-path="url(#phone)">
+    <rect width="375" height="812" fill="#F8F7FB"/>
+
+    <!-- Status bar -->
+    <text x="32" y="34" fill="#1A1832" font-size="14" font-weight="700">9:41</text>
+    <g transform="translate(310, 22)" fill="#1A1832">
+      <circle cx="0" cy="8" r="2"/><circle cx="8" cy="8" r="2"/><circle cx="16" cy="8" r="2"/>
+      <rect x="22" y="3" width="20" height="10" rx="2" stroke="#1A1832" stroke-width="1" fill="none"/>
+      <rect x="24" y="5" width="14" height="6" fill="#1A1832"/>
+    </g>
+
+    <!-- Header -->
+    <rect x="0" y="44" width="375" height="56" fill="#FFFFFF"/>
+    <line x1="0" y1="100" x2="375" y2="100" stroke="#EFEDF5"/>
+    <text x="20" y="80" fill="#3F3954" font-size="22">←</text>
+    <text x="187" y="78" text-anchor="middle" fill="#1A1832" font-size="16" font-weight="700">Revisar contrato</text>
+    <rect x="319" y="60" width="36" height="36" rx="12" fill="#FFFFFF" stroke="#E0DCEC"/>
+    <text x="337" y="84" text-anchor="middle" font-size="14">✏️</text>
+
+    <!-- Warning banner -->
+    <rect x="16" y="116" width="343" height="72" rx="12" fill="#FFF1D6"/>
+    <rect x="16" y="116" width="3" height="72" fill="#FFB020"/>
+    <text x="34" y="138" font-size="14">⚠️</text>
+    <text x="56" y="138" fill="#7A5200" font-size="13" font-weight="700">Revise atentamente.</text>
+    <text x="56" y="156" fill="#7A5200" font-size="12">Depois de ativar, esta regra começa a</text>
+    <text x="56" y="172" fill="#7A5200" font-size="12">executar nas datas programadas. Você</text>
+    <text x="56" y="188" fill="#7A5200" font-size="12">pode pausar a qualquer momento.</text>
+
+    <!-- Summary card -->
+    <rect x="16" y="204" width="343" height="186" rx="16" fill="#FFFFFF" filter="drop-shadow(0 1px 2px rgba(0,0,0,0.06))"/>
+
+    <g font-size="13">
+      <text x="32" y="232" fill="#6E6884">Nome do contrato</text>
+      <text x="343" y="232" text-anchor="end" fill="#1A1832" font-weight="700">Royalties — Editora</text>
+      <line x1="32" y1="244" x2="343" y2="244" stroke="#EFEDF5"/>
+
+      <text x="32" y="266" fill="#6E6884">Recorrência</text>
+      <text x="343" y="266" text-anchor="end" fill="#1A1832" font-weight="700">Bimestral · dia 5</text>
+      <line x1="32" y1="278" x2="343" y2="278" stroke="#EFEDF5"/>
+
+      <text x="32" y="300" fill="#6E6884">Próxima execução</text>
+      <text x="343" y="300" text-anchor="end" fill="#1A1832" font-weight="700">14/mai/2026</text>
+      <line x1="32" y1="312" x2="343" y2="312" stroke="#EFEDF5"/>
+
+      <text x="32" y="334" fill="#6E6884">Total estimado</text>
+      <text x="343" y="334" text-anchor="end" fill="#1A1832" font-weight="700">R$ 12.450,00</text>
+      <line x1="32" y1="346" x2="343" y2="346" stroke="#EFEDF5"/>
+
+      <text x="32" y="368" fill="#6E6884">Taxa (1,5%)</text>
+      <text x="343" y="368" text-anchor="end" fill="#1A1832" font-weight="700">R$ 186,75</text>
+    </g>
+
+    <!-- Section title -->
+    <text x="20" y="418" fill="#6E6884" font-size="11" font-weight="700" letter-spacing="1">8 DESTINATÁRIAS</text>
+
+    <!-- Recipient items -->
+    <g>
+      <rect x="16" y="430" width="343" height="56" rx="12" fill="#FFFFFF" filter="drop-shadow(0 1px 2px rgba(0,0,0,0.06))"/>
+      <rect x="28" y="442" width="32" height="32" rx="10" fill="#E4DAFF"/>
+      <text x="44" y="463" text-anchor="middle" fill="#4D33B5" font-size="11" font-weight="700">BS</text>
+      <text x="72" y="455" fill="#1A1832" font-size="13" font-weight="600">Beatriz Souza</text>
+      <rect x="72" y="464" width="28" height="16" rx="3" fill="#F3EFFF"/>
+      <text x="86" y="475" text-anchor="middle" fill="#4D33B5" font-size="10" font-weight="700">15%</text>
+      <text x="105" y="475" fill="#6E6884" font-size="11">do saldo do contrato</text>
+      <text x="347" y="466" text-anchor="end" fill="#1A1832" font-size="13" font-weight="700">R$ 1.867,50</text>
+    </g>
+
+    <g>
+      <rect x="16" y="494" width="343" height="56" rx="12" fill="#FFFFFF" filter="drop-shadow(0 1px 2px rgba(0,0,0,0.06))"/>
+      <rect x="28" y="506" width="32" height="32" rx="10" fill="#E4DAFF"/>
+      <text x="44" y="527" text-anchor="middle" fill="#4D33B5" font-size="11" font-weight="700">LM</text>
+      <text x="72" y="519" fill="#1A1832" font-size="13" font-weight="600">Lúcia Martins</text>
+      <rect x="72" y="528" width="28" height="16" rx="3" fill="#F3EFFF"/>
+      <text x="86" y="539" text-anchor="middle" fill="#4D33B5" font-size="10" font-weight="700">12%</text>
+      <text x="105" y="539" fill="#6E6884" font-size="11">do saldo do contrato</text>
+      <text x="347" y="530" text-anchor="end" fill="#1A1832" font-size="13" font-weight="700">R$ 1.494,00</text>
+    </g>
+
+    <g>
+      <rect x="16" y="558" width="343" height="56" rx="12" fill="#FFFFFF" filter="drop-shadow(0 1px 2px rgba(0,0,0,0.06))"/>
+      <rect x="28" y="570" width="32" height="32" rx="10" fill="#E4DAFF"/>
+      <text x="44" y="591" text-anchor="middle" fill="#4D33B5" font-size="11" font-weight="700">MR</text>
+      <text x="72" y="583" fill="#1A1832" font-size="13" font-weight="600">Mariana Reis</text>
+      <rect x="72" y="592" width="28" height="16" rx="3" fill="#F3EFFF"/>
+      <text x="86" y="603" text-anchor="middle" fill="#4D33B5" font-size="10" font-weight="700">10%</text>
+      <text x="105" y="603" fill="#6E6884" font-size="11">do saldo do contrato</text>
+      <text x="347" y="594" text-anchor="end" fill="#1A1832" font-size="13" font-weight="700">R$ 1.245,00</text>
+    </g>
+
+    <g>
+      <rect x="16" y="622" width="343" height="56" rx="12" fill="#FFFFFF" filter="drop-shadow(0 1px 2px rgba(0,0,0,0.06))"/>
+      <rect x="28" y="634" width="32" height="32" rx="10" fill="#E4DAFF"/>
+      <text x="44" y="655" text-anchor="middle" fill="#4D33B5" font-size="11" font-weight="700">JA</text>
+      <text x="72" y="647" fill="#1A1832" font-size="13" font-weight="600">Júlia Andrade</text>
+      <rect x="72" y="656" width="46" height="16" rx="3" fill="#F3EFFF"/>
+      <text x="95" y="667" text-anchor="middle" fill="#4D33B5" font-size="10" font-weight="700">R$ 980</text>
+      <text x="123" y="667" fill="#6E6884" font-size="11">valor fixo</text>
+      <text x="347" y="658" text-anchor="end" fill="#1A1832" font-size="13" font-weight="700">R$ 980,00</text>
+    </g>
+
+    <!-- "See more" placeholder -->
+    <rect x="16" y="686" width="343" height="40" rx="12" fill="none" stroke="#C4BFD4" stroke-dasharray="4 4"/>
+    <text x="187" y="711" text-anchor="middle" fill="#7B61FF" font-size="13" font-weight="600">＋ Ver outras 4 destinatárias</text>
+
+    <!-- Footer with CTAs -->
+    <rect x="0" y="744" width="375" height="68" fill="#FFFFFF"/>
+    <line x1="0" y1="744" x2="375" y2="744" stroke="#EFEDF5"/>
+
+    <rect x="20" y="760" width="110" height="44" rx="12" fill="#FFFFFF" stroke="#C9B5FF"/>
+    <text x="75" y="788" text-anchor="middle" fill="#7B61FF" font-size="14" font-weight="600">Voltar</text>
+
+    <g filter="drop-shadow(0 8px 24px rgba(123,97,255,0.4))">
+      <rect x="138" y="760" width="217" height="44" rx="12" fill="url(#brand)"/>
+    </g>
+    <text x="247" y="788" text-anchor="middle" fill="#FFFFFF" font-size="14" font-weight="600">Ativar contrato</text>
+  </g>
+</svg>

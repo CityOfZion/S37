@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 375 812" font-family="Manrope, system-ui, sans-serif">
+  <defs>
+    <linearGradient id="mint" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#00C9A7"/><stop offset="1" stop-color="#57E5BD"/>
+    </linearGradient>
+    <linearGradient id="brand" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7B61FF"/><stop offset="1" stop-color="#B388FF"/>
+    </linearGradient>
+    <clipPath id="phone"><rect width="375" height="812" rx="44"/></clipPath>
+  </defs>
+  <g clip-path="url(#phone)">
+    <rect width="375" height="812" fill="#FFFFFF"/>
+
+    <!-- Mint header -->
+    <rect width="375" height="300" fill="url(#mint)"/>
+    <circle cx="340" cy="80" r="100" fill="#FFFFFF" fill-opacity="0.1"/>
+    <circle cx="50" cy="250" r="80" fill="#FFFFFF" fill-opacity="0.08"/>
+
+    <!-- Status bar -->
+    <text x="32" y="34" fill="#FFFFFF" font-size="14" font-weight="700">9:41</text>
+    <g transform="translate(310, 22)" fill="#FFFFFF">
+      <circle cx="0" cy="8" r="2"/><circle cx="8" cy="8" r="2"/><circle cx="16" cy="8" r="2"/>
+      <rect x="22" y="3" width="20" height="10" rx="2" stroke="#FFFFFF" stroke-width="1" fill="none"/>
+      <rect x="24" y="5" width="14" height="6" fill="#FFFFFF"/>
+    </g>
+
+    <!-- Back button -->
+    <rect x="20" y="60" width="40" height="40" rx="12" fill="#FFFFFF" fill-opacity="0.2"/>
+    <text x="40" y="86" text-anchor="middle" fill="#FFFFFF" font-size="20">←</text>
+
+    <!-- Success circle -->
+    <circle cx="187" cy="138" r="40" fill="#FFFFFF" fill-opacity="0.25"/>
+    <text x="187" y="150" text-anchor="middle" fill="#FFFFFF" font-size="36" font-weight="700">✓</text>
+
+    <!-- Amount -->
+    <text x="187" y="216" text-anchor="middle" fill="#FFFFFF" font-size="36" font-weight="800" letter-spacing="-1">R$ 1.245,00</text>
+    <text x="187" y="240" text-anchor="middle" fill="#FFFFFF" fill-opacity="0.9" font-size="14">enviado para Mariana Reis</text>
+
+    <!-- Status card (floating) -->
+    <rect x="20" y="280" width="335" height="80" rx="16" fill="#FFFFFF" filter="drop-shadow(0 4px 12px rgba(26,24,50,0.12))"/>
+
+    <rect x="36" y="298" width="172" height="28" rx="14" fill="#C0F3E2"/>
+    <circle cx="50" cy="312" r="4" fill="#00C9A7"/>
+    <text x="62" y="316" fill="#003D33" font-size="12" font-weight="700">PIX enviado · chegou em 3 min</text>
+
+    <text x="36" y="346" fill="#6E6884" font-size="12">12 de maio às 14h32</text>
+
+    <!-- Info section -->
+    <g font-size="13">
+      <text x="20" y="396" fill="#6E6884">Contrato</text>
+      <text x="355" y="396" text-anchor="end" fill="#1A1832" font-weight="600">Royalties — Editora</text>
+      <line x1="20" y1="408" x2="355" y2="408" stroke="#EFEDF5"/>
+
+      <text x="20" y="430" fill="#6E6884">Regra aplicada</text>
+      <text x="355" y="430" text-anchor="end" fill="#1A1832" font-weight="600">10% do saldo</text>
+      <line x1="20" y1="442" x2="355" y2="442" stroke="#EFEDF5"/>
+
+      <text x="20" y="464" fill="#6E6884">Chave PIX</text>
+      <text x="355" y="464" text-anchor="end" fill="#1A1832" font-weight="600">mariana.reis@…</text>
+      <line x1="20" y1="476" x2="355" y2="476" stroke="#EFEDF5"/>
+
+      <text x="20" y="498" fill="#6E6884">Banco destino</text>
+      <text x="355" y="498" text-anchor="end" fill="#1A1832" font-weight="600">Nubank</text>
+      <line x1="20" y1="510" x2="355" y2="510" stroke="#EFEDF5"/>
+
+      <text x="20" y="532" fill="#6E6884">Taxa FractaPay</text>
+      <text x="355" y="532" text-anchor="end" fill="#1A1832" font-weight="600">R$ 18,68</text>
+    </g>
+
+    <!-- Buttons -->
+    <rect x="20" y="560" width="163" height="44" rx="12" fill="#FFFFFF" stroke="#C9B5FF"/>
+    <text x="101" y="588" text-anchor="middle" fill="#7B61FF" font-size="13" font-weight="600">📤 Compartilhar</text>
+
+    <g filter="drop-shadow(0 8px 24px rgba(123,97,255,0.4))">
+      <rect x="192" y="560" width="163" height="44" rx="12" fill="url(#brand)"/>
+    </g>
+    <text x="273" y="588" text-anchor="middle" fill="#FFFFFF" font-size="13" font-weight="600">⬇ Baixar PDF</text>
+
+    <!-- Technical accordion -->
+    <rect x="20" y="628" width="335" height="148" rx="12" fill="#FFFFFF" stroke="#C4BFD4" stroke-dasharray="4 4"/>
+
+    <text x="36" y="654" fill="#6E6884" font-size="12" font-weight="600">🔍 Detalhes técnicos (para auditoria)</text>
+    <text x="339" y="654" text-anchor="end" fill="#9690AE" font-size="12">▼</text>
+
+    <line x1="36" y1="668" x2="339" y2="668" stroke="#E0DCEC" stroke-dasharray="2 2"/>
+
+    <g font-size="11">
+      <text x="36" y="690" fill="#6E6884">ID do comprovante</text>
+      <text x="339" y="690" text-anchor="end" fill="#3F3954" font-family="JetBrains Mono, monospace" font-size="10">FP-2026-05-12-A7B3</text>
+
+      <text x="36" y="712" fill="#6E6884">Registro público</text>
+      <text x="339" y="712" text-anchor="end" fill="#3F3954" font-family="JetBrains Mono, monospace" font-size="10">0x7f9c…3d2a</text>
+
+      <text x="36" y="734" fill="#6E6884">Confirmado em</text>
+      <text x="339" y="734" text-anchor="end" fill="#3F3954" font-family="JetBrains Mono, monospace" font-size="10">5,2s</text>
+
+      <text x="36" y="762" fill="#7B61FF" font-weight="600" font-size="12">Ver registro público completo →</text>
+    </g>
+
+    <!-- Home indicator -->
+    <rect x="125" y="796" width="125" height="5" rx="3" fill="#1A1832"/>
+  </g>
+</svg>

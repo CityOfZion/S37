@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" font-family="Manrope, system-ui, sans-serif">
+  <defs>
+    <linearGradient id="brand" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7B61FF"/><stop offset="1" stop-color="#B388FF"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1440" height="900" fill="#F8F7FB"/>
+
+  <!-- ========== SIDEBAR (compacta) ========== -->
+  <rect x="0" y="0" width="240" height="900" fill="#1A1832"/>
+  <g transform="translate(24, 32)">
+    <line x1="24" y1="8" x2="8" y2="40" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" opacity="0.55"/>
+    <line x1="24" y1="8" x2="40" y2="40" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" opacity="0.55"/>
+    <line x1="8" y1="40" x2="40" y2="40" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" opacity="0.55"/>
+    <circle cx="24" cy="8" r="7" fill="#FFFFFF"/>
+    <circle cx="8" cy="40" r="7" fill="#FFFFFF"/>
+    <circle cx="40" cy="40" r="7" fill="#00C9A7"/>
+    <text x="58" y="32" fill="#FFFFFF" font-size="18" font-weight="800" letter-spacing="-0.5">FractaPay</text>
+  </g>
+
+  <text x="24" y="124" fill="#6E6884" font-size="10" font-weight="700" letter-spacing="1.5">MENU PRINCIPAL</text>
+  <g font-size="14" font-weight="500">
+    <text x="32" y="166" font-size="16" fill="#9690AE">🏠</text><text x="60" y="166" fill="#C9B5FF">Início</text>
+    <text x="32" y="208" font-size="16" fill="#9690AE">📋</text><text x="60" y="208" fill="#C9B5FF">Contratos</text>
+
+    <!-- Active: Chat IA -->
+    <rect x="12" y="222" width="216" height="44" rx="10" fill="#7B61FF"/>
+    <text x="32" y="250" font-size="16">✨</text><text x="60" y="250" fill="#FFFFFF" font-weight="600">Chat IA</text>
+
+    <text x="32" y="292" font-size="16" fill="#9690AE">📤</text><text x="60" y="292" fill="#C9B5FF">Upload manual</text>
+    <text x="32" y="334" font-size="16" fill="#9690AE">🧾</text><text x="60" y="334" fill="#C9B5FF">Recibos</text>
+    <text x="32" y="376" font-size="16" fill="#9690AE">👥</text><text x="60" y="376" fill="#C9B5FF">Destinatários</text>
+  </g>
+
+  <text x="24" y="430" fill="#6E6884" font-size="10" font-weight="700" letter-spacing="1.5">CONVERSAS RECENTES</text>
+  <g font-size="12" font-weight="500" fill="#C9B5FF">
+    <text x="32" y="462">📌 Royalties Abril</text>
+    <text x="32" y="490" fill="#9690AE">Folha PJ — Maio</text>
+    <text x="32" y="518" fill="#9690AE">Comissões Q2</text>
+    <text x="32" y="546" fill="#9690AE">Bônus Pedro</text>
+  </g>
+
+  <!-- User card bottom (same pattern) -->
+  <rect x="12" y="816" width="216" height="64" rx="12" fill="#FFFFFF" fill-opacity="0.08"/>
+  <rect x="24" y="828" width="40" height="40" rx="20" fill="url(#brand)"/>
+  <text x="44" y="853" text-anchor="middle" fill="#FFFFFF" font-size="14" font-weight="700">CC</text>
+  <text x="72" y="843" fill="#FFFFFF" font-size="13" font-weight="600">Caroline C.</text>
+  <text x="72" y="860" fill="#9690AE" font-size="11">Madame Rudini</text>
+
+  <!-- ========== TOP BAR ========== -->
+  <rect x="240" y="0" width="1200" height="72" fill="#FFFFFF"/>
+  <line x1="240" y1="72" x2="1440" y2="72" stroke="#EFEDF5"/>
+
+  <text x="272" y="40" fill="#1A1832" font-size="20" font-weight="800">✨ Assistente FractaPay</text>
+  <circle cx="284" cy="54" r="4" fill="#00C9A7"/>
+  <text x="294" y="58" fill="#00A085" font-size="11" font-weight="600">online · responde em segundos</text>
+
+  <rect x="1196" y="20" width="160" height="40" rx="12" fill="#FFFFFF" stroke="#E0DCEC"/>
+  <text x="1276" y="46" text-anchor="middle" fill="#3F3954" font-size="13" font-weight="600">+ Nova conversa</text>
+
+  <rect x="1364" y="20" width="40" height="40" rx="12" fill="#F8F7FB" stroke="#E0DCEC"/>
+  <text x="1384" y="46" text-anchor="middle" font-size="16">⋯</text>
+
+  <!-- ========== CHAT AREA (2 columns: messages + context panel) ========== -->
+  <!-- Messages column -->
+  <rect x="240" y="72" width="780" height="828" fill="#F8F7FB"/>
+
+  <!-- Date divider -->
+  <line x1="280" y1="112" x2="380" y2="112" stroke="#E0DCEC"/>
+  <text x="436" y="116" text-anchor="middle" fill="#9690AE" font-size="11" font-weight="600">HOJE · 14:32</text>
+  <line x1="492" y1="112" x2="592" y2="112" stroke="#E0DCEC"/>
+
+  <!-- Agent message 1 -->
+  <g transform="translate(280, 140)">
+    <rect width="36" height="36" rx="10" fill="url(#brand)"/>
+    <text x="18" y="24" text-anchor="middle" font-size="16">✨</text>
+
+    <rect x="48" y="0" width="500" height="76" rx="16" fill="#FFFFFF" filter="drop-shadow(0 1px 2px rgba(0,0,0,0.06))"/>
+    <text x="68" y="28" fill="#6E6884" font-size="11" font-weight="600">Assistente · 14:32</text>
+    <text x="68" y="50" fill="#1A1832" font-size="14">Olá, Caroline! 👋 Posso te ajudar a criar um contrato,</text>
+    <text x="68" y="68" fill="#1A1832" font-size="14">conferir pagamentos ou ajustar regras. O que você quer fazer?</text>
+  </g>
+
+  <!-- User message -->
+  <g transform="translate(280, 240)">
+    <text x="500" y="20" text-anchor="end" fill="#6E6884" font-size="11" font-weight="600">Caroline · 14:33</text>
+    <rect x="60" y="28" width="440" height="44" rx="16" fill="#7B61FF"/>
+    <text x="80" y="56" fill="#FFFFFF" font-size="14">Quero distribuir os royalties de abril. Anexei o relatório.</text>
+
+    <!-- Attachment in user bubble -->
+    <rect x="60" y="80" width="440" height="56" rx="14" fill="#7B61FF"/>
+    <rect x="80" y="92" width="40" height="32" rx="6" fill="#FFFFFF" fill-opacity="0.25"/>
+    <text x="100" y="113" text-anchor="middle" fill="#FFFFFF" font-size="10" font-weight="700">XLS</text>
+    <text x="132" y="108" fill="#FFFFFF" font-size="13" font-weight="600">royalties_abril.xlsx</text>
+    <text x="132" y="124" fill="#FFFFFF" fill-opacity="0.75" font-size="11">128 KB · 42 linhas</text>
+  </g>
+
+  <!-- Agent response 2 -->
+  <g transform="translate(280, 400)">
+    <rect width="36" height="36" rx="10" fill="url(#brand)"/>
+    <text x="18" y="24" text-anchor="middle" font-size="16">✨</text>
+
+    <rect x="48" y="0" width="500" height="64" rx="16" fill="#FFFFFF" filter="drop-shadow(0 1px 2px rgba(0,0,0,0.06))"/>
+    <text x="68" y="28" fill="#1A1832" font-size="14">Identifiquei <tspan font-weight="700">8 autoras</tspan> no relatório, somando</text>
+    <text x="68" y="46" fill="#1A1832" font-size="14"><tspan font-weight="700">R$ 12.450</tspan> em royalties. Veja o detalhamento ao lado →</text>
+  </g>
+
+  <!-- Typing indicator -->
+  <g transform="translate(280, 500)">
+    <rect width="36" height="36" rx="10" fill="url(#brand)"/>
+    <text x="18" y="24" text-anchor="middle" font-size="16">✨</text>
+    <rect x="48" y="0" width="80" height="36" rx="16" fill="#FFFFFF" filter="drop-shadow(0 1px 2px rgba(0,0,0,0.06))"/>
+    <circle cx="68" cy="18" r="3" fill="#9690AE"/>
+    <circle cx="80" cy="18" r="3" fill="#9690AE"/>
+    <circle cx="92" cy="18" r="3" fill="#9690AE"/>
+  </g>
+
+  <!-- Quick actions -->
+  <g transform="translate(280, 720)" font-size="12" font-weight="600">
+    <text x="0" y="0" fill="#6E6884">Sugestões rápidas:</text>
+    <rect x="0" y="12" width="170" height="32" rx="16" fill="#FFFFFF" stroke="#E0DCEC"/>
+    <text x="85" y="32" text-anchor="middle" fill="#3F3954">Ver saldo dos contratos</text>
+
+    <rect x="180" y="12" width="180" height="32" rx="16" fill="#FFFFFF" stroke="#E0DCEC"/>
+    <text x="270" y="32" text-anchor="middle" fill="#3F3954">Pausar Comissões Q2</text>
+
+    <rect x="370" y="12" width="160" height="32" rx="16" fill="#FFFFFF" stroke="#E0DCEC"/>
+    <text x="450" y="32" text-anchor="middle" fill="#3F3954">Adicionar bônus</text>
+  </g>
+
+  <!-- Input bar -->
+  <rect x="280" y="800" width="700" height="68" rx="20" fill="#FFFFFF" stroke="#E0DCEC" filter="drop-shadow(0 4px 12px rgba(26,24,50,0.06))"/>
+
+  <rect x="296" y="816" width="36" height="36" rx="10" fill="#F3EFFF"/>
+  <text x="314" y="840" text-anchor="middle" font-size="16">📎</text>
+
+  <text x="346" y="840" fill="#9690AE" font-size="14">Pergunte ou anexe um arquivo… ou use a tela de Upload manual</text>
+
+  <g transform="translate(908, 816)" filter="drop-shadow(0 4px 12px rgba(123,97,255,0.3))">
+    <rect width="56" height="36" rx="10" fill="#7B61FF"/>
+    <text x="28" y="24" text-anchor="middle" fill="#FFFFFF" font-size="16">➤</text>
+  </g>
+
+  <!-- ========== CONTEXT PANEL (right) ========== -->
+  <rect x="1020" y="72" width="420" height="828" fill="#FFFFFF"/>
+  <line x1="1020" y1="72" x2="1020" y2="900" stroke="#EFEDF5"/>
+
+  <text x="1052" y="112" fill="#6E6884" font-size="11" font-weight="700" letter-spacing="1.5">PROPOSTA DO AGENTE</text>
+
+  <text x="1052" y="148" fill="#1A1832" font-size="18" font-weight="800">📋 Royalties abril</text>
+  <text x="1052" y="170" fill="#6E6884" font-size="13">8 destinatárias · Bimestral · dia 14</text>
+
+  <!-- Summary -->
+  <rect x="1052" y="190" width="356" height="92" rx="12" fill="#F3EFFF"/>
+  <text x="1072" y="218" fill="#4D33B5" font-size="11" font-weight="700" letter-spacing="1">TOTAL A DISTRIBUIR</text>
+  <text x="1072" y="252" fill="#1A1832" font-size="28" font-weight="800" letter-spacing="-0.5">R$ 12.450,00</text>
+  <text x="1072" y="272" fill="#6E6884" font-size="12">Taxa FractaPay (1,5%): <tspan font-weight="600">R$ 186,75</tspan></text>
+
+  <!-- Recipients list -->
+  <text x="1052" y="318" fill="#6E6884" font-size="11" font-weight="700" letter-spacing="1">DESTINATÁRIAS</text>
+
+  <g font-size="13">
+    <rect x="1052" y="328" width="356" height="44" rx="10" fill="#F8F7FB"/>
+    <text x="1068" y="356" fill="#1A1832" font-weight="600">Beatriz Souza</text>
+    <text x="1392" y="356" text-anchor="end" fill="#4D33B5" font-weight="700">15% · R$ 1.867</text>
+
+    <rect x="1052" y="380" width="356" height="44" rx="10" fill="#F8F7FB"/>
+    <text x="1068" y="408" fill="#1A1832" font-weight="600">Lúcia Martins</text>
+    <text x="1392" y="408" text-anchor="end" fill="#4D33B5" font-weight="700">12% · R$ 1.494</text>
+
+    <rect x="1052" y="432" width="356" height="44" rx="10" fill="#F8F7FB"/>
+    <text x="1068" y="460" fill="#1A1832" font-weight="600">Mariana Reis</text>
+    <text x="1392" y="460" text-anchor="end" fill="#4D33B5" font-weight="700">10% · R$ 1.245</text>
+
+    <rect x="1052" y="484" width="356" height="44" rx="10" fill="#F8F7FB"/>
+    <text x="1068" y="512" fill="#1A1832" font-weight="600">Júlia Andrade</text>
+    <text x="1392" y="512" text-anchor="end" fill="#4D33B5" font-weight="700">R$ 980 fixo</text>
+
+    <rect x="1052" y="536" width="356" height="44" rx="10" fill="#F8F7FB"/>
+    <text x="1068" y="564" fill="#1A1832" font-weight="600">+ 4 outras</text>
+    <text x="1392" y="564" text-anchor="end" fill="#4D33B5" font-weight="700">R$ 6.864</text>
+  </g>
+
+  <!-- Footer actions -->
+  <line x1="1020" y1="820" x2="1440" y2="820" stroke="#EFEDF5"/>
+  <rect x="1052" y="840" width="100" height="40" rx="10" fill="#FFFFFF" stroke="#E0DCEC"/>
+  <text x="1102" y="864" text-anchor="middle" fill="#3F3954" font-size="13" font-weight="600">Ajustar</text>
+
+  <g transform="translate(1164, 840)" filter="drop-shadow(0 4px 12px rgba(123,97,255,0.3))">
+    <rect width="244" height="40" rx="10" fill="url(#brand)"/>
+    <text x="122" y="24" text-anchor="middle" fill="#FFFFFF" font-size="13" font-weight="600">Revisar e ativar contrato →</text>
+  </g>
+</svg>

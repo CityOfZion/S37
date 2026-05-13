@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 375 812" font-family="Manrope, system-ui, sans-serif">
+  <defs>
+    <linearGradient id="hero" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7B61FF"/>
+      <stop offset="1" stop-color="#00C9A7"/>
+    </linearGradient>
+    <clipPath id="phone"><rect width="375" height="812" rx="44"/></clipPath>
+  </defs>
+  <g clip-path="url(#phone)">
+    <!-- Background gradient -->
+    <rect width="375" height="812" fill="url(#hero)"/>
+
+    <!-- Decorative circles -->
+    <circle cx="320" cy="120" r="160" fill="#FFFFFF" opacity="0.08"/>
+    <circle cx="60" cy="500" r="100" fill="#FFFFFF" opacity="0.06"/>
+
+    <!-- Status bar -->
+    <text x="32" y="34" fill="#FFFFFF" font-size="14" font-weight="700">9:41</text>
+    <g transform="translate(310, 22)" fill="#FFFFFF">
+      <circle cx="0" cy="8" r="2"/>
+      <circle cx="8" cy="8" r="2"/>
+      <circle cx="16" cy="8" r="2"/>
+      <rect x="22" y="3" width="20" height="10" rx="2" stroke="#FFFFFF" stroke-width="1" fill="none"/>
+      <rect x="24" y="5" width="14" height="6" fill="#FFFFFF"/>
+    </g>
+
+    <!-- Logo -->
+    <rect x="32" y="100" width="64" height="64" rx="20" fill="#FFFFFF" fill-opacity="0.18"/>
+    <g transform="translate(50, 116)">
+      <circle cx="14" cy="6" r="8" fill="#FFFFFF"/>
+      <circle cx="0" cy="26" r="8" fill="#FFFFFF"/>
+      <circle cx="28" cy="26" r="8" fill="#00C9A7"/>
+    </g>
+
+    <!-- Headline -->
+    <text x="32" y="240" fill="#FFFFFF" font-size="32" font-weight="800" letter-spacing="-1">Pagamentos</text>
+    <text x="32" y="280" fill="#FFFFFF" font-size="32" font-weight="800" letter-spacing="-1">sem complicação.</text>
+
+    <!-- Subtitle -->
+    <text x="32" y="320" fill="#FFFFFF" fill-opacity="0.9" font-size="15" font-weight="400">Distribua royalties, folha e comissões</text>
+    <text x="32" y="340" fill="#FFFFFF" fill-opacity="0.9" font-size="15" font-weight="400">automaticamente. Você descreve,</text>
+    <text x="32" y="360" fill="#FFFFFF" fill-opacity="0.9" font-size="15" font-weight="400">a gente faz.</text>
+
+    <!-- Features pills -->
+    <g transform="translate(32, 400)">
+      <rect width="190" height="32" rx="16" fill="#FFFFFF" fill-opacity="0.18"/>
+      <text x="14" y="21" fill="#FFFFFF" font-size="12" font-weight="600">✨ IA entende seus arquivos</text>
+    </g>
+    <g transform="translate(32, 442)">
+      <rect width="160" height="32" rx="16" fill="#FFFFFF" fill-opacity="0.18"/>
+      <text x="14" y="21" fill="#FFFFFF" font-size="12" font-weight="600">⚡ PIX em até 10 min</text>
+    </g>
+    <g transform="translate(32, 484)">
+      <rect width="200" height="32" rx="16" fill="#FFFFFF" fill-opacity="0.18"/>
+      <text x="14" y="21" fill="#FFFFFF" font-size="12" font-weight="600">🔒 Comprovante público auditável</text>
+    </g>
+
+    <!-- CTAs -->
+    <g transform="translate(32, 620)">
+      <rect width="311" height="52" rx="12" fill="#FFFFFF"/>
+      <g transform="translate(80, 16)">
+        <path d="M19.6 10.2c0-.71-.06-1.39-.18-2.04H10v3.86h5.38c-.23 1.24-.94 2.3-1.99 3.01v2.5h3.22c1.89-1.74 2.99-4.29 2.99-7.33z" fill="#4285F4"/>
+        <path d="M10 20c2.7 0 4.97-.9 6.62-2.42l-3.22-2.5c-.9.6-2.04.96-3.4.96-2.61 0-4.82-1.76-5.61-4.13H1.07v2.6A10 10 0 0010 20z" fill="#34A853"/>
+        <path d="M4.39 11.91A6 6 0 014.07 10c0-.66.11-1.29.31-1.9V5.5H1.07A10 10 0 000 10c0 1.61.39 3.13 1.07 4.49l3.32-2.58z" fill="#FBBC05"/>
+        <path d="M10 3.98c1.47 0 2.79.5 3.83 1.5l2.87-2.87A10 10 0 0010 0 10 10 0 001.07 5.5l3.32 2.6C5.18 5.74 7.39 3.98 10 3.98z" fill="#EA4335"/>
+      </g>
+      <text x="155" y="32" text-anchor="middle" fill="#1F1153" font-size="15" font-weight="600">Entrar com Google</text>
+    </g>
+
+    <g transform="translate(32, 684)">
+      <rect width="311" height="52" rx="12" fill="#FFFFFF" fill-opacity="0.18" stroke="#FFFFFF" stroke-opacity="0.25"/>
+      <text x="155" y="32" text-anchor="middle" fill="#FFFFFF" font-size="15" font-weight="600">🔐 Usar biometria do dispositivo</text>
+    </g>
+
+    <!-- Footer text -->
+    <text x="187.5" y="760" text-anchor="middle" fill="#FFFFFF" fill-opacity="0.7" font-size="11">Sua chave de acesso fica protegida no seu</text>
+    <text x="187.5" y="776" text-anchor="middle" fill="#FFFFFF" fill-opacity="0.7" font-size="11">dispositivo. Nem nós conseguimos acessar.</text>
+
+    <!-- Home indicator -->
+    <rect x="125" y="796" width="125" height="5" rx="3" fill="#FFFFFF" fill-opacity="0.5"/>
+  </g>
+</svg>

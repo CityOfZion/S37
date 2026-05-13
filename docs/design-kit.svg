@@ -1,0 +1,319 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 2200" font-family="Manrope, system-ui, sans-serif">
+  <defs>
+    <linearGradient id="gradBrand" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7B61FF"/>
+      <stop offset="1" stop-color="#B388FF"/>
+    </linearGradient>
+    <linearGradient id="gradMint" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#00C9A7"/>
+      <stop offset="1" stop-color="#57E5BD"/>
+    </linearGradient>
+    <linearGradient id="gradHero" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7B61FF"/>
+      <stop offset="1" stop-color="#00C9A7"/>
+    </linearGradient>
+    <filter id="shadowLg" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="8"/>
+      <feOffset dx="0" dy="12" result="offsetblur"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.12"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="shadowBrand" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="12"/>
+      <feOffset dx="0" dy="8"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.28"/></feComponentTransfer>
+      <feFlood flood-color="#7B61FF"/>
+      <feComposite in2="SourceAlpha" operator="in"/>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1600" height="2200" fill="#14102B"/>
+
+  <!-- ============ TITLE ============ -->
+  <text x="80" y="80" fill="#FFFFFF" font-size="42" font-weight="800" letter-spacing="-1">FractaPay — Design Kit</text>
+  <text x="80" y="118" fill="#9690AE" font-size="16" font-weight="500">Logo · Cores · Tipografia · Componentes · Frames mobile</text>
+
+  <!-- ============ LOGO SECTION ============ -->
+  <text x="80" y="200" fill="#C9B5FF" font-size="11" font-weight="700" letter-spacing="2">LOGOTIPO</text>
+
+  <!-- Logo on dark -->
+  <rect x="80" y="220" width="340" height="200" rx="20" fill="#1F1153"/>
+  <g transform="translate(140, 270)">
+    <circle cx="20" cy="0" r="14" fill="#7B61FF"/>
+    <circle cx="0" cy="35" r="14" fill="#7B61FF"/>
+    <circle cx="40" cy="35" r="14" fill="#00C9A7"/>
+    <line x1="20" y1="0" x2="0" y2="35" stroke="#FFFFFF" stroke-width="2" opacity="0.5"/>
+    <line x1="20" y1="0" x2="40" y2="35" stroke="#FFFFFF" stroke-width="2" opacity="0.5"/>
+    <line x1="0" y1="35" x2="40" y2="35" stroke="#FFFFFF" stroke-width="2" opacity="0.5"/>
+  </g>
+  <text x="220" y="320" fill="#FFFFFF" font-size="32" font-weight="800" letter-spacing="-1">FractaPay</text>
+  <text x="220" y="345" fill="#9690AE" font-size="11" font-weight="500">Pagamentos em fração</text>
+
+  <!-- Logo on light -->
+  <rect x="440" y="220" width="340" height="200" rx="20" fill="#FFFFFF"/>
+  <g transform="translate(500, 270)">
+    <circle cx="20" cy="0" r="14" fill="#7B61FF"/>
+    <circle cx="0" cy="35" r="14" fill="#7B61FF"/>
+    <circle cx="40" cy="35" r="14" fill="#00C9A7"/>
+    <line x1="20" y1="0" x2="0" y2="35" stroke="#1A1832" stroke-width="2" opacity="0.5"/>
+    <line x1="20" y1="0" x2="40" y2="35" stroke="#1A1832" stroke-width="2" opacity="0.5"/>
+    <line x1="0" y1="35" x2="40" y2="35" stroke="#1A1832" stroke-width="2" opacity="0.5"/>
+  </g>
+  <text x="580" y="320" fill="#1A1832" font-size="32" font-weight="800" letter-spacing="-1">FractaPay</text>
+  <text x="580" y="345" fill="#6E6884" font-size="11" font-weight="500">Pagamentos em fração</text>
+
+  <!-- Símbolo isolado -->
+  <rect x="800" y="220" width="200" height="200" rx="20" fill="url(#gradBrand)"/>
+  <g transform="translate(870, 290)">
+    <circle cx="30" cy="0" r="20" fill="#FFFFFF"/>
+    <circle cx="0" cy="50" r="20" fill="#FFFFFF"/>
+    <circle cx="60" cy="50" r="20" fill="#00C9A7"/>
+    <line x1="30" y1="0" x2="0" y2="50" stroke="#FFFFFF" stroke-width="3" opacity="0.6"/>
+    <line x1="30" y1="0" x2="60" y2="50" stroke="#FFFFFF" stroke-width="3" opacity="0.6"/>
+    <line x1="0" y1="50" x2="60" y2="50" stroke="#FFFFFF" stroke-width="3" opacity="0.6"/>
+  </g>
+
+  <!-- Wordmark grande -->
+  <rect x="1020" y="220" width="500" height="200" rx="20" fill="#FFFFFF"/>
+  <text x="1270" y="345" text-anchor="middle" fill="#1A1832" font-size="64" font-weight="800" letter-spacing="-2">FractaPay</text>
+
+  <!-- ============ COLOR PALETTE ============ -->
+  <text x="80" y="500" fill="#C9B5FF" font-size="11" font-weight="700" letter-spacing="2">PALETA DE CORES</text>
+
+  <!-- Brand ramp -->
+  <text x="80" y="535" fill="#FFFFFF" font-size="14" font-weight="700">Brand (Violeta Elétrico)</text>
+  <g font-size="10" fill="#FFFFFF" font-weight="600">
+    <rect x="80" y="550" width="120" height="80" rx="8" fill="#F3EFFF"/><text x="92" y="615" fill="#1A1832">brand-50</text><text x="92" y="628" fill="#6E6884">#F3EFFF</text>
+    <rect x="210" y="550" width="120" height="80" rx="8" fill="#C9B5FF"/><text x="222" y="615" fill="#1A1832">brand-200</text><text x="222" y="628" fill="#3F3954">#C9B5FF</text>
+    <rect x="340" y="550" width="120" height="80" rx="8" fill="#7B61FF"/><text x="352" y="615">brand-500</text><text x="352" y="628" opacity="0.85">#7B61FF</text>
+    <rect x="470" y="550" width="120" height="80" rx="8" fill="#6244E0"/><text x="482" y="615">brand-600</text><text x="482" y="628" opacity="0.85">#6244E0</text>
+    <rect x="600" y="550" width="120" height="80" rx="8" fill="#4D33B5"/><text x="612" y="615">brand-700</text><text x="612" y="628" opacity="0.85">#4D33B5</text>
+    <rect x="730" y="550" width="120" height="80" rx="8" fill="#1F1153"/><text x="742" y="615">brand-900</text><text x="742" y="628" opacity="0.85">#1F1153</text>
+  </g>
+
+  <!-- Accent + Status -->
+  <text x="80" y="680" fill="#FFFFFF" font-size="14" font-weight="700">Accent &amp; Status</text>
+  <g font-size="10" fill="#FFFFFF" font-weight="600">
+    <rect x="80" y="695" width="120" height="80" rx="8" fill="#00C9A7"/><text x="92" y="760">accent-500</text><text x="92" y="773" opacity="0.85">#00C9A7</text>
+    <rect x="210" y="695" width="120" height="80" rx="8" fill="#FFB020"/><text x="222" y="760" fill="#1A1832">warning</text><text x="222" y="773" fill="#3F3954">#FFB020</text>
+    <rect x="340" y="695" width="120" height="80" rx="8" fill="#FF4D4F"/><text x="352" y="760">danger</text><text x="352" y="773" opacity="0.85">#FF4D4F</text>
+    <rect x="470" y="695" width="120" height="80" rx="8" fill="#3CA7FF"/><text x="482" y="760">info</text><text x="482" y="773" opacity="0.85">#3CA7FF</text>
+  </g>
+
+  <!-- Neutrals -->
+  <text x="80" y="825" fill="#FFFFFF" font-size="14" font-weight="700">Neutros</text>
+  <g font-size="10" font-weight="600">
+    <rect x="80" y="840" width="120" height="80" rx="8" fill="#FFFFFF" stroke="#3F3954" stroke-width="1"/><text x="92" y="905" fill="#1A1832">neutral-0</text><text x="92" y="918" fill="#6E6884">#FFFFFF</text>
+    <rect x="210" y="840" width="120" height="80" rx="8" fill="#F8F7FB"/><text x="222" y="905" fill="#1A1832">neutral-50</text><text x="222" y="918" fill="#6E6884">#F8F7FB</text>
+    <rect x="340" y="840" width="120" height="80" rx="8" fill="#E0DCEC"/><text x="352" y="905" fill="#1A1832">neutral-200</text><text x="352" y="918" fill="#3F3954">#E0DCEC</text>
+    <rect x="470" y="840" width="120" height="80" rx="8" fill="#9690AE"/><text x="482" y="905" fill="#FFFFFF">neutral-400</text><text x="482" y="918" fill="#FFFFFF" opacity="0.85">#9690AE</text>
+    <rect x="600" y="840" width="120" height="80" rx="8" fill="#6E6884"/><text x="612" y="905" fill="#FFFFFF">neutral-500</text><text x="612" y="918" fill="#FFFFFF" opacity="0.85">#6E6884</text>
+    <rect x="730" y="840" width="120" height="80" rx="8" fill="#3F3954"/><text x="742" y="905" fill="#FFFFFF">neutral-700</text><text x="742" y="918" fill="#FFFFFF" opacity="0.85">#3F3954</text>
+    <rect x="860" y="840" width="120" height="80" rx="8" fill="#1A1832"/><text x="872" y="905" fill="#FFFFFF">neutral-900</text><text x="872" y="918" fill="#FFFFFF" opacity="0.85">#1A1832</text>
+  </g>
+
+  <!-- Gradients -->
+  <text x="1020" y="535" fill="#FFFFFF" font-size="14" font-weight="700">Gradientes</text>
+  <rect x="1020" y="550" width="500" height="80" rx="12" fill="url(#gradBrand)"/>
+  <text x="1040" y="600" fill="#FFFFFF" font-size="13" font-weight="700">gradient-brand</text>
+  <text x="1040" y="618" fill="#FFFFFF" opacity="0.8" font-size="11">#7B61FF → #B388FF</text>
+
+  <rect x="1020" y="640" width="500" height="80" rx="12" fill="url(#gradMint)"/>
+  <text x="1040" y="690" fill="#FFFFFF" font-size="13" font-weight="700">gradient-mint</text>
+  <text x="1040" y="708" fill="#FFFFFF" opacity="0.8" font-size="11">#00C9A7 → #57E5BD</text>
+
+  <rect x="1020" y="730" width="500" height="80" rx="12" fill="url(#gradHero)"/>
+  <text x="1040" y="780" fill="#FFFFFF" font-size="13" font-weight="700">gradient-hero</text>
+  <text x="1040" y="798" fill="#FFFFFF" opacity="0.8" font-size="11">#7B61FF → #00C9A7 — usado em telas de boas-vindas</text>
+
+  <!-- ============ TYPOGRAPHY ============ -->
+  <text x="80" y="990" fill="#C9B5FF" font-size="11" font-weight="700" letter-spacing="2">TIPOGRAFIA — MANROPE</text>
+
+  <rect x="80" y="1010" width="1440" height="380" rx="20" fill="#FFFFFF"/>
+  <text x="120" y="1070" fill="#1A1832" font-size="48" font-weight="800" letter-spacing="-1.5">Display · 40/48px · 800</text>
+  <text x="120" y="1120" fill="#1A1832" font-size="32" font-weight="700" letter-spacing="-0.5">H1 · 32px · 700 · Pagamentos sem complicação</text>
+  <text x="120" y="1160" fill="#1A1832" font-size="24" font-weight="700">H2 · 24px · 700 · Próximas execuções</text>
+  <text x="120" y="1195" fill="#1A1832" font-size="20" font-weight="600">H3 · 20px · 600 · Royalties — Editora</text>
+  <text x="120" y="1226" fill="#1A1832" font-size="16" font-weight="600">H4 · 16px · 600 · Saldo do contrato</text>
+  <text x="120" y="1258" fill="#3F3954" font-size="14" font-weight="400">Body · 14px · 400 · O FractaPay distribui pagamentos automaticamente para você.</text>
+  <text x="120" y="1285" fill="#6E6884" font-size="13" font-weight="400">Body Sm · 13px · 400 · Bimestral · 8 destinatárias · Próxima execução em 4 dias</text>
+  <text x="120" y="1310" fill="#6E6884" font-size="12" font-weight="500">Caption · 12px · 500 · há 2 horas</text>
+  <text x="120" y="1335" fill="#9690AE" font-size="11" font-weight="700" letter-spacing="1.5">OVERLINE · 11/13PX · 700 · TAGS E EYEBROWS</text>
+  <text x="120" y="1370" fill="#1A1832" font-size="20" font-weight="700" font-family="JetBrains Mono, monospace">R$ 12.450,00 · Mono Display (valores)</text>
+
+  <!-- ============ COMPONENTS ============ -->
+  <text x="80" y="1450" fill="#C9B5FF" font-size="11" font-weight="700" letter-spacing="2">COMPONENTES</text>
+
+  <!-- Buttons row -->
+  <text x="80" y="1485" fill="#9690AE" font-size="12" font-weight="600">BUTTONS</text>
+  <g>
+    <!-- Primary -->
+    <rect x="80" y="1500" width="180" height="48" rx="12" fill="#7B61FF" filter="url(#shadowBrand)"/>
+    <text x="170" y="1531" text-anchor="middle" fill="#FFFFFF" font-size="15" font-weight="600">Confirmar pagamento</text>
+
+    <!-- Secondary -->
+    <rect x="280" y="1500" width="150" height="48" rx="12" fill="#FFFFFF" stroke="#C9B5FF" stroke-width="1"/>
+    <text x="355" y="1531" text-anchor="middle" fill="#7B61FF" font-size="15" font-weight="600">Voltar</text>
+
+    <!-- Success -->
+    <rect x="450" y="1500" width="180" height="48" rx="12" fill="#00C9A7"/>
+    <text x="540" y="1531" text-anchor="middle" fill="#FFFFFF" font-size="15" font-weight="600">Ativar contrato</text>
+
+    <!-- Danger -->
+    <rect x="650" y="1500" width="130" height="48" rx="12" fill="#FF4D4F"/>
+    <text x="715" y="1531" text-anchor="middle" fill="#FFFFFF" font-size="15" font-weight="600">Encerrar</text>
+
+    <!-- Ghost -->
+    <rect x="800" y="1500" width="100" height="48" rx="12" fill="transparent"/>
+    <text x="850" y="1531" text-anchor="middle" fill="#3F3954" font-size="15" font-weight="600">Cancelar</text>
+  </g>
+
+  <!-- Inputs row -->
+  <text x="80" y="1590" fill="#9690AE" font-size="12" font-weight="600">INPUTS</text>
+  <text x="80" y="1610" fill="#6E6884" font-size="11" font-weight="600">Nome da empresa</text>
+  <rect x="80" y="1618" width="340" height="48" rx="12" fill="#FFFFFF" stroke="#E0DCEC" stroke-width="1"/>
+  <text x="98" y="1648" fill="#1A1832" font-size="15">Editora Madame Rudini</text>
+
+  <text x="440" y="1610" fill="#6E6884" font-size="11" font-weight="600">Email · estado focus</text>
+  <rect x="440" y="1618" width="340" height="48" rx="12" fill="#FFFFFF" stroke="#7B61FF" stroke-width="2"/>
+  <text x="458" y="1648" fill="#1A1832" font-size="15">caroline@madamerudini.com.br</text>
+
+  <text x="800" y="1610" fill="#6E6884" font-size="11" font-weight="600">CPF · estado erro</text>
+  <rect x="800" y="1618" width="340" height="48" rx="12" fill="#FFFFFF" stroke="#FF4D4F" stroke-width="1"/>
+  <text x="818" y="1648" fill="#1A1832" font-size="15">000.000.000-00</text>
+  <text x="800" y="1685" fill="#FF4D4F" font-size="11" font-weight="500">CPF inválido. Verifique os números.</text>
+
+  <!-- Badges -->
+  <text x="80" y="1720" fill="#9690AE" font-size="12" font-weight="600">BADGES</text>
+  <g font-size="11" font-weight="700">
+    <rect x="80" y="1735" width="80" height="26" rx="13" fill="#C0F3E2"/><text x="92" y="1753" fill="#003D33">● Ativo</text>
+    <rect x="170" y="1735" width="100" height="26" rx="13" fill="#FFF1D6"/><text x="182" y="1753" fill="#7A5200">⏸ Pausado</text>
+    <rect x="280" y="1735" width="100" height="26" rx="13" fill="#EFEDF5"/><text x="292" y="1753" fill="#3F3954">■ Encerrado</text>
+    <rect x="390" y="1735" width="120" height="26" rx="13" fill="#DDF0FF"/><text x="402" y="1753" fill="#0B4F8A">● Processando</text>
+    <rect x="520" y="1735" width="80" height="26" rx="13" fill="#FFE3E3"/><text x="532" y="1753" fill="#7A0E10">▲ Erro</text>
+  </g>
+
+  <!-- Cards -->
+  <text x="80" y="1800" fill="#9690AE" font-size="12" font-weight="600">CARDS</text>
+
+  <!-- Contract card -->
+  <rect x="80" y="1815" width="360" height="180" rx="16" fill="#FFFFFF" filter="url(#shadowLg)"/>
+  <text x="100" y="1845" fill="#1A1832" font-size="15" font-weight="700">Royalties — Editora</text>
+  <text x="100" y="1865" fill="#6E6884" font-size="12">Bimestral · 8 destinatárias</text>
+  <rect x="340" y="1830" width="80" height="26" rx="13" fill="#C0F3E2"/><text x="352" y="1848" fill="#003D33" font-size="11" font-weight="700">● Ativo</text>
+
+  <rect x="100" y="1885" width="320" height="56" rx="12" fill="#F8F7FB"/>
+  <text x="118" y="1905" fill="#6E6884" font-size="10" font-weight="700" letter-spacing="1.5">SALDO DO CONTRATO</text>
+  <text x="118" y="1932" fill="#1A1832" font-size="20" font-weight="800">R$ 12.450,00</text>
+
+  <line x1="100" y1="1955" x2="420" y2="1955" stroke="#EFEDF5" stroke-width="1"/>
+  <text x="100" y="1980" fill="#6E6884" font-size="11">Próximo: <tspan fill="#1A1832" font-weight="700">14 mai</tspan></text>
+  <text x="420" y="1980" text-anchor="end" fill="#6E6884" font-size="11">8 pessoas</text>
+
+  <!-- Hero card (gradient) -->
+  <rect x="470" y="1815" width="360" height="180" rx="24" fill="url(#gradBrand)" filter="url(#shadowBrand)"/>
+  <text x="494" y="1850" fill="#FFFFFF" opacity="0.85" font-size="10" font-weight="700" letter-spacing="1.5">SALDO TOTAL NOS CONTRATOS</text>
+  <text x="494" y="1900" fill="#FFFFFF" font-size="38" font-weight="800" letter-spacing="-1">R$ 47.890,00</text>
+  <text x="494" y="1923" fill="#FFFFFF" opacity="0.85" font-size="12">8 contratos ativos · próxima em 4 dias</text>
+  <rect x="494" y="1945" width="150" height="36" rx="12" fill="#FFFFFF" opacity="0.18"/>
+  <text x="569" y="1968" text-anchor="middle" fill="#FFFFFF" font-size="12" font-weight="600">＋ Adicionar saldo</text>
+  <rect x="654" y="1945" width="150" height="36" rx="12" fill="#FFFFFF" opacity="0.18"/>
+  <text x="729" y="1968" text-anchor="middle" fill="#FFFFFF" font-size="12" font-weight="600">✨ Novo contrato</text>
+
+  <!-- Bottom nav -->
+  <rect x="860" y="1815" width="360" height="180" rx="16" fill="#FFFFFF" filter="url(#shadowLg)"/>
+  <text x="880" y="1845" fill="#1A1832" font-size="13" font-weight="700">Bottom Navigation</text>
+  <text x="880" y="1862" fill="#6E6884" font-size="11">Mobile · 5 itens · CTA central elevado</text>
+
+  <rect x="880" y="1880" width="320" height="80" rx="20" fill="#FFFFFF" stroke="#E0DCEC"/>
+  <!-- Icons -->
+  <g font-size="20" text-anchor="middle">
+    <text x="912" y="1908">🏠</text>
+    <text x="912" y="1942" fill="#7B61FF" font-size="9" font-weight="700">Início</text>
+
+    <text x="976" y="1908">📋</text>
+    <text x="976" y="1942" fill="#9690AE" font-size="9" font-weight="700">Contratos</text>
+
+    <!-- CTA -->
+    <circle cx="1040" cy="1908" r="26" fill="url(#gradBrand)" filter="url(#shadowBrand)"/>
+    <text x="1040" y="1916" fill="#FFFFFF" font-size="22">✨</text>
+
+    <text x="1104" y="1908">🧾</text>
+    <text x="1104" y="1942" fill="#9690AE" font-size="9" font-weight="700">Recibos</text>
+
+    <text x="1168" y="1908">⚙</text>
+    <text x="1168" y="1942" fill="#9690AE" font-size="9" font-weight="700">Mais</text>
+  </g>
+
+  <!-- ============ MINI FRAMES PREVIEW ============ -->
+  <text x="80" y="2060" fill="#C9B5FF" font-size="11" font-weight="700" letter-spacing="2">TELAS-CHAVE — PREVIEW</text>
+  <text x="80" y="2082" fill="#9690AE" font-size="12">Ver mockups completos em FractaPay_Mockups.html (8 telas, alta fidelidade)</text>
+
+  <!-- Frame 1 mini: Welcome -->
+  <g transform="translate(80, 2110)">
+    <rect width="80" height="80" rx="16" fill="url(#gradHero)"/>
+    <text x="40" y="46" text-anchor="middle" fill="#FFFFFF" font-size="20" font-weight="800">FP</text>
+    <text x="40" y="100" text-anchor="middle" fill="#9690AE" font-size="10" font-weight="600">01 Boas-vindas</text>
+  </g>
+
+  <g transform="translate(180, 2110)">
+    <rect width="80" height="80" rx="16" fill="#FFFFFF"/>
+    <rect x="6" y="6" width="68" height="22" rx="8" fill="#F3EFFF"/>
+    <rect x="6" y="32" width="68" height="42" rx="8" fill="url(#gradBrand)"/>
+    <text x="40" y="100" text-anchor="middle" fill="#9690AE" font-size="10" font-weight="600">02 Onboarding</text>
+  </g>
+
+  <g transform="translate(280, 2110)">
+    <rect width="80" height="80" rx="16" fill="#F8F7FB"/>
+    <rect x="6" y="6" width="68" height="22" rx="6" fill="url(#gradBrand)"/>
+    <rect x="6" y="32" width="32" height="42" rx="6" fill="#FFFFFF"/>
+    <rect x="42" y="32" width="32" height="42" rx="6" fill="#FFFFFF"/>
+    <text x="40" y="100" text-anchor="middle" fill="#9690AE" font-size="10" font-weight="600">03 Home</text>
+  </g>
+
+  <g transform="translate(380, 2110)">
+    <rect width="80" height="80" rx="16" fill="#F8F7FB"/>
+    <rect x="8" y="12" width="42" height="14" rx="7" fill="#FFFFFF"/>
+    <rect x="30" y="32" width="42" height="14" rx="7" fill="#7B61FF"/>
+    <rect x="8" y="52" width="64" height="20" rx="7" fill="#FFFFFF" stroke="#7B61FF" stroke-width="1"/>
+    <text x="40" y="100" text-anchor="middle" fill="#9690AE" font-size="10" font-weight="600">04 Chat IA</text>
+  </g>
+
+  <g transform="translate(480, 2110)">
+    <rect width="80" height="80" rx="16" fill="#F8F7FB"/>
+    <rect x="6" y="6" width="68" height="18" rx="6" fill="#FFF1D6"/>
+    <rect x="6" y="28" width="68" height="14" rx="4" fill="#FFFFFF"/>
+    <rect x="6" y="46" width="68" height="14" rx="4" fill="#FFFFFF"/>
+    <rect x="40" y="64" width="34" height="12" rx="4" fill="#7B61FF"/>
+    <text x="40" y="100" text-anchor="middle" fill="#9690AE" font-size="10" font-weight="600">05 Revisão</text>
+  </g>
+
+  <g transform="translate(580, 2110)">
+    <rect width="80" height="80" rx="16" fill="#F8F7FB"/>
+    <rect x="6" y="6" width="68" height="16" rx="4" fill="#FFFFFF"/>
+    <rect x="6" y="26" width="68" height="22" rx="6" fill="#FFFFFF"/>
+    <rect x="6" y="52" width="68" height="22" rx="6" fill="#FFFFFF"/>
+    <text x="40" y="100" text-anchor="middle" fill="#9690AE" font-size="10" font-weight="600">06 Contratos</text>
+  </g>
+
+  <g transform="translate(680, 2110)">
+    <rect width="80" height="80" rx="16" fill="#F8F7FB"/>
+    <rect x="6" y="6" width="68" height="28" rx="6" fill="url(#gradBrand)"/>
+    <rect x="6" y="38" width="68" height="14" rx="4" fill="#FFFFFF"/>
+    <rect x="6" y="56" width="68" height="14" rx="4" fill="#FFFFFF"/>
+    <text x="40" y="100" text-anchor="middle" fill="#9690AE" font-size="10" font-weight="600">07 Detalhe</text>
+  </g>
+
+  <g transform="translate(780, 2110)">
+    <rect width="80" height="80" rx="16" fill="#FFFFFF"/>
+    <rect x="6" y="6" width="68" height="32" rx="6" fill="url(#gradMint)"/>
+    <text x="40" y="28" text-anchor="middle" fill="#FFFFFF" font-size="14" font-weight="800">✓</text>
+    <rect x="6" y="44" width="68" height="14" rx="4" fill="#F8F7FB"/>
+    <rect x="6" y="62" width="68" height="14" rx="4" fill="#F8F7FB"/>
+    <text x="40" y="100" text-anchor="middle" fill="#9690AE" font-size="10" font-weight="600">08 Recibo</text>
+  </g>
+
+</svg>

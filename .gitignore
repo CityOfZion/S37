@@ -27,3 +27,7 @@ Thumbs.db
 
 # TypeScript
 *.tsbuildinfo
+
+# Documents
+docs/demo.md
+docs/tests
