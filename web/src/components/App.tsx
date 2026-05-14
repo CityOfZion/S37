@@ -1,27 +1,15 @@
-import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Provider as TooltipProvider } from '@radix-ui/react-tooltip'
 import { Toaster } from 'sonner'
 
-import type { TPayment } from 'fractapay-shared'
-
-import { FileUpload } from './components/FileUpload'
-import { Footer } from './components/Footer'
-import { Header } from './components/Header'
-import { PaymentsList } from './components/PaymentsList'
-import { ToastHelper } from './helpers/ToastHelper'
+import { FileUpload } from './FileUpload'
+import { Footer } from './Footer'
+import { Header } from './Header'
+import { PaymentsList } from './PaymentsList'
 
 export const App = () => {
   const { t } = useTranslation('common', { keyPrefix: 'app' })
-
-  const [payments, setPayments] = useState<TPayment[]>([])
-
-  const handlePaymentsExtracted = (extracted: TPayment[]) => {
-    setPayments(extracted)
-
-    ToastHelper.success(t('uploadSuccess'), t('paymentsCount', { count: extracted.length }))
-  }
 
   return (
     <TooltipProvider delayDuration={0} skipDelayDuration={0}>
@@ -44,9 +32,9 @@ export const App = () => {
             <p className="text-gray-400 max-w-lg mx-auto">{t('tagline')}</p>
           </div>
 
-          <FileUpload onPaymentsExtracted={handlePaymentsExtracted} />
+          <FileUpload />
 
-          <PaymentsList payments={payments} onPaymentsChange={setPayments} />
+          <PaymentsList />
         </main>
 
         <Footer />
