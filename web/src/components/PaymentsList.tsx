@@ -1,8 +1,9 @@
-import { type ChangeEvent, type KeyboardEvent, useEffect, useMemo, useState } from 'react'
+import { ChangeEvent, type KeyboardEvent, useEffect, useState } from 'react'
+import { Controller, ControllerRenderProps, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
+import { zodResolver } from '@hookform/resolvers/zod'
 import BigNumber from 'bignumber.js'
-import { cloneDeep } from 'lodash'
 import * as uuid from 'uuid'
 
 import type { TPayment, TToken } from 'fractapay-shared'
@@ -13,7 +14,9 @@ import { ClipboardHelper } from '../helpers/ClipboardHelper'
 import { InputHelper } from '../helpers/InputHelper'
 import { StringHelper } from '../helpers/StringHelper'
 import { ToastHelper } from '../helpers/ToastHelper'
-import { useDebounce } from '../hooks/useDebounce'
+import { useDebounce } from '../hooks/use-debounce'
+import { usePaymentsStore } from '../hooks/use-payments-store'
+import { paymentEditSchema, type TPaymentEditFormValues } from '../schemas/payments-schema'
 import { Button } from './Button'
 import { Input } from './Input'
 import { Tooltip } from './Tooltip'
@@ -27,36 +30,33 @@ import EditIcon from '../assets/icons/edit-icon.svg?react'
 import EmptyStateIcon from '../assets/icons/empty-state-icon.svg?react'
 import ExecuteIcon from '../assets/icons/execute-icon.svg?react'
 
-type TProps = {
-  payments: TPayment[]
-  onPaymentsChange: (payments: TPayment[]) => void
-}
+const DEFAULT_AMOUNT = '1'
 
-export const PaymentsList = ({ payments, onPaymentsChange }: TProps) => {
+export const PaymentsList = () => {
   const { t } = useTranslation('components', { keyPrefix: 'paymentsList' })
+  const { payments, ...paymentsStore } = usePaymentsStore()
   const { debounce, isDebouncePending } = useDebounce()
-  const [copiedId, setCopiedId] = useState<string | null>(null)
   const [editingPayment, setEditingPayment] = useState<TPayment | null>(null)
   const [isAddingPayment, setIsAddingPayment] = useState(false)
   const [defaultToken, setDefaultToken] = useState<TToken>()
+  const [copiedId, setCopiedId] = useState<string | null>(null)
 
-  const hasEditingAddressError = useMemo(
-    () =>
-      !!editingPayment &&
-      (!editingPayment.address || !InputHelper.isValidAddress(editingPayment.address)),
-    [editingPayment]
-  )
+  const {
+    control,
+    handleSubmit,
+    reset,
+    trigger,
+    setValue,
+    getValues,
+    formState: { errors, isValid },
+  } = useForm<TPaymentEditFormValues>({
+    resolver: zodResolver(paymentEditSchema),
+    defaultValues: { description: '' },
+    mode: 'onChange',
+  })
 
-  const isEditingInvalid = useMemo(
-    () =>
-      !editingPayment ||
-      hasEditingAddressError ||
-      editingPayment.amount.isLessThanOrEqualTo(0) ||
-      isDebouncePending,
-    [hasEditingAddressError, editingPayment, isDebouncePending]
-  )
-
-  const isAddPaymentInvalid = !defaultToken || !!editingPayment || isAddingPayment
+  const isAddPaymentInvalid = !defaultToken || !!editingPayment
+  const isSavePaymentInvalid = !isValid || isDebouncePending || !editingPayment
 
   const copyAddress = async (payment: TPayment) => {
     await ClipboardHelper.copy(payment.address, {
@@ -70,14 +70,23 @@ export const PaymentsList = ({ payments, onPaymentsChange }: TProps) => {
 
   const discardAddingPayment = () => {
     if (isAddingPayment && editingPayment) {
-      onPaymentsChange(payments.filter(payment => payment.id !== editingPayment.id))
+      paymentsStore.deletePayment(editingPayment.id)
+
       setIsAddingPayment(false)
     }
   }
 
   const startEditing = (payment: TPayment) => {
     discardAddingPayment()
-    setEditingPayment(cloneDeep(payment))
+    setEditingPayment(payment)
+
+    reset({
+      address: payment.address,
+      amount: payment.amount.toFixed(),
+      description: payment.description || '',
+    })
+
+    trigger()
   }
 
   const cancelEditing = () => {
@@ -85,23 +94,13 @@ export const PaymentsList = ({ payments, onPaymentsChange }: TProps) => {
     setEditingPayment(null)
   }
 
-  const saveEditing = () => {
-    if (isEditingInvalid) {
-      return
-    }
-
-    onPaymentsChange(
-      payments.map(payment =>
-        payment.id === editingPayment?.id ? cloneDeep(editingPayment) : payment
-      )
-    )
-
-    setIsAddingPayment(false)
-    setEditingPayment(null)
-  }
-
   const deletePayment = (id: string) => {
-    onPaymentsChange(payments.filter(payment => payment.id !== id))
+    paymentsStore.deletePayment(id)
+
+    if (editingPayment?.id === id) {
+      setEditingPayment(null)
+      setIsAddingPayment(false)
+    }
   }
 
   const addPayment = () => {
@@ -110,77 +109,54 @@ export const PaymentsList = ({ payments, onPaymentsChange }: TProps) => {
     const newPayment: TPayment = {
       id: uuid.v4(),
       address: '',
-      amount: new BigNumber('1'),
+      amount: new BigNumber(DEFAULT_AMOUNT),
       token: defaultToken,
       description: '',
     }
 
-    onPaymentsChange([...payments, newPayment])
+    paymentsStore.addPayment(newPayment)
+
+    reset({ address: '', amount: DEFAULT_AMOUNT, description: '' })
+    trigger()
 
     setIsAddingPayment(true)
     setEditingPayment(newPayment)
   }
 
-  const handleEditingKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Enter') saveEditing()
-  }
+  const saveSubmit = (values: TPaymentEditFormValues) => {
+    if (isSavePaymentInvalid) return
 
-  const handleEditingAddressPaste = (value: string) => {
-    setEditingPayment(previous => {
-      if (!previous) return previous
-
-      previous.address = value
-
-      return cloneDeep(previous)
+    paymentsStore.updatePayment({
+      ...editingPayment,
+      address: values.address,
+      amount: new BigNumber(values.amount).decimalPlaces(STELLAR_DECIMALS, BigNumber.ROUND_DOWN),
+      description: values.description,
     })
+
+    setEditingPayment(null)
+    setIsAddingPayment(false)
   }
 
-  const handleEditingAddressChange = (event: ChangeEvent<HTMLInputElement>) => {
-    setEditingPayment(previous => {
-      if (!previous) return previous
+  const saveEditing = handleSubmit(saveSubmit)
 
-      previous.address = InputHelper.sanitizeAddressEvent(event)
+  const handleAmountChange = (
+    event: ChangeEvent<HTMLInputElement>,
+    field: ControllerRenderProps<TPaymentEditFormValues, 'amount'>
+  ) => {
+    field.onChange(InputHelper.sanitizeAmountEvent(event))
 
-      return cloneDeep(previous)
-    })
-  }
-
-  const handleEditingAmountChange = (event: ChangeEvent<HTMLInputElement>) => {
     debounce(() => {
-      setEditingPayment(previous => {
-        if (!previous) return previous
+      const current = getValues('amount')
+      const formatted = InputHelper.formatAmount(current)
 
-        const amount = previous.amount.isLessThanOrEqualTo('0')
-          ? new BigNumber('1')
-          : previous.amount
-
-        previous.amount = amount.decimalPlaces(STELLAR_DECIMALS, BigNumber.ROUND_DOWN)
-
-        return cloneDeep(previous)
-      })
-    })
-
-    setEditingPayment(previous => {
-      if (!previous) return previous
-
-      try {
-        previous.amount = new BigNumber(event.target.value)
-      } catch {
-        if (previous.amount.toFixed().length === 1) previous.amount = new BigNumber('1')
+      if (formatted !== current) {
+        setValue('amount', formatted, { shouldValidate: true })
       }
-
-      return cloneDeep(previous)
     })
   }
 
-  const handleEditingDescriptionChange = (event: ChangeEvent<HTMLInputElement>) => {
-    setEditingPayment(previous => {
-      if (!previous) return previous
-
-      previous.description = event.target.value
-
-      return cloneDeep(previous)
-    })
+  const handleEditingKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (!isSavePaymentInvalid && event.key === 'Enter') saveEditing()
   }
 
   useEffect(() => {
@@ -226,46 +202,68 @@ export const PaymentsList = ({ payments, onPaymentsChange }: TProps) => {
               editingPayment?.id === payment.id ? (
                 <tr key={payment.id} className="bg-white/5">
                   <td className="px-4 py-3">
-                    <Input
+                    <Controller
                       name="address"
-                      aria-label={t('address')}
-                      placeholder={t('address')}
-                      type="text"
-                      className="p-2 text-sm min-w-32 pr-8"
-                      pasteClassName="right-2"
-                      value={editingPayment.address}
-                      error={hasEditingAddressError}
-                      autoFocus
-                      onKeyDown={handleEditingKeyDown}
-                      onPaste={handleEditingAddressPaste}
-                      onChange={handleEditingAddressChange}
+                      control={control}
+                      render={({ field }) => (
+                        <Input
+                          name={field.name}
+                          aria-label={t('address')}
+                          placeholder={t('address')}
+                          type="text"
+                          autoFocus
+                          className="p-2 text-sm min-w-32 pr-8"
+                          pasteClassName="right-2"
+                          value={field.value}
+                          error={!!errors.address}
+                          onKeyDown={handleEditingKeyDown}
+                          onPaste={field.onChange}
+                          onChange={event =>
+                            field.onChange(InputHelper.sanitizeAddressEvent(event))
+                          }
+                        />
+                      )}
                     />
                   </td>
                   <td className="px-4 py-3">
-                    <Input
+                    <Controller
                       name="amount"
-                      aria-label={t('amount')}
-                      placeholder={t('amount')}
-                      type="text"
-                      inputMode="decimal"
-                      className="p-2 text-sm min-w-32 text-right"
-                      maxLength={16}
-                      value={editingPayment.amount.toFixed()}
-                      onKeyDown={handleEditingKeyDown}
-                      onChange={handleEditingAmountChange}
+                      control={control}
+                      render={({ field }) => (
+                        <Input
+                          name={field.name}
+                          aria-label={t('amount')}
+                          placeholder={t('amount')}
+                          type="text"
+                          inputMode="decimal"
+                          className="p-2 text-sm min-w-32 text-right"
+                          maxLength={16}
+                          value={field.value}
+                          error={!!errors.amount}
+                          onKeyDown={handleEditingKeyDown}
+                          onChange={event => handleAmountChange(event, field)}
+                        />
+                      )}
                     />
                   </td>
                   <td className="px-4 py-3">
-                    <Input
+                    <Controller
                       name="description"
-                      aria-label={t('description')}
-                      placeholder={t('description')}
-                      type="text"
-                      className="p-2 text-sm min-w-32"
-                      maxLength={200}
-                      value={editingPayment.description || ''}
-                      onKeyDown={handleEditingKeyDown}
-                      onChange={handleEditingDescriptionChange}
+                      control={control}
+                      render={({ field }) => (
+                        <Input
+                          name={field.name}
+                          aria-label={t('description')}
+                          placeholder={t('description')}
+                          type="text"
+                          className="p-2 text-sm min-w-32"
+                          maxLength={200}
+                          value={field.value}
+                          error={!!errors.description}
+                          onKeyDown={handleEditingKeyDown}
+                          onChange={field.onChange}
+                        />
+                      )}
                     />
                   </td>
                   <td className="px-4 py-3">
@@ -274,7 +272,7 @@ export const PaymentsList = ({ payments, onPaymentsChange }: TProps) => {
                         <Button
                           aria-label={t('save')}
                           variant="ghost"
-                          disabled={isEditingInvalid}
+                          disabled={isSavePaymentInvalid}
                           onClick={saveEditing}
                         >
                           <CheckIcon className="size-4 text-green-400" aria-hidden="true" />

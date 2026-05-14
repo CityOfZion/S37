@@ -1,23 +1,19 @@
-import {
-  type ChangeEvent,
-  type DragEvent,
-  type FormEvent,
-  Fragment,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react'
+import { type ChangeEvent, type DragEvent, Fragment, useMemo, useState } from 'react'
+import { Controller, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
+import { zodResolver } from '@hookform/resolvers/zod'
 import { match } from 'ts-pattern'
 
-import { ErrorCode, TPayment, TToken } from 'fractapay-shared'
+import { ErrorCode } from 'fractapay-shared'
 import { ALLOWED_INPUT_ACCEPT } from 'fractapay-shared'
 
 import { InputHelper } from '../helpers/InputHelper'
 import { StyleHelper } from '../helpers/StyleHelper'
-import { useUpload } from '../hooks/useUpload'
+import { ToastHelper } from '../helpers/ToastHelper'
+import { usePaymentsStore } from '../hooks/use-payments-store'
+import { useUploadMutation } from '../hooks/use-upload-mutation'
+import { fileUploadSchema, type TFileUploadFormValues } from '../schemas/file-upload-schema'
 import { Button } from './Button'
 import { Info } from './Info'
 import { Input } from './Input'
@@ -27,24 +23,28 @@ import EurcIcon from '../assets/icons/eurc-icon.svg?react'
 import InfoIcon from '../assets/icons/info-icon.svg?react'
 import LoadingSpinnerIcon from '../assets/icons/loading-spinner-icon.svg?react'
 import UploadIcon from '../assets/icons/upload-icon.svg?react'
-import UsdcIcon from '../assets/icons/usdc-logo.svg?react'
+import UsdcIcon from '../assets/icons/usdc-icon.svg?react'
 import XlmIcon from '../assets/icons/xlm-icon.svg?react'
 
-type TProps = {
-  onPaymentsExtracted: (payments: TPayment[]) => void
-}
-
-export const FileUpload = ({ onPaymentsExtracted }: TProps) => {
+export const FileUpload = () => {
   const { t } = useTranslation('components', { keyPrefix: 'fileUpload' })
-  const { mutate, isPending, data } = useUpload()
-  const [isDragActive, setIsDragActive] = useState(false)
-  const [token, setToken] = useState<TToken>('XLM')
-  const [destinationAddress, setDestinationAddress] = useState('')
-  const [destinationAddressError, setDestinationAddressError] = useState<string | undefined>()
+  const { setPayments } = usePaymentsStore()
+  const { mutate, isPending, data } = useUploadMutation()
   const [file, setFile] = useState<File | null>(null)
+  const [isFileDragActive, setIsFileDragActive] = useState(false)
 
-  const errorCode = data && !data.success ? (data.error ?? ErrorCode.UNKNOWN) : null
-  const isInvalid = !token || !file || !!destinationAddressError || isPending
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<TFileUploadFormValues>({
+    resolver: zodResolver(fileUploadSchema),
+    defaultValues: { token: 'XLM', destinationAddress: '' },
+    mode: 'onChange',
+  })
+
+  const errorCode = data && !data.success ? data.error || ErrorCode.UNKNOWN : null
+  const isSubmitDisabled = !file || isPending
 
   const tokenOptions = useMemo(
     () => [
@@ -67,110 +67,106 @@ export const FileUpload = ({ onPaymentsExtracted }: TProps) => {
     [t]
   )
 
-  const handleSubmit = useCallback(
-    (event: FormEvent<HTMLFormElement>) => {
-      event.preventDefault()
-
-      if (isInvalid) return
-
-      mutate(
-        {
-          file,
-          token,
-          destinationAddress,
-        },
-        {
-          onSuccess: result => {
-            if (result.success) {
-              onPaymentsExtracted(result.payments)
-            }
-          },
-        }
-      )
-    },
-    [isInvalid, mutate, file, token, destinationAddress, onPaymentsExtracted]
-  )
-
-  const handleDestinationAddressPaste = (value: string) => {
-    setDestinationAddress(InputHelper.sanitizeAddress(value))
-  }
-
-  const handleDestinationAddressChange = (event: ChangeEvent<HTMLInputElement>) => {
-    setDestinationAddress(InputHelper.sanitizeAddressEvent(event))
-  }
-
-  const handleDrop = (event: DragEvent<HTMLDivElement>) => {
+  const handleFileDrop = (event: DragEvent<HTMLDivElement>) => {
     event.preventDefault()
 
-    setIsDragActive(false)
+    setIsFileDragActive(false)
 
     const newFile = event.dataTransfer.files[0]
 
-    if (newFile) setFile(newFile)
+    if (newFile) {
+      setFile(newFile)
+    }
   }
 
-  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const newFile = event.target.files?.[0]
 
-    if (newFile) setFile(newFile)
+    if (newFile) {
+      setFile(newFile)
+    }
   }
 
-  useEffect(() => {
-    setDestinationAddressError(
-      destinationAddress && !InputHelper.isValidAddress(destinationAddress)
-        ? t('form.address.error')
-        : undefined
-    )
+  const onSubmit = (values: TFileUploadFormValues) => {
+    if (isSubmitDisabled) return
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [destinationAddress])
+    mutate(
+      { ...values, file },
+      {
+        onSuccess: result => {
+          if (result.success) {
+            setPayments(result.payments)
+            ToastHelper.success(
+              t('uploadSuccess'),
+              t('paymentsCount', { count: result.payments.length })
+            )
+          }
+        },
+      }
+    )
+  }
 
   return (
-    <form className="space-y-4" onSubmit={handleSubmit}>
+    <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <Select
+        <Controller
           name="token"
-          label={t('form.token.label')}
-          placeholder={t('form.token.placeholder')}
-          hint={t('form.token.hint')}
-          required
-          options={tokenOptions}
-          value={token}
-          onValueChange={value => setToken(value as TToken)}
+          control={control}
+          render={({ field }) => (
+            <Select
+              name={field.name}
+              label={t('form.token.label')}
+              placeholder={t('form.token.placeholder')}
+              hint={t('form.token.hint')}
+              required
+              options={tokenOptions}
+              value={field.value}
+              onValueChange={field.onChange}
+            />
+          )}
         />
 
-        <Input
+        <Controller
           name="destinationAddress"
-          label={
-            <Fragment>
-              {t('form.address.label')}
-              <Info content={t('form.address.info')} icon={<InfoIcon aria-hidden="true" />} />
-            </Fragment>
-          }
-          placeholder={t('form.address.placeholder')}
-          value={destinationAddress}
-          error={destinationAddressError}
-          onChange={handleDestinationAddressChange}
-          onPaste={handleDestinationAddressPaste}
+          control={control}
+          render={({ field }) => (
+            <Input
+              name={field.name}
+              label={
+                <Fragment>
+                  {t('form.address.label')}
+                  <Info content={t('form.address.info')} icon={<InfoIcon aria-hidden="true" />} />
+                </Fragment>
+              }
+              placeholder={t('form.address.placeholder')}
+              value={field.value}
+              error={
+                errors.destinationAddress
+                  ? t(`form.address.${errors.destinationAddress.message}`, 'form.address.error')
+                  : undefined
+              }
+              onPaste={value => field.onChange(InputHelper.sanitizeAddress(value))}
+              onChange={event => field.onChange(InputHelper.sanitizeAddressEvent(event))}
+            />
+          )}
         />
       </div>
 
       <div
         onDragOver={event => {
           event.preventDefault()
-
-          setIsDragActive(true)
+          setIsFileDragActive(true)
         }}
-        onDragLeave={() => setIsDragActive(false)}
-        onDrop={handleDrop}
+        onDragLeave={() => setIsFileDragActive(false)}
+        onDrop={handleFileDrop}
         className={StyleHelper.merge(
           'relative border-2 border-dashed rounded-2xl p-12 text-center transition-all duration-200',
           'cursor-pointer group',
           {
-            'border-primary bg-primary/10 scale-[1.01]': isDragActive,
+            'border-primary bg-primary/10 scale-[1.01]': isFileDragActive,
             'border-white/10 bg-white/5 hover:border-primary/50 hover:bg-primary/5':
-              !isDragActive && !file,
-            'border-green-400/50 bg-green-400/5': !isDragActive && !!file,
+              !isFileDragActive && !file,
+            'border-green-400/50 bg-green-400/5': !isFileDragActive && !!file,
             'pointer-events-none opacity-70': isPending,
           }
         )}
@@ -183,7 +179,7 @@ export const FileUpload = ({ onPaymentsExtracted }: TProps) => {
           accept={ALLOWED_INPUT_ACCEPT}
           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
           disabled={isPending}
-          onChange={handleChange}
+          onChange={handleFileChange}
         />
 
         <div className="flex flex-col items-center gap-4">
@@ -191,9 +187,10 @@ export const FileUpload = ({ onPaymentsExtracted }: TProps) => {
             className={StyleHelper.merge(
               'size-16 rounded-2xl flex items-center justify-center transition-colors',
               {
-                'bg-primary/20': isDragActive,
-                'bg-green-400/10': !isDragActive && !!file,
-                'bg-white/5 group-hover:bg-primary/10': !isDragActive && !file,
+                'bg-primary/20': isFileDragActive,
+                'bg-green-400/10': !isFileDragActive && !!file,
+                'bg-white/5 group-hover:bg-primary/10 group-focus:bg-primary/10':
+                  !isFileDragActive && !file,
               }
             )}
           >
@@ -202,9 +199,10 @@ export const FileUpload = ({ onPaymentsExtracted }: TProps) => {
             ) : (
               <UploadIcon
                 className={StyleHelper.merge('size-8 transition-colors', {
-                  'text-primary': isDragActive,
-                  'text-green-400': !isDragActive && !!file,
-                  'text-gray-400 group-hover:text-primary': !isDragActive && !file,
+                  'text-primary': isFileDragActive,
+                  'text-green-400': !isFileDragActive && !!file,
+                  'text-gray-400 group-hover:text-primary group-focus:text-primary':
+                    !isFileDragActive && !file,
                 })}
                 aria-hidden="true"
               />
@@ -213,8 +211,8 @@ export const FileUpload = ({ onPaymentsExtracted }: TProps) => {
 
           <div>
             <p className="text-white font-semibold text-lg mb-1">
-              {match({ isDragActive, isPending, hasFile: !!file })
-                .with({ isDragActive: true }, () => t('upload.dragActive'))
+              {match({ isFileDragActive, isPending, hasFile: !!file })
+                .with({ isFileDragActive: true }, () => t('upload.dragActive'))
                 .with({ isPending: true }, () => t('upload.analyzing'))
                 .with({ hasFile: true }, () => file!.name)
                 .otherwise(() => t('upload.description'))}
@@ -230,7 +228,7 @@ export const FileUpload = ({ onPaymentsExtracted }: TProps) => {
         </div>
       </div>
 
-      <Button type="submit" className="w-full" disabled={isInvalid}>
+      <Button type="submit" className="w-full" disabled={isSubmitDisabled}>
         {isPending ? t('upload.analyzing') : t('upload.submit')}
       </Button>
     </form>

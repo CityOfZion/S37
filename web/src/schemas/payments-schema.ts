@@ -12,7 +12,7 @@ export const paymentEditSchema = z.object({
       return false
     }
   }),
-  description: z.string().max(200).default(''),
+  description: z.string().max(200),
 })
 
 export type TPaymentEditFormValues = z.infer<typeof paymentEditSchema>
