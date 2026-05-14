@@ -36,7 +36,7 @@ export const FileUpload = () => {
   const {
     control,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isValid },
   } = useForm<TFileUploadFormValues>({
     resolver: zodResolver(fileUploadSchema),
     defaultValues: { token: 'XLM', destinationAddress: '' },
@@ -44,7 +44,7 @@ export const FileUpload = () => {
   })
 
   const errorCode = data && !data.success ? data.error || ErrorCode.UNKNOWN : null
-  const isSubmitDisabled = !file || isPending
+  const isSubmitInvalid = !file || isPending || !isValid
 
   const tokenOptions = useMemo(
     () => [
@@ -88,7 +88,7 @@ export const FileUpload = () => {
   }
 
   const onSubmit = (values: TFileUploadFormValues) => {
-    if (isSubmitDisabled) return
+    if (isSubmitInvalid) return
 
     mutate(
       { ...values, file },
@@ -228,7 +228,7 @@ export const FileUpload = () => {
         </div>
       </div>
 
-      <Button type="submit" className="w-full" disabled={isSubmitDisabled}>
+      <Button type="submit" className="w-full" disabled={isSubmitInvalid}>
         {isPending ? t('upload.analyzing') : t('upload.submit')}
       </Button>
     </form>
