@@ -87,6 +87,7 @@
 ### Issues
 
 - **[2.1] [SC] Refactor `batch_pay` PoC → contrato com armazenamento persistente** · Fase: H · Est: G · Dep: 0.13
+  - ✅ Implementado em `contracts/src/lib.rs` como `FractaPayContract` v0.4.0. Modelo de débito direto da carteira do pagador (sem escrow pool on-chain). `[2.2]` factory/balde N/A nesta arquitetura.
 - **[2.2] [SC] Provisionamento de endereço balde por contrato (factory pattern)** · Fase: F1 · Est: G · Dep: 2.1
 - **[2.3] [SC] Storage: regras por destinatário (`enum Rule { Fixed(u128), Percent(u32) }`)** · Fase: F1 · Est: M · Dep: 2.1
 - **[2.4] [SC] Storage: cronograma (timestamp_próximo, periodicity)** · Fase: F1 · Est: M · Dep: 2.1
