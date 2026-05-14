@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="./web/public/logo.svg" alt="FractaPay logo" width="120" />
+  <img src="./web/src/assets/logos/logo.svg" alt="FractaPay logo" width="120" />
 
   <h1>FractaPay</h1>
 

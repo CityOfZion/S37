@@ -15,7 +15,7 @@ export const Info = ({ content, icon }: TProps) => {
   const [open, setOpen] = useState(false)
 
   return (
-    <Tooltip content={content} open={open} onOpenChange={setOpen}>
+    <Tooltip content={content} className="max-w-48" open={open} onOpenChange={setOpen}>
       <span
         tabIndex={0}
         aria-label={t('label')}

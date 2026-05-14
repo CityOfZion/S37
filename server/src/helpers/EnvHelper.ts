@@ -10,12 +10,12 @@ const envSchema = z.object({
 
 const parsed = envSchema.safeParse(process.env)
 
-if (!parsed.success) {
+if (!parsed.success || !parsed.data) {
   console.error('Invalid environment variables:', parsed.error.issues)
   process.exit(1)
 }
 
-const data = parsed.data!
+const data = parsed.data
 
 export class EnvHelper {
   static readonly PORT = parseInt(data.PORT)
