@@ -13,6 +13,7 @@ export enum ErrorCode {
 }
 
 export type TPayment = {
+  id: string
   address: string
   amount: BigNumber
   token: TToken

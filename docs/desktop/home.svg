@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" font-family="Manrope, system-ui, sans-serif">
+  <defs>
+    <linearGradient id="brand" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7B61FF"/><stop offset="1" stop-color="#B388FF"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1440" height="900" fill="#F8F7FB"/>
+
+  <!-- ========== SIDEBAR ========== -->
+  <rect x="0" y="0" width="240" height="900" fill="#1A1832"/>
+
+  <!-- Logo -->
+  <g transform="translate(24, 32)">
+    <line x1="24" y1="8" x2="8" y2="40" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" opacity="0.55"/>
+    <line x1="24" y1="8" x2="40" y2="40" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" opacity="0.55"/>
+    <line x1="8" y1="40" x2="40" y2="40" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" opacity="0.55"/>
+    <circle cx="24" cy="8" r="7" fill="#FFFFFF"/>
+    <circle cx="8" cy="40" r="7" fill="#FFFFFF"/>
+    <circle cx="40" cy="40" r="7" fill="#00C9A7"/>
+    <text x="58" y="32" fill="#FFFFFF" font-size="18" font-weight="800" letter-spacing="-0.5">FractaPay</text>
+  </g>
+
+  <!-- Section label -->
+  <text x="24" y="124" fill="#6E6884" font-size="10" font-weight="700" letter-spacing="1.5">MENU PRINCIPAL</text>
+
+  <!-- Nav items -->
+  <!-- Active: Home -->
+  <rect x="12" y="138" width="216" height="44" rx="10" fill="#7B61FF"/>
+  <text x="32" y="166" font-size="16">🏠</text>
+  <text x="60" y="166" fill="#FFFFFF" font-size="14" font-weight="600">Início</text>
+
+  <g font-size="14" fill="#C9B5FF" font-weight="500">
+    <text x="32" y="208" font-size="16" fill="#9690AE">📋</text>
+    <text x="60" y="208">Contratos</text>
+    <rect x="200" y="194" width="22" height="20" rx="10" fill="#7B61FF" opacity="0.3"/>
+    <text x="211" y="208" text-anchor="middle" fill="#C9B5FF" font-size="11" font-weight="700">8</text>
+
+    <text x="32" y="250" font-size="16" fill="#9690AE">✨</text>
+    <text x="60" y="250">Chat IA</text>
+
+    <text x="32" y="292" font-size="16" fill="#9690AE">📤</text>
+    <text x="60" y="292">Upload manual</text>
+
+    <text x="32" y="334" font-size="16" fill="#9690AE">🧾</text>
+    <text x="60" y="334">Recibos</text>
+
+    <text x="32" y="376" font-size="16" fill="#9690AE">👥</text>
+    <text x="60" y="376">Destinatários</text>
+  </g>
+
+  <!-- Section label -->
+  <text x="24" y="430" fill="#6E6884" font-size="10" font-weight="700" letter-spacing="1.5">CONFIGURAÇÕES</text>
+
+  <g font-size="14" fill="#C9B5FF" font-weight="500">
+    <text x="32" y="464" font-size="16" fill="#9690AE">👤</text>
+    <text x="60" y="464">Equipe</text>
+
+    <text x="32" y="506" font-size="16" fill="#9690AE">🔗</text>
+    <text x="60" y="506">Integrações</text>
+
+    <text x="32" y="548" font-size="16" fill="#9690AE">⚙</text>
+    <text x="60" y="548">Configurações</text>
+  </g>
+
+  <!-- User card bottom -->
+  <rect x="12" y="816" width="216" height="64" rx="12" fill="#FFFFFF" fill-opacity="0.08"/>
+  <rect x="24" y="828" width="40" height="40" rx="20" fill="url(#brand)"/>
+  <text x="44" y="853" text-anchor="middle" fill="#FFFFFF" font-size="14" font-weight="700">CC</text>
+  <text x="72" y="843" fill="#FFFFFF" font-size="13" font-weight="600">Caroline C.</text>
+  <text x="72" y="860" fill="#9690AE" font-size="11">Madame Rudini</text>
+  <text x="216" y="852" fill="#9690AE" font-size="14">⋯</text>
+
+  <!-- ========== TOP BAR ========== -->
+  <rect x="240" y="0" width="1200" height="72" fill="#FFFFFF"/>
+  <line x1="240" y1="72" x2="1440" y2="72" stroke="#EFEDF5"/>
+
+  <text x="272" y="44" fill="#1A1832" font-size="22" font-weight="800" letter-spacing="-0.5">Início</text>
+
+  <!-- Search -->
+  <rect x="700" y="20" width="400" height="40" rx="12" fill="#F8F7FB" stroke="#E0DCEC"/>
+  <text x="720" y="46" fill="#9690AE" font-size="13">🔍   Buscar contratos, destinatários ou recibos…</text>
+  <rect x="1050" y="28" width="40" height="22" rx="6" fill="#FFFFFF" stroke="#E0DCEC"/>
+  <text x="1070" y="44" text-anchor="middle" fill="#6E6884" font-size="11" font-weight="600" font-family="JetBrains Mono, monospace">⌘K</text>
+
+  <!-- Right icons -->
+  <rect x="1308" y="20" width="40" height="40" rx="12" fill="#F8F7FB" stroke="#E0DCEC"/>
+  <text x="1328" y="46" text-anchor="middle" font-size="16">🔔</text>
+  <circle cx="1340" cy="26" r="5" fill="#FF4D4F"/>
+
+  <rect x="1356" y="20" width="64" height="40" rx="12" fill="url(#brand)"/>
+  <text x="1374" y="46" fill="#FFFFFF" font-size="13" font-weight="600">+ Novo</text>
+
+  <!-- ========== MAIN CONTENT ========== -->
+  <!-- Greeting -->
+  <text x="272" y="120" fill="#6E6884" font-size="14">Oi, Caroline 👋</text>
+  <text x="272" y="148" fill="#1A1832" font-size="28" font-weight="800" letter-spacing="-0.8">Bom dia. Você tem 2 execuções esta semana.</text>
+
+  <!-- Hero cards row -->
+  <g transform="translate(272, 180)">
+    <!-- Hero saldo -->
+    <g filter="drop-shadow(0 12px 28px rgba(123,97,255,0.3))">
+      <rect width="560" height="200" rx="24" fill="url(#brand)"/>
+    </g>
+    <circle cx="540" cy="180" r="120" fill="#FFFFFF" fill-opacity="0.08"/>
+
+    <text x="32" y="56" fill="#FFFFFF" fill-opacity="0.85" font-size="11" font-weight="700" letter-spacing="1.5">SALDO TOTAL NOS CONTRATOS</text>
+    <text x="32" y="112" fill="#FFFFFF" font-size="48" font-weight="800" letter-spacing="-1.5">R$ 47.890,00</text>
+    <text x="32" y="138" fill="#FFFFFF" fill-opacity="0.85" font-size="14">8 contratos ativos · próxima execução em 4 dias</text>
+
+    <rect x="32" y="156" width="160" height="32" rx="10" fill="#FFFFFF" fill-opacity="0.2"/>
+    <text x="112" y="177" text-anchor="middle" fill="#FFFFFF" font-size="13" font-weight="600">＋ Adicionar saldo</text>
+
+    <rect x="200" y="156" width="160" height="32" rx="10" fill="#FFFFFF" fill-opacity="0.2"/>
+    <text x="280" y="177" text-anchor="middle" fill="#FFFFFF" font-size="13" font-weight="600">✨ Criar contrato</text>
+
+    <!-- Side stats -->
+    <g transform="translate(584, 0)">
+      <rect width="270" height="92" rx="16" fill="#FFFFFF" filter="drop-shadow(0 1px 2px rgba(0,0,0,0.06))"/>
+      <text x="24" y="34" fill="#6E6884" font-size="11" font-weight="700" letter-spacing="1">PAGO ESTE MÊS</text>
+      <text x="24" y="68" fill="#1A1832" font-size="24" font-weight="800">R$ 22.760</text>
+      <text x="24" y="84" fill="#00C9A7" font-size="11" font-weight="600">▲ 18% vs mês anterior</text>
+
+      <rect y="108" width="270" height="92" rx="16" fill="#FFFFFF" filter="drop-shadow(0 1px 2px rgba(0,0,0,0.06))"/>
+      <text x="24" y="142" fill="#6E6884" font-size="11" font-weight="700" letter-spacing="1">TAXA TOTAL PAGA</text>
+      <text x="24" y="176" fill="#1A1832" font-size="24" font-weight="800">R$ 341,40</text>
+      <text x="24" y="192" fill="#6E6884" font-size="11">1,5% do volume movimentado</text>
+    </g>
+  </g>
+
+  <!-- Próximas execuções section -->
+  <text x="272" y="424" fill="#1A1832" font-size="16" font-weight="700">Próximas execuções</text>
+  <text x="1112" y="424" text-anchor="end" fill="#7B61FF" font-size="13" font-weight="600">Ver tudo →</text>
+
+  <!-- Cards row -->
+  <g transform="translate(272, 442)">
+    <!-- Card 1 -->
+    <rect width="270" height="160" rx="16" fill="#FFFFFF" filter="drop-shadow(0 1px 2px rgba(0,0,0,0.06))"/>
+    <rect x="24" y="24" width="48" height="48" rx="12" fill="#E4DAFF"/>
+    <text x="48" y="48" text-anchor="middle" fill="#4D33B5" font-size="14" font-weight="800">14</text>
+    <text x="48" y="64" text-anchor="middle" fill="#4D33B5" font-size="9" font-weight="700">MAI</text>
+    <text x="24" y="100" fill="#1A1832" font-size="14" font-weight="700">Royalties — Maio</text>
+    <text x="24" y="118" fill="#6E6884" font-size="12">8 autoras · bimestral</text>
+    <line x1="24" y1="134" x2="246" y2="134" stroke="#EFEDF5"/>
+    <text x="24" y="152" fill="#6E6884" font-size="12">Total estimado</text>
+    <text x="246" y="152" text-anchor="end" fill="#1A1832" font-size="14" font-weight="700">R$ 12.450</text>
+
+    <!-- Card 2 -->
+    <g transform="translate(290, 0)">
+      <rect width="270" height="160" rx="16" fill="#FFFFFF" filter="drop-shadow(0 1px 2px rgba(0,0,0,0.06))"/>
+      <rect x="24" y="24" width="48" height="48" rx="12" fill="#E4DAFF"/>
+      <text x="48" y="48" text-anchor="middle" fill="#4D33B5" font-size="14" font-weight="800">20</text>
+      <text x="48" y="64" text-anchor="middle" fill="#4D33B5" font-size="9" font-weight="700">MAI</text>
+      <text x="24" y="100" fill="#1A1832" font-size="14" font-weight="700">Folha PJ — Maio</text>
+      <text x="24" y="118" fill="#6E6884" font-size="12">3 colaboradores · mensal</text>
+      <line x1="24" y1="134" x2="246" y2="134" stroke="#EFEDF5"/>
+      <text x="24" y="152" fill="#6E6884" font-size="12">Total estimado</text>
+      <text x="246" y="152" text-anchor="end" fill="#1A1832" font-size="14" font-weight="700">R$ 18.300</text>
+    </g>
+
+    <!-- Card 3 -->
+    <g transform="translate(580, 0)">
+      <rect width="270" height="160" rx="16" fill="#FFFFFF" filter="drop-shadow(0 1px 2px rgba(0,0,0,0.06))"/>
+      <rect x="24" y="24" width="48" height="48" rx="12" fill="#FFF1D6"/>
+      <text x="48" y="58" text-anchor="middle" font-size="20">⏸</text>
+      <text x="24" y="100" fill="#1A1832" font-size="14" font-weight="700">Comissões — Q2</text>
+      <text x="24" y="118" fill="#6E6884" font-size="12">5 vendedores · pausado</text>
+      <line x1="24" y1="134" x2="246" y2="134" stroke="#EFEDF5"/>
+      <text x="24" y="152" fill="#7B61FF" font-size="12" font-weight="600">Retomar →</text>
+    </g>
+
+    <!-- Add new card (CTA) -->
+    <g transform="translate(870, 0)">
+      <rect width="270" height="160" rx="16" fill="#F3EFFF" stroke="#C9B5FF" stroke-dasharray="6 4"/>
+      <text x="135" y="78" text-anchor="middle" font-size="32">✨</text>
+      <text x="135" y="110" text-anchor="middle" fill="#4D33B5" font-size="14" font-weight="700">Criar novo contrato</text>
+      <text x="135" y="128" text-anchor="middle" fill="#6E6884" font-size="11">via chat IA ou upload</text>
+    </g>
+  </g>
+
+  <!-- Atividade recente -->
+  <text x="272" y="650" fill="#1A1832" font-size="16" font-weight="700">Atividade recente</text>
+  <text x="1112" y="650" text-anchor="end" fill="#7B61FF" font-size="13" font-weight="600">Histórico completo →</text>
+
+  <rect x="272" y="668" width="868" height="200" rx="16" fill="#FFFFFF" filter="drop-shadow(0 1px 2px rgba(0,0,0,0.06))"/>
+
+  <!-- Table header -->
+  <text x="296" y="700" fill="#6E6884" font-size="11" font-weight="700" letter-spacing="1">QUANDO</text>
+  <text x="440" y="700" fill="#6E6884" font-size="11" font-weight="700" letter-spacing="1">EVENTO</text>
+  <text x="780" y="700" fill="#6E6884" font-size="11" font-weight="700" letter-spacing="1">CONTRATO</text>
+  <text x="1116" y="700" text-anchor="end" fill="#6E6884" font-size="11" font-weight="700" letter-spacing="1">VALOR</text>
+  <line x1="296" y1="710" x2="1116" y2="710" stroke="#EFEDF5"/>
+
+  <!-- Rows -->
+  <g font-size="13">
+    <text x="296" y="738" fill="#6E6884">há 2h</text>
+    <circle cx="450" cy="734" r="6" fill="#00C9A7"/>
+    <text x="464" y="738" fill="#1A1832" font-weight="600">Pagamento enviado · Beatriz Souza</text>
+    <text x="780" y="738" fill="#6E6884">Royalties — Editora</text>
+    <text x="1116" y="738" text-anchor="end" fill="#00A085" font-weight="700">+ R$ 1.245</text>
+    <line x1="296" y1="748" x2="1116" y2="748" stroke="#EFEDF5"/>
+
+    <text x="296" y="776" fill="#6E6884">há 2h</text>
+    <circle cx="450" cy="772" r="6" fill="#00C9A7"/>
+    <text x="464" y="776" fill="#1A1832" font-weight="600">Pagamento enviado · Lúcia Martins</text>
+    <text x="780" y="776" fill="#6E6884">Royalties — Editora</text>
+    <text x="1116" y="776" text-anchor="end" fill="#00A085" font-weight="700">+ R$ 982</text>
+    <line x1="296" y1="786" x2="1116" y2="786" stroke="#EFEDF5"/>
+
+    <text x="296" y="814" fill="#6E6884">ontem</text>
+    <circle cx="450" cy="810" r="6" fill="#7B61FF"/>
+    <text x="464" y="814" fill="#1A1832" font-weight="600">Saldo adicionado</text>
+    <text x="780" y="814" fill="#6E6884">Royalties — Editora</text>
+    <text x="1116" y="814" text-anchor="end" fill="#1A1832" font-weight="700">R$ 25.000</text>
+    <line x1="296" y1="824" x2="1116" y2="824" stroke="#EFEDF5"/>
+
+    <text x="296" y="852" fill="#6E6884">2 dias</text>
+    <circle cx="450" cy="848" r="6" fill="#FFB020"/>
+    <text x="464" y="852" fill="#1A1832" font-weight="600">Contrato pausado · Comissões Q2</text>
+    <text x="780" y="852" fill="#6E6884">Comissões — Q2</text>
+    <text x="1116" y="852" text-anchor="end" fill="#6E6884">—</text>
+  </g>
+
+  <!-- Right column: insights -->
+  <g transform="translate(1160, 442)">
+    <rect width="252" height="426" rx="16" fill="#1F1153"/>
+    <text x="24" y="44" fill="#C9B5FF" font-size="11" font-weight="700" letter-spacing="1.5">INSIGHT DA IA</text>
+    <text x="24" y="76" fill="#FFFFFF" font-size="16" font-weight="700">Você economizou</text>
+    <text x="24" y="98" fill="#FFFFFF" font-size="16" font-weight="700">12h este mês</text>
+    <text x="24" y="124" fill="#9690AE" font-size="12">comparado ao tempo médio de</text>
+    <text x="24" y="140" fill="#9690AE" font-size="12">consolidação manual.</text>
+
+    <line x1="24" y1="170" x2="228" y2="170" stroke="#3F3954"/>
+
+    <text x="24" y="198" fill="#C9B5FF" font-size="11" font-weight="700" letter-spacing="1.5">SUGESTÃO</text>
+    <text x="24" y="224" fill="#FFFFFF" font-size="14" font-weight="600">Vi 3 novas vendas</text>
+    <text x="24" y="244" fill="#FFFFFF" font-size="14" font-weight="600">no TikTok Shop hoje</text>
+    <text x="24" y="270" fill="#9690AE" font-size="12">Posso adicionar ao saldo do</text>
+    <text x="24" y="286" fill="#9690AE" font-size="12">contrato de royalties?</text>
+
+    <rect x="24" y="306" width="204" height="36" rx="8" fill="#7B61FF"/>
+    <text x="126" y="329" text-anchor="middle" fill="#FFFFFF" font-size="12" font-weight="600">Conversar com agente →</text>
+
+    <rect x="24" y="350" width="100" height="36" rx="8" fill="transparent" stroke="#3F3954"/>
+    <text x="74" y="373" text-anchor="middle" fill="#C9B5FF" font-size="12" font-weight="600">Ignorar</text>
+  </g>
+</svg>

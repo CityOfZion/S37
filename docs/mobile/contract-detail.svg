@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 375 812" font-family="Manrope, system-ui, sans-serif">
+  <defs>
+    <linearGradient id="brand" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7B61FF"/><stop offset="1" stop-color="#B388FF"/>
+    </linearGradient>
+    <clipPath id="phone"><rect width="375" height="812" rx="44"/></clipPath>
+  </defs>
+  <g clip-path="url(#phone)">
+    <rect width="375" height="812" fill="#F8F7FB"/>
+
+    <!-- Hero -->
+    <rect width="375" height="320" fill="url(#brand)"/>
+    <circle cx="350" cy="60" r="120" fill="#FFFFFF" fill-opacity="0.08"/>
+    <circle cx="-20" cy="280" r="100" fill="#FFFFFF" fill-opacity="0.06"/>
+
+    <!-- Status bar (white) -->
+    <text x="32" y="34" fill="#FFFFFF" font-size="14" font-weight="700">9:41</text>
+    <g transform="translate(310, 22)" fill="#FFFFFF">
+      <circle cx="0" cy="8" r="2"/><circle cx="8" cy="8" r="2"/><circle cx="16" cy="8" r="2"/>
+      <rect x="22" y="3" width="20" height="10" rx="2" stroke="#FFFFFF" stroke-width="1" fill="none"/>
+      <rect x="24" y="5" width="14" height="6" fill="#FFFFFF"/>
+    </g>
+
+    <!-- Top buttons -->
+    <rect x="20" y="60" width="40" height="40" rx="12" fill="#FFFFFF" fill-opacity="0.18"/>
+    <text x="40" y="86" text-anchor="middle" fill="#FFFFFF" font-size="20">←</text>
+
+    <rect x="315" y="60" width="40" height="40" rx="12" fill="#FFFFFF" fill-opacity="0.18"/>
+    <text x="335" y="86" text-anchor="middle" fill="#FFFFFF" font-size="20" font-weight="700">⋯</text>
+
+    <!-- Title -->
+    <text x="20" y="138" fill="#FFFFFF" font-size="22" font-weight="800" letter-spacing="-0.5">Royalties — Editora</text>
+    <text x="20" y="160" fill="#FFFFFF" fill-opacity="0.85" font-size="13">Bimestral · 8 destinatárias · Ativo desde 12/mar</text>
+
+    <!-- Balde card -->
+    <rect x="20" y="180" width="335" height="120" rx="16" fill="#FFFFFF" fill-opacity="0.15"/>
+    <text x="36" y="206" fill="#FFFFFF" fill-opacity="0.85" font-size="10" font-weight="700" letter-spacing="1.5">SALDO DO CONTRATO</text>
+    <text x="36" y="240" fill="#FFFFFF" font-size="28" font-weight="800" letter-spacing="-0.5">R$ 12.450,00</text>
+
+    <rect x="36" y="256" width="139" height="28" rx="14" fill="#FFFFFF" fill-opacity="0.2"/>
+    <text x="105" y="274" text-anchor="middle" fill="#FFFFFF" font-size="12" font-weight="600">＋ Adicionar saldo</text>
+
+    <rect x="183" y="256" width="139" height="28" rx="14" fill="#FFFFFF" fill-opacity="0.2"/>
+    <text x="252" y="274" text-anchor="middle" fill="#FFFFFF" font-size="12" font-weight="600">▶ Executar agora</text>
+
+    <!-- Tabs (sticky-like) -->
+    <rect x="0" y="320" width="375" height="48" fill="#FFFFFF"/>
+    <line x1="0" y1="368" x2="375" y2="368" stroke="#E0DCEC"/>
+    <g font-size="13" font-weight="600">
+      <text x="20" y="350" fill="#7B61FF">Destinatárias</text>
+      <rect x="20" y="362" width="92" height="2" fill="#7B61FF"/>
+
+      <text x="128" y="350" fill="#9690AE">Regras</text>
+      <text x="200" y="350" fill="#9690AE">Histórico</text>
+    </g>
+
+    <!-- Recipient items -->
+    <g>
+      <rect x="20" y="380" width="335" height="56" rx="12" fill="#FFFFFF" filter="drop-shadow(0 1px 2px rgba(0,0,0,0.06))"/>
+      <rect x="32" y="392" width="32" height="32" rx="16" fill="#E4DAFF"/>
+      <text x="48" y="413" text-anchor="middle" fill="#4D33B5" font-size="11" font-weight="700">BS</text>
+      <text x="76" y="405" fill="#1A1832" font-size="13" font-weight="600">Beatriz Souza</text>
+      <text x="76" y="423" fill="#6E6884" font-size="11">15% · PIX CPF ***.456.***</text>
+      <text x="343" y="416" text-anchor="end" fill="#4D33B5" font-size="14" font-weight="700">R$ 1.867</text>
+    </g>
+
+    <g>
+      <rect x="20" y="444" width="335" height="56" rx="12" fill="#FFFFFF" filter="drop-shadow(0 1px 2px rgba(0,0,0,0.06))"/>
+      <rect x="32" y="456" width="32" height="32" rx="16" fill="#E4DAFF"/>
+      <text x="48" y="477" text-anchor="middle" fill="#4D33B5" font-size="11" font-weight="700">LM</text>
+      <text x="76" y="469" fill="#1A1832" font-size="13" font-weight="600">Lúcia Martins</text>
+      <text x="76" y="487" fill="#6E6884" font-size="11">12% · PIX e-mail</text>
+      <text x="343" y="480" text-anchor="end" fill="#4D33B5" font-size="14" font-weight="700">R$ 1.494</text>
+    </g>
+
+    <g>
+      <rect x="20" y="508" width="335" height="56" rx="12" fill="#FFFFFF" filter="drop-shadow(0 1px 2px rgba(0,0,0,0.06))"/>
+      <rect x="32" y="520" width="32" height="32" rx="16" fill="#E4DAFF"/>
+      <text x="48" y="541" text-anchor="middle" fill="#4D33B5" font-size="11" font-weight="700">MR</text>
+      <text x="76" y="533" fill="#1A1832" font-size="13" font-weight="600">Mariana Reis</text>
+      <text x="76" y="551" fill="#6E6884" font-size="11">10% · PIX celular</text>
+      <text x="343" y="544" text-anchor="end" fill="#4D33B5" font-size="14" font-weight="700">R$ 1.245</text>
+    </g>
+
+    <g>
+      <rect x="20" y="572" width="335" height="56" rx="12" fill="#FFFFFF" filter="drop-shadow(0 1px 2px rgba(0,0,0,0.06))"/>
+      <rect x="32" y="584" width="32" height="32" rx="16" fill="#E4DAFF"/>
+      <text x="48" y="605" text-anchor="middle" fill="#4D33B5" font-size="11" font-weight="700">JA</text>
+      <text x="76" y="597" fill="#1A1832" font-size="13" font-weight="600">Júlia Andrade</text>
+      <text x="76" y="615" fill="#6E6884" font-size="11">R$ 980 fixo · PIX CPF</text>
+      <text x="343" y="608" text-anchor="end" fill="#4D33B5" font-size="14" font-weight="700">R$ 980</text>
+    </g>
+
+    <g>
+      <rect x="20" y="636" width="335" height="56" rx="12" fill="#FFFFFF" filter="drop-shadow(0 1px 2px rgba(0,0,0,0.06))"/>
+      <rect x="32" y="648" width="32" height="32" rx="16" fill="#E4DAFF"/>
+      <text x="48" y="669" text-anchor="middle" fill="#4D33B5" font-size="11" font-weight="700">RP</text>
+      <text x="76" y="661" fill="#1A1832" font-size="13" font-weight="600">Renata Prado</text>
+      <text x="76" y="679" fill="#6E6884" font-size="11">8% · PIX CNPJ</text>
+      <text x="343" y="672" text-anchor="end" fill="#4D33B5" font-size="14" font-weight="700">R$ 996</text>
+    </g>
+
+    <!-- "Ver mais" -->
+    <text x="187" y="715" text-anchor="middle" fill="#7B61FF" font-size="13" font-weight="600">+ 3 destinatárias</text>
+
+    <!-- Footer with actions -->
+    <rect x="0" y="744" width="375" height="68" fill="#FFFFFF"/>
+    <line x1="0" y1="744" x2="375" y2="744" stroke="#EFEDF5"/>
+
+    <rect x="20" y="760" width="160" height="44" rx="12" fill="#FFFFFF" stroke="#C9B5FF"/>
+    <text x="100" y="788" text-anchor="middle" fill="#7B61FF" font-size="13" font-weight="600">⏸ Pausar</text>
+
+    <g filter="drop-shadow(0 8px 24px rgba(123,97,255,0.4))">
+      <rect x="188" y="760" width="167" height="44" rx="12" fill="url(#brand)"/>
+    </g>
+    <text x="271" y="788" text-anchor="middle" fill="#FFFFFF" font-size="13" font-weight="600">✏️ Editar</text>
+  </g>
+</svg>

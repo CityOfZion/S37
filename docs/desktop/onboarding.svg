@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" font-family="Manrope, system-ui, sans-serif">
+  <defs>
+    <linearGradient id="brand" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7B61FF"/><stop offset="1" stop-color="#B388FF"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1440" height="900" fill="#F8F7FB"/>
+
+  <!-- Top bar with logo + progress -->
+  <rect x="0" y="0" width="1440" height="80" fill="#FFFFFF"/>
+  <line x1="0" y1="80" x2="1440" y2="80" stroke="#EFEDF5"/>
+
+  <g transform="translate(48, 32)">
+    <g transform="translate(0, 4)">
+      <line x1="24" y1="8" x2="8" y2="40" stroke="#7B61FF" stroke-width="2.5" stroke-linecap="round" opacity="0.5"/>
+      <line x1="24" y1="8" x2="40" y2="40" stroke="#7B61FF" stroke-width="2.5" stroke-linecap="round" opacity="0.5"/>
+      <line x1="8" y1="40" x2="40" y2="40" stroke="#00C9A7" stroke-width="2.5" stroke-linecap="round" opacity="0.5"/>
+      <circle cx="24" cy="8" r="8" fill="url(#brand)"/>
+      <circle cx="8" cy="40" r="8" fill="url(#brand)"/>
+      <circle cx="40" cy="40" r="8" fill="#00C9A7"/>
+    </g>
+    <text x="60" y="36" fill="#1A1832" font-size="22" font-weight="800" letter-spacing="-0.6">FractaPay</text>
+  </g>
+
+  <!-- Progress bar centered -->
+  <g transform="translate(560, 36)">
+    <rect x="0" y="6" width="100" height="4" rx="2" fill="#7B61FF"/>
+    <rect x="108" y="6" width="100" height="4" rx="2" fill="#7B61FF"/>
+    <rect x="216" y="6" width="100" height="4" rx="2" fill="#E0DCEC"/>
+    <text x="160" y="-2" text-anchor="middle" fill="#6E6884" font-size="11" font-weight="600">PASSO 2 DE 3</text>
+  </g>
+
+  <!-- Skip text -->
+  <text x="1392" y="44" text-anchor="end" fill="#7B61FF" font-size="13" font-weight="600">Pular onboarding →</text>
+
+  <!-- Main content (two columns) -->
+  <g transform="translate(0, 80)">
+    <!-- Left: illustration -->
+    <rect x="120" y="120" width="500" height="500" rx="40" fill="url(#brand)"/>
+    <circle cx="540" cy="600" r="180" fill="#FFFFFF" fill-opacity="0.12"/>
+    <text x="370" y="450" text-anchor="middle" font-size="220">🏢</text>
+
+    <!-- Right: form -->
+    <g transform="translate(720, 120)">
+      <text x="0" y="56" fill="#1A1832" font-size="44" font-weight="800" letter-spacing="-1.5">Sobre sua empresa</text>
+      <text x="0" y="100" fill="#6E6884" font-size="16">Isso ajuda a gente a personalizar os modelos de pagamento</text>
+      <text x="0" y="124" fill="#6E6884" font-size="16">que vão te economizar tempo no dia a dia.</text>
+
+      <!-- Field: nome empresa -->
+      <text x="0" y="180" fill="#3F3954" font-size="13" font-weight="600">Nome da empresa</text>
+      <rect x="0" y="192" width="560" height="56" rx="12" fill="#FFFFFF" stroke="#E0DCEC"/>
+      <text x="20" y="226" fill="#1A1832" font-size="16">Editora Madame Rudini</text>
+
+      <!-- Field: CNPJ (optional) -->
+      <text x="0" y="284" fill="#3F3954" font-size="13" font-weight="600">CNPJ <tspan fill="#9690AE" font-weight="500">(opcional)</tspan></text>
+      <rect x="0" y="296" width="560" height="56" rx="12" fill="#FFFFFF" stroke="#E0DCEC"/>
+      <text x="20" y="330" fill="#9690AE" font-size="16">00.000.000/0001-00</text>
+
+      <!-- What you pay -->
+      <text x="0" y="388" fill="#3F3954" font-size="13" font-weight="600">O que você costuma pagar?</text>
+      <text x="0" y="406" fill="#9690AE" font-size="12">Selecione uma ou mais opções</text>
+
+      <g transform="translate(0, 418)" font-size="14" font-weight="600">
+        <rect width="120" height="44" rx="22" fill="#7B61FF"/>
+        <text x="60" y="29" text-anchor="middle" fill="#FFFFFF">✓ Royalties</text>
+
+        <rect x="132" width="110" height="44" rx="22" fill="#FFFFFF" stroke="#E0DCEC"/>
+        <text x="187" y="29" text-anchor="middle" fill="#3F3954">Folha PJ</text>
+
+        <rect x="254" width="110" height="44" rx="22" fill="#FFFFFF" stroke="#E0DCEC"/>
+        <text x="309" y="29" text-anchor="middle" fill="#3F3954">Folha CLT</text>
+
+        <rect x="376" width="120" height="44" rx="22" fill="#FFFFFF" stroke="#E0DCEC"/>
+        <text x="436" y="29" text-anchor="middle" fill="#3F3954">Comissões</text>
+
+        <rect x="0" y="56" width="100" height="44" rx="22" fill="#FFFFFF" stroke="#E0DCEC"/>
+        <text x="50" y="85" text-anchor="middle" fill="#3F3954">Bônus</text>
+
+        <rect x="112" y="56" width="120" height="44" rx="22" fill="#FFFFFF" stroke="#E0DCEC"/>
+        <text x="172" y="85" text-anchor="middle" fill="#3F3954">+ Outros</text>
+      </g>
+
+      <!-- CTA -->
+      <g transform="translate(0, 600)">
+        <rect width="160" height="56" rx="12" fill="#FFFFFF" stroke="#E0DCEC"/>
+        <text x="80" y="35" text-anchor="middle" fill="#3F3954" font-size="15" font-weight="600">← Voltar</text>
+
+        <g transform="translate(180, 0)" filter="drop-shadow(0 8px 24px rgba(123,97,255,0.4))">
+          <rect width="380" height="56" rx="12" fill="url(#brand)"/>
+          <text x="190" y="35" text-anchor="middle" fill="#FFFFFF" font-size="15" font-weight="600">Continuar →</text>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

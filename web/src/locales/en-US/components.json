@@ -1,0 +1,74 @@
+{
+  "header": {
+    "poweredBy": "Powered by Stellar"
+  },
+  "footer": {
+    "builtFor": "Built for Hackathon Stellar 37°",
+    "linkedin": "LinkedIn",
+    "switchLanguage": "Switch language"
+  },
+  "fileUpload": {
+    "form": {
+      "token": {
+        "label": "Token",
+        "placeholder": "Select a token",
+        "hint": "Select the token you want to use for payments.",
+        "options": {
+          "XLM": "XLM (Lumens)",
+          "USDC": "USDC (USD)",
+          "EURC": "EURC (EUR)"
+        }
+      },
+      "address": {
+        "label": "Destination address",
+        "placeholder": "E.g.: GABCD…VWXYZ",
+        "info": "Optional. If set, all payments go to this address. Otherwise, addresses are extracted from the file.",
+        "error": "Invalid Stellar address"
+      }
+    },
+    "upload": {
+      "description": "Drag & drop or click to upload your payment file",
+      "formats": "Supported formats: CSV, XLSX, XLS, PDF and TXT",
+      "button": "Choose file",
+      "analyzing": "AI analyzing payments…",
+      "dragActive": "Drop the file here…",
+      "submit": "Analyze payments"
+    },
+    "uploadSuccess": "File processed successfully",
+    "paymentsCount": "{{count}} payment",
+    "paymentsCount_other": "{{count}} payments",
+    "errors": {
+      "NO_FILE": "No file provided",
+      "UNSUPPORTED_FILE_TYPE": "Unsupported file type, allowed: CSV, XLSX, XLS, PDF and TXT",
+      "INVALID_TOKEN": "Invalid token selected",
+      "AI_RESPONSE_TYPE": "Unexpected response from AI",
+      "AI_PARSE_FAILED": "Could not parse AI response",
+      "NETWORK_ERROR": "Network error, please, try again",
+      "UNKNOWN": "An unexpected error occurred"
+    }
+  },
+  "paymentsList": {
+    "title": "Extracted payments",
+    "address": "Stellar address",
+    "amount": "Amount",
+    "description": "Description",
+    "count": "{{count}} payment",
+    "count_other": "{{count}} payments",
+    "execute": "Execute payments",
+    "empty": "No payments extracted yet. Upload a file to get started.",
+    "copy": "Copy address",
+    "copySuccess": "Address copied to clipboard",
+    "edit": "Edit",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "addPayment": "Add payment",
+    "actions": "Actions"
+  },
+  "input": {
+    "paste": "Paste from clipboard"
+  },
+  "info": {
+    "label": "Info"
+  }
+}

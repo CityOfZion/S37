@@ -31,7 +31,7 @@ npm install
 cp .env.example .env      # then set ANTHROPIC_API_KEY
 npm run dev               # tsx watch — hot reload
 npm run build             # tsc → dist/
-npm run lint              # ESLint (auto-fixes)
+npm run lint              # ESLint and Prettier
 npm run typecheck         # tsc --noEmit
 ```
 
@@ -42,7 +42,7 @@ npm install
 cp .env.example .env      # set VITE_API_URL and VITE_PUBLIC_KEY
 npm run dev               # Vite dev server
 npm run build             # tsc + vite build
-npm run lint              # ESLint (auto-fixes)
+npm run lint              # ESLint and Prettier
 npm run typecheck
 ```
 
@@ -113,7 +113,7 @@ web (FileUpload component)
 - **TypeScript strict mode** in both `server/` and `web/`.
 - **Prettier**: no semicolons, single quotes, trailing commas (ES5), 100-char width.
 - **Server imports**: no file extensions (e.g. `from './config'`) — `commonjs` module, TypeScript resolves `.ts` files automatically.
-- **Husky pre-commit**: runs `lint-staged` + `typecheck` in both `server/` and `web/`.
+- **Husky pre-commit**: runs `lint` + `typecheck` in both `server/` and `web/`.
 - **Rust**: `rustfmt` max_width 100, 4-space tabs; Clippy `-D warnings`.
 - **No abbreviations in variable/parameter names**: use full words (e.g. `message` not `msg`, `error` not `err`, `request` not `req`, `response` not `res`, `index` not `idx`, `parameter` not `param`).
 - **Blank line before `return`**: always leave one blank line before a `return` statement unless it is the very first statement in a block.
@@ -123,6 +123,8 @@ web (FileUpload component)
 - **Accessibility**: always apply ARIA attributes where visible text alone is insufficient. Key patterns: `aria-label` on interactive elements whose purpose isn't clear from content (icon-only buttons, ambiguous controls); `aria-hidden="true"` on decorative elements (icons, illustrations); `alt` with meaningful text on informative images, `alt=""` on decorative ones; prefer semantic HTML over ARIA roles — only reach for `role` when no native element fits.
 - **Input labels**: every `<input>` and `<textarea>` must have either an associated `<label>` (via `htmlFor`/`id`) or an `aria-label` attribute. Never render a bare input without one.
 - **Semantic HTML**: always use the most specific semantic element available (`<main>`, `<header>`, `<nav>`, `<section>`, `<article>`, `<aside>`, `<footer>`, `<h1>`–`<h6>`, `<p>`, `<ul>`, `<ol>`, `<li>`, `<button>`, `<a>`, `<table>`, etc.). Reserve `<div>` and `<span>` exclusively for layout or styling containers that carry no semantic meaning.
+- **File naming conventions**: applies across `web/`, `server/`, and `shared/`. Components use PascalCase (e.g. `FileUpload.tsx`, `Button.tsx`). Helper classes use PascalCase (e.g. `FileHelper.ts`, `StringHelper.ts`). Everything else — services, routes, schemas, stores, hooks, types, config, and utilities — uses kebab-case (e.g. `ai-service.ts`, `upload-route.ts`, `payment-schema.ts`, `use-payments-store.ts`, `use-debounce.ts`).
+- **TanStack Query hook naming**: hooks wrapping `useQuery` must end with `Query` in the function name and `-query` in the file name (e.g. `useUsersQuery` in `use-users-query.ts`). Hooks wrapping `useMutation` must end with `Mutation` and `-mutation` (e.g. `useUploadMutation` in `use-upload-mutation.ts`). This makes the data-fetching role unambiguous at a glance.
 - **Kebab-case for asset files**: all static assets — images, icons, SVGs, fonts — must be named in kebab-case (e.g. `upload-icon.svg`, `logo-dark.png`). No camelCase, PascalCase, or underscores in file names.
 - **Icon file suffix**: all icon files must end with `-icon` (e.g. `upload-icon.svg`, `loading-spinner-icon.svg`, `empty-state-icon.svg`).
 - **Responsive design**: all UI must work on mobile, tablet, and desktop. Use Tailwind responsive prefixes (`sm:`, `md:`, `lg:`, `xl:`) — mobile-first. No fixed pixel widths on layout containers; prefer `w-full`, `max-w-*`, or fluid units. Touch targets must be at least 44×44px.
@@ -130,3 +132,4 @@ web (FileUpload component)
 - **Ellipsis character**: always use the correct Unicode ellipsis `…` (U+2026), never three dots `...`. Applies to all user-facing strings, translations, placeholders, and prompts.
 - **Middle truncation for addresses**: always use `StringHelper.truncateMiddle()` to truncate blockchain addresses (e.g. `GABCD…WXYZ`). Never use CSS `truncate` or start/end ellipsis on addresses — both ends carry meaningful information.
 - **Form element wrapping**: components that contain `<input>`, `<select>`, or other form controls must wrap them in a `<form>` element. Use `onSubmit={event => event.preventDefault()}` when form submission is handled programmatically. Reusable primitives (e.g. `Input.tsx`, `Select.tsx`) are excluded — the wrapping `<form>` belongs in the parent component.
+- **Translation key cleanup**: when a `t('key')` call is removed from JSX/TSX, the key may still exist in the locale JSON files. After removing any `t()` call, run `npx i18next-cli status` inside `web/` to check for unused keys. Unused keys found there are safe to delete from `src/locales/{locale}/{namespace}.json`. TypeScript typed translations (`src/types/i18next.d.ts`) will catch compilation errors if a key is referenced in code but missing from the JSON.

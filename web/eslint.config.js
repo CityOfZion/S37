@@ -40,15 +40,18 @@ export default [
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
       '@typescript-eslint/no-explicit-any': 'warn',
-      'simple-import-sort/imports': ['error', {
-        groups: [
-          ['^react', '^react-dom'],
-          ['^@?\\w'],
-          ['^fractapay-shared'],
-          ['^\\.(?!.*\\.svg\\?react)'],
-          ['\\.svg\\?react$'],
-        ],
-      }],
+      'simple-import-sort/imports': [
+        'error',
+        {
+          groups: [
+            ['^react', '^react-dom'],
+            ['^@?\\w'],
+            ['^fractapay-shared'],
+            ['^\\.(?!.*\\.svg\\?react)'],
+            ['\\.svg\\?react$'],
+          ],
+        },
+      ],
       'simple-import-sort/exports': 'error',
       'object-shorthand': 'error',
     },

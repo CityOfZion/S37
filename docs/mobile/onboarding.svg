@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 375 812" font-family="Manrope, system-ui, sans-serif">
+  <defs>
+    <linearGradient id="brand" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7B61FF"/>
+      <stop offset="1" stop-color="#B388FF"/>
+    </linearGradient>
+    <clipPath id="phone"><rect width="375" height="812" rx="44"/></clipPath>
+  </defs>
+  <g clip-path="url(#phone)">
+    <rect width="375" height="812" fill="#FFFFFF"/>
+
+    <!-- Status bar -->
+    <text x="32" y="34" fill="#1A1832" font-size="14" font-weight="700">9:41</text>
+    <g transform="translate(310, 22)" fill="#1A1832">
+      <circle cx="0" cy="8" r="2"/><circle cx="8" cy="8" r="2"/><circle cx="16" cy="8" r="2"/>
+      <rect x="22" y="3" width="20" height="10" rx="2" stroke="#1A1832" stroke-width="1" fill="none"/>
+      <rect x="24" y="5" width="14" height="6" fill="#1A1832"/>
+    </g>
+
+    <!-- Top: back arrow + progress -->
+    <text x="32" y="74" fill="#3F3954" font-size="22" font-weight="700">←</text>
+
+    <!-- Progress steps -->
+    <rect x="80" y="66" width="80" height="4" rx="2" fill="#7B61FF"/>
+    <rect x="168" y="66" width="80" height="4" rx="2" fill="#7B61FF"/>
+    <rect x="256" y="66" width="80" height="4" rx="2" fill="#E0DCEC"/>
+
+    <text x="343" y="74" text-anchor="end" fill="#6E6884" font-size="12" font-weight="600">2 de 3</text>
+
+    <!-- Illustration -->
+    <rect x="87" y="100" width="200" height="200" rx="32" fill="url(#brand)"/>
+    <circle cx="270" cy="280" r="60" fill="#FFFFFF" fill-opacity="0.12"/>
+    <text x="187" y="220" text-anchor="middle" font-size="90">🏢</text>
+
+    <!-- Heading -->
+    <text x="32" y="350" fill="#1A1832" font-size="28" font-weight="800" letter-spacing="-0.5">Sobre sua empresa</text>
+    <text x="32" y="380" fill="#6E6884" font-size="14">Isso ajuda a gente a personalizar os</text>
+    <text x="32" y="398" fill="#6E6884" font-size="14">modelos de pagamento que vão te</text>
+    <text x="32" y="416" fill="#6E6884" font-size="14">economizar tempo.</text>
+
+    <!-- Field 1 -->
+    <text x="32" y="460" fill="#3F3954" font-size="12" font-weight="600">Nome da empresa</text>
+    <rect x="32" y="470" width="311" height="48" rx="12" fill="#FFFFFF" stroke="#E0DCEC"/>
+    <text x="48" y="500" fill="#1A1832" font-size="15">Editora Madame Rudini</text>
+
+    <!-- Field 2 -->
+    <text x="32" y="552" fill="#3F3954" font-size="12" font-weight="600">O que você costuma pagar?</text>
+
+    <!-- Chips -->
+    <g font-size="12" font-weight="600">
+      <rect x="32" y="568" width="92" height="32" rx="16" fill="#7B61FF"/>
+      <text x="78" y="589" text-anchor="middle" fill="#FFFFFF">Royalties</text>
+
+      <rect x="132" y="568" width="76" height="32" rx="16" fill="#FFFFFF" stroke="#E0DCEC"/>
+      <text x="170" y="589" text-anchor="middle" fill="#3F3954">Folha PJ</text>
+
+      <rect x="216" y="568" width="84" height="32" rx="16" fill="#FFFFFF" stroke="#E0DCEC"/>
+      <text x="258" y="589" text-anchor="middle" fill="#3F3954">Folha CLT</text>
+
+      <rect x="32" y="608" width="100" height="32" rx="16" fill="#FFFFFF" stroke="#E0DCEC"/>
+      <text x="82" y="629" text-anchor="middle" fill="#3F3954">Comissões</text>
+
+      <rect x="140" y="608" width="80" height="32" rx="16" fill="#FFFFFF" stroke="#E0DCEC"/>
+      <text x="180" y="629" text-anchor="middle" fill="#3F3954">+ Outros</text>
+    </g>
+
+    <!-- CTA -->
+    <g transform="translate(32, 720)" filter="drop-shadow(0 8px 24px rgba(123,97,255,0.4))">
+      <rect width="311" height="52" rx="12" fill="url(#brand)"/>
+      <text x="155" y="32" text-anchor="middle" fill="#FFFFFF" font-size="15" font-weight="600">Continuar →</text>
+    </g>
+
+    <!-- Home indicator -->
+    <rect x="125" y="796" width="125" height="5" rx="3" fill="#1A1832"/>
+  </g>
+</svg>

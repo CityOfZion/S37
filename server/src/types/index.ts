@@ -1,1 +1,1 @@
-export type TSupportedFileType = 'csv' | 'xlsx' | 'pdf' | 'txt'
+export type TSupportedFileType = 'csv' | 'xlsx' | 'xls' | 'pdf' | 'txt'

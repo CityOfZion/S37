@@ -2,24 +2,31 @@ import { type ReactNode } from 'react'
 
 import * as RadixTooltip from '@radix-ui/react-tooltip'
 
+import { StyleHelper } from '../helpers/StyleHelper'
+
 type TProps = {
   content: string
+  className?: string
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
   children: ReactNode
 }
 
-export const Tooltip = ({ content, children }: TProps) => (
-  <RadixTooltip.Root>
+export const Tooltip = ({ content, className, open, onOpenChange, children }: TProps) => (
+  <RadixTooltip.Root open={open} onOpenChange={onOpenChange}>
     <RadixTooltip.Trigger asChild>{children}</RadixTooltip.Trigger>
 
     <RadixTooltip.Portal>
       <RadixTooltip.Content
         sideOffset={6}
-        className="z-50 rounded-lg bg-gray-800 px-2.5 py-1.5 text-xs text-white shadow-lg border border-white/10 animate-in fade-in-0 zoom-in-95"
+        className={StyleHelper.merge(
+          'z-50 rounded-lg w-fit text-center wrap-break-word bg-gray-800 px-2.5 py-1.5 text-xs text-white shadow-lg border border-white/10 animate-in fade-in-0 zoom-in-95',
+          className
+        )}
       >
-        {content}
+        <span className="block">{content}</span>
         <RadixTooltip.Arrow className="fill-gray-800" />
       </RadixTooltip.Content>
     </RadixTooltip.Portal>
   </RadixTooltip.Root>
 )
-

@@ -67,7 +67,7 @@ export const Select = ({
 
         <RadixSelect.Portal>
           <RadixSelect.Content
-            className="z-50 overflow-hidden rounded-xl border border-white/10 bg-gray-900 shadow-xl"
+            className="z-50 w-(--radix-select-trigger-width) overflow-hidden rounded-xl border border-white/10 bg-gray-900 shadow-xl"
             position="popper"
             sideOffset={4}
           >
