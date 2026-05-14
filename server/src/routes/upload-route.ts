@@ -9,10 +9,10 @@ import {
   SUPPORTED_TOKENS,
 } from 'fractapay-shared'
 
-import { analyzePayments } from '../services/ai.service'
-import { parseFile } from '../services/file.service'
+import { FileHelper } from '../helpers/FileHelper'
+import { analyze } from '../services/ai-service'
 
-export const uploadRoutes = async (fastify: FastifyInstance): Promise<void> => {
+export const uploadRoute = async (fastify: FastifyInstance): Promise<void> => {
   fastify.post<{ Reply: TUploadResult }>('/upload', async (request, reply) => {
     const data = await request.file()
 
@@ -58,9 +58,9 @@ export const uploadRoutes = async (fastify: FastifyInstance): Promise<void> => {
     const buffer = Buffer.concat(chunks)
 
     try {
-      const fileContent = await parseFile(buffer, data.filename, data.mimetype)
+      const fileContent = await FileHelper.parse(buffer, data.filename, data.mimetype)
 
-      const result = await analyzePayments(fileContent, {
+      const result = await analyze(fileContent, {
         token,
         destinationAddress,
       })

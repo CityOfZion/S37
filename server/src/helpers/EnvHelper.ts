@@ -11,11 +11,13 @@ const envSchema = z.object({
 const parsed = envSchema.safeParse(process.env)
 
 if (!parsed.success) {
-  console.error('Invalid environment variables:', parsed.error.flatten().fieldErrors)
+  console.error('Invalid environment variables:', parsed.error.issues)
   process.exit(1)
 }
 
-export const config = {
-  port: parseInt(parsed.data.PORT, 10),
-  anthropicApiKey: parsed.data.ANTHROPIC_API_KEY,
+const data = parsed.data!
+
+export class EnvHelper {
+  static readonly PORT = parseInt(data.PORT)
+  static readonly ANTHROPIC_API_KEY = data.ANTHROPIC_API_KEY
 }

@@ -5,7 +5,7 @@ import * as uuid from 'uuid'
 import type { TPaymentResponse, TToken } from 'fractapay-shared'
 import { ErrorCode, STELLAR_DECIMALS, StellarHelper } from 'fractapay-shared'
 
-import { config } from '../config'
+import { EnvHelper } from '../helpers/EnvHelper'
 
 type TRawPayment = { address: string; amount: number; description?: string }
 type TRawResponse = { payments: TRawPayment[] }
@@ -15,7 +15,7 @@ type TAnalyzeOptions = {
   destinationAddress?: string
 }
 
-const client = new Anthropic({ apiKey: config.anthropicApiKey })
+const client = new Anthropic({ apiKey: EnvHelper.ANTHROPIC_API_KEY })
 
 const SYSTEM_PROMPT = `You are a financial data extraction assistant specializing in Stellar blockchain payments.
 Your task is to analyze file content and extract payment information.
@@ -79,7 +79,7 @@ ${fileContent}
 ---`
 }
 
-export async function analyzePayments(
+export async function analyze(
   fileContent: string,
   options: TAnalyzeOptions
 ): Promise<TPaymentResponse> {

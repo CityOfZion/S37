@@ -2,9 +2,9 @@ import cors from '@fastify/cors'
 import multipart from '@fastify/multipart'
 import Fastify from 'fastify'
 
-import { config } from './config'
-import { healthRoutes } from './routes/health.route'
-import { uploadRoutes } from './routes/upload.route'
+import { EnvHelper } from './helpers/EnvHelper'
+import { healthRoute } from './routes/health-route'
+import { uploadRoute } from './routes/upload-route'
 
 const fastify = Fastify({
   logger: {
@@ -27,12 +27,12 @@ async function bootstrap(): Promise<void> {
     },
   })
 
-  await fastify.register(healthRoutes)
-  await fastify.register(uploadRoutes)
+  await fastify.register(healthRoute)
+  await fastify.register(uploadRoute)
 
-  await fastify.listen({ port: config.port, host: '0.0.0.0' })
+  await fastify.listen({ port: EnvHelper.PORT, host: '0.0.0.0' })
 
-  fastify.log.info(`FractaPay server running on port ${config.port}`)
+  fastify.log.info(`FractaPay server running on port ${EnvHelper.PORT}`)
 }
 
 bootstrap().catch(error => {
