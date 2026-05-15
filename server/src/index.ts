@@ -3,6 +3,7 @@ import multipart from '@fastify/multipart'
 import Fastify from 'fastify'
 
 import { EnvHelper } from './helpers/EnvHelper'
+import { etherfuseRoute } from './routes/etherfuse-route'
 import { healthRoute } from './routes/health-route'
 import { uploadRoute } from './routes/upload-route'
 
@@ -29,6 +30,7 @@ async function bootstrap(): Promise<void> {
 
   await fastify.register(healthRoute)
   await fastify.register(uploadRoute)
+  await fastify.register(etherfuseRoute)
 
   await fastify.listen({ port: EnvHelper.PORT, host: '0.0.0.0' })
 

@@ -1,13 +1,15 @@
-import { type ChangeEvent, type DragEvent, Fragment, useMemo, useState } from 'react'
+import { type ChangeEvent, type DragEvent, useMemo, useRef, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
 import { zodResolver } from '@hookform/resolvers/zod'
 import { match } from 'ts-pattern'
 
+import type { TToken } from 'fractapay-shared'
 import { ErrorCode } from 'fractapay-shared'
 import { ALLOWED_INPUT_ACCEPT } from 'fractapay-shared'
 
+import brazilFlagUrl from '../assets/flags/brazil-flag.svg'
 import { InputHelper } from '../helpers/InputHelper'
 import { StyleHelper } from '../helpers/StyleHelper'
 import { ToastHelper } from '../helpers/ToastHelper'
@@ -15,53 +17,48 @@ import { usePaymentsStore } from '../hooks/use-payments-store'
 import { useUploadMutation } from '../hooks/use-upload-mutation'
 import { fileUploadSchema, type TFileUploadFormValues } from '../schemas/file-upload-schema'
 import { Button } from './Button'
-import { Info } from './Info'
 import { Input } from './Input'
 import { Select } from './Select'
 
-import EurcIcon from '../assets/icons/eurc-icon.svg?react'
-import InfoIcon from '../assets/icons/info-icon.svg?react'
 import LoadingSpinnerIcon from '../assets/icons/loading-spinner-icon.svg?react'
 import UploadIcon from '../assets/icons/upload-icon.svg?react'
-import UsdcIcon from '../assets/icons/usdc-icon.svg?react'
-import XlmIcon from '../assets/icons/xlm-icon.svg?react'
 
 export const FileUpload = () => {
   const { t } = useTranslation('components', { keyPrefix: 'fileUpload' })
-  const { setPayments } = usePaymentsStore()
+  const { hasPayments, mergePayments, setToken, setPrice, setAddress, address } = usePaymentsStore()
   const { mutate, isPending, data } = useUploadMutation()
   const [file, setFile] = useState<File | null>(null)
   const [isFileDragActive, setIsFileDragActive] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const {
     control,
     handleSubmit,
+    getValues,
     formState: { errors, isValid },
   } = useForm<TFileUploadFormValues>({
     resolver: zodResolver(fileUploadSchema),
-    defaultValues: { token: 'XLM', destinationAddress: '' },
+    defaultValues: { token: 'TESOURO', address },
     mode: 'onChange',
   })
 
   const errorCode = data && !data.success ? data.error || ErrorCode.UNKNOWN : null
   const isSubmitInvalid = !file || isPending || !isValid
+  const isFieldDisabled = hasPayments || isPending
 
   const tokenOptions = useMemo(
     () => [
       {
-        value: 'XLM',
-        label: t('form.token.options.XLM'),
-        icon: <XlmIcon aria-hidden="true" className="size-5" />,
-      },
-      {
-        value: 'USDC',
-        label: t('form.token.options.USDC'),
-        icon: <UsdcIcon aria-hidden="true" className="size-5" />,
-      },
-      {
-        value: 'EURC',
-        label: t('form.token.options.EURC'),
-        icon: <EurcIcon aria-hidden="true" className="size-5" />,
+        value: 'TESOURO',
+        label: t('form.token.options.TESOURO'),
+        icon: (
+          <img
+            aria-hidden="true"
+            src={brazilFlagUrl}
+            alt=""
+            className="size-5 pointer-events-none rounded-full object-cover"
+          />
+        ),
       },
     ],
     [t]
@@ -87,20 +84,27 @@ export const FileUpload = () => {
     }
   }
 
-  const onSubmit = (values: TFileUploadFormValues) => {
+  const onSubmit = () => {
     if (isSubmitInvalid) return
+
+    const values = getValues()
 
     mutate(
       { ...values, file },
       {
-        onSuccess: result => {
-          if (result.success) {
-            setPayments(result.payments)
-            ToastHelper.success(
-              t('uploadSuccess'),
-              t('paymentsCount', { count: result.payments.length })
-            )
+        onSuccess: ({ success, payments, price }) => {
+          if (!success) return
+
+          if (payments.length === 0) {
+            ToastHelper.error(t('noPaymentsFound'), t('verifyYourFile'))
+
+            return
           }
+
+          mergePayments(payments)
+          setPrice(price)
+          setAddress(values.address)
+          ToastHelper.success(t('uploadSuccess'), t('paymentsCount', { count: payments.length }))
         },
       }
     )
@@ -112,6 +116,7 @@ export const FileUpload = () => {
         <Controller
           name="token"
           control={control}
+          disabled={isFieldDisabled}
           render={({ field }) => (
             <Select
               name={field.name}
@@ -121,30 +126,31 @@ export const FileUpload = () => {
               required
               options={tokenOptions}
               value={field.value}
-              onValueChange={field.onChange}
+              disabled={field.disabled}
+              onValueChange={value => {
+                field.onChange(value)
+                setToken(value as TToken)
+              }}
             />
           )}
         />
 
         <Controller
-          name="destinationAddress"
+          name="address"
           control={control}
+          disabled={isFieldDisabled}
           render={({ field }) => (
             <Input
               name={field.name}
-              label={
-                <Fragment>
-                  {t('form.address.label')}
-                  <Info content={t('form.address.info')} icon={<InfoIcon aria-hidden="true" />} />
-                </Fragment>
-              }
+              label={t('form.address.label')}
               placeholder={t('form.address.placeholder')}
               value={field.value}
               error={
-                errors.destinationAddress
-                  ? t(`form.address.${errors.destinationAddress.message}`, 'form.address.error')
+                errors.address
+                  ? t(`form.address.${errors.address.message}`, 'form.address.error')
                   : undefined
               }
+              disabled={field.disabled}
               onPaste={value => field.onChange(InputHelper.sanitizeAddress(value))}
               onChange={event => field.onChange(InputHelper.sanitizeAddressEvent(event))}
             />
@@ -172,10 +178,11 @@ export const FileUpload = () => {
         )}
       >
         <input
+          ref={fileInputRef}
           aria-label={t('upload.button')}
           name="file"
           type="file"
-          required
+          aria-required="true"
           accept={ALLOWED_INPUT_ACCEPT}
           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
           disabled={isPending}
@@ -195,7 +202,10 @@ export const FileUpload = () => {
             )}
           >
             {isPending ? (
-              <LoadingSpinnerIcon className="animate-spin size-8 text-primary" aria-hidden="true" />
+              <LoadingSpinnerIcon
+                className="animate-spin size-8 text-green-400"
+                aria-hidden="true"
+              />
             ) : (
               <UploadIcon
                 className={StyleHelper.merge('size-8 transition-colors', {
@@ -220,7 +230,20 @@ export const FileUpload = () => {
             <p className="text-gray-500 text-sm">{t('upload.formats')}</p>
           </div>
 
-          {!isPending && !file && <Button size="sm">{t('upload.button')}</Button>}
+          {!isPending && !file && (
+            <Button
+              type="button"
+              size="sm"
+              onClick={event => {
+                event.preventDefault()
+                event.stopPropagation()
+
+                fileInputRef.current?.click()
+              }}
+            >
+              {t('upload.button')}
+            </Button>
+          )}
 
           {errorCode && (
             <p className="text-red-400 text-sm font-medium">{t(`errors.${errorCode}`)}</p>

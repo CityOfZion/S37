@@ -10,20 +10,17 @@
   "fileUpload": {
     "form": {
       "token": {
-        "label": "Token",
-        "placeholder": "Selecione um token",
-        "hint": "Selecione o token que deseja usar para pagamentos.",
+        "label": "Moeda",
+        "placeholder": "Selecione uma moeda",
+        "hint": "Selecione a moeda que deseja usar para pagamentos.",
         "options": {
-          "XLM": "XLM (Lumens)",
-          "USDC": "USDC (USD)",
-          "EURC": "EURC (EUR)"
+          "TESOURO": "Real"
         }
       },
       "address": {
-        "label": "Endereço de destino",
+        "label": "Endereço",
         "placeholder": "Ex.: GABCD…VWXYZ",
-        "info": "Opcional. Se definido, todos os pagamentos serão enviados para este endereço. Caso contrário, os endereços são extraídos do arquivo.",
-        "error": "Endereço Stellar inválido"
+        "error": "Endereço inválido"
       }
     },
     "upload": {
@@ -35,40 +32,128 @@
       "submit": "Analisar pagamentos"
     },
     "uploadSuccess": "Arquivo processado com sucesso",
+    "noPaymentsFound": "Nenhum pagamento encontrado",
+    "verifyYourFile": "Por favor, verifique o conteúdo do arquivo, e tente novamente",
     "paymentsCount": "{{count}} pagamento",
     "paymentsCount_other": "{{count}} pagamentos",
     "errors": {
       "NO_FILE": "Nenhum arquivo fornecido",
       "UNSUPPORTED_FILE_TYPE": "Tipo de arquivo não suportado, permitidos: CSV, XLSX, XLS, PDF e TXT",
-      "INVALID_TOKEN": "Token selecionado inválido",
-      "AI_RESPONSE_TYPE": "Resposta inesperada da IA",
+      "INVALID_TOKEN": "Moeda selecionada inválida",
+      "INVALID_ADDRESS": "Endereço inválido",
+      "INVALID_PAYLOAD": "Dados inválidos",
       "AI_PARSE_FAILED": "Não foi possível processar a resposta da IA",
-      "NETWORK_ERROR": "Erro de rede, tente novamente",
+      "NETWORK_ERROR": "Erro de rede, por favor, tente novamente",
+      "RATE_FETCH_FAILED": "Não foi possível obter a cotação, por favor, tente novamente",
+      "ORDERBOOK_FETCH_FAILED": "Não foi possível obter o preço, por favor, tente novamente",
+      "ETHERFUSE_REQUEST_FAILED": "Falha na requisição à Etherfuse, por favor, tente novamente",
+      "KYC_NOT_APPROVED": "KYC ainda não aprovado",
+      "QUOTE_EXPIRED": "Cotação expirou, por favor, atualize",
+      "ORDER_NOT_FOUND": "Pedido não encontrado",
+      "PENDING_ORDER_EXISTS": "Já existe um pedido pendente para esta conta. Pague-o ou aguarde expirar.",
+      "CUSTOMER_ALREADY_EXISTS": "Este endereço Stellar já está cadastrado. Não foi possível recuperar o cliente automaticamente.",
       "UNKNOWN": "Ocorreu um erro inesperado"
     }
   },
   "paymentsList": {
     "title": "Pagamentos extraídos",
-    "address": "Endereço Stellar",
     "amount": "Valor",
     "description": "Descrição",
     "count": "{{count}} pagamento",
     "count_other": "{{count}} pagamentos",
     "execute": "Executar pagamentos",
+    "reviewAndConfirm": "Revisar e confirmar",
     "empty": "Nenhum pagamento extraído ainda. Envie um arquivo para começar.",
-    "copy": "Copiar endereço",
-    "copySuccess": "Endereço copiado para a área de transferência",
     "edit": "Editar",
     "save": "Salvar",
     "cancel": "Cancelar",
     "delete": "Excluir",
     "addPayment": "Adicionar pagamento",
-    "actions": "Ações"
+    "actions": "Ações",
+    "subtotal": "Subtotal",
+    "subtotalInfo": "Soma dos valores dos pagamentos antes da aplicação do percentual ao destinatário.",
+    "recipient": "Destinatário ({{percentage}}%)",
+    "recipientInfo": "Valor enviado ao endereço destinatário, conforme o percentual configurado.",
+    "total": "Total",
+    "totalInfo": "Inclui o valor do destinatário mais as taxas Etherfuse e FractaPay. Pode mudar com a flutuação da cotação."
   },
   "input": {
     "paste": "Colar da área de transferência"
   },
   "info": {
     "label": "Informações"
+  },
+  "reviewModal": {
+    "title": "Revisar e confirmar",
+    "description": "Revise o desdobramento por destinatário e as taxas antes de gerar o pagamento via PIX.",
+    "close": "Fechar",
+    "recipientsTitle": "Destinatários",
+    "address": "Endereço",
+    "percentage": "Percentual",
+    "amount": "Valor",
+    "feesTitle": "Conversão para TESOURO e taxas",
+    "subtotal": "Valor do destinatário",
+    "fee": "Taxa Etherfuse + FractaPay ({{percentage}}%)",
+    "etherfuseFee": "Taxa Etherfuse",
+    "fractapayFee": "Taxa FractaPay ({{percentage}}%)",
+    "total": "Total a pagar",
+    "rate": "Cotação utilizada",
+    "expiresIn": "Expira em {{seconds}}s",
+    "expired": "Cotação expirou",
+    "loading": "Buscando cotação…",
+    "refresh": "Atualizar",
+    "kycRequired": "Você precisa concluir o KYC antes de pagar.",
+    "kycPending": "KYC ainda em análise.",
+    "kycRejected": "KYC rejeitado. Por favor, tente novamente.",
+    "startKyc": "Iniciar KYC",
+    "startingKyc": "Iniciando KYC…",
+    "continueKyc": "Continuar KYC",
+    "retryKyc": "Refazer KYC",
+    "confirm": "Confirmar",
+    "confirming": "Gerando PIX…",
+    "orderCreated": "Pedido criado. Pague via PIX para continuar.",
+    "orderError": "Não foi possível criar o pedido, por favor, tente novamente.",
+    "onboardingError": "Não foi possível iniciar o onboarding, por favor, tente novamente."
+  },
+  "kyc": {
+    "title": "Verificação KYC",
+    "description": "Conclua a verificação no iframe seguro abaixo. O status atualiza automaticamente.",
+    "back": "Voltar",
+    "iframeTitle": "KYC Etherfuse",
+    "error": "Não foi possível carregar o status.",
+    "status": {
+      "not_started": "Não iniciado",
+      "pending": "Em análise",
+      "approved": "Aprovado",
+      "rejected": "Rejeitado"
+    }
+  },
+  "payment": {
+    "title": "Pagamento",
+    "back": "Voltar",
+    "loading": "Carregando pedido…",
+    "error": "Não foi possível carregar o pedido.",
+    "status": "Status",
+    "statuses": {
+      "created": "Criado",
+      "funded": "Recebido",
+      "completed": "Concluído",
+      "failed": "Falhou",
+      "refunded": "Reembolsado",
+      "canceled": "Cancelado"
+    }
+  },
+  "pix": {
+    "qrLabel": "QR code PIX",
+    "amount": "Valor",
+    "code": "Código PIX copia-e-cola",
+    "copy": "Copiar código PIX",
+    "copied": "Código PIX copiado",
+    "copyError": "Não foi possível copiar o código PIX.",
+    "beneficiary": "Beneficiário",
+    "simulate": "Simular recebimento do fiat",
+    "simulating": "Simulando…",
+    "simulateSuccess": "Recebimento do fiat simulado",
+    "simulateError": "Não foi possível simular o depósito."
   }
 }

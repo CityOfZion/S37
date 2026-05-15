@@ -1,9 +1,6 @@
 import { useTranslation } from 'react-i18next'
 
 import { APP_NAME } from '../constants'
-import { EnvHelper } from '../helpers/EnvHelper'
-import { StringHelper } from '../helpers/StringHelper'
-import { Tooltip } from './Tooltip'
 
 import Logo from '../assets/logos/logo.svg?react'
 
@@ -20,12 +17,6 @@ export const Header = () => {
             <p className="text-gray-500 text-xs leading-2">{t('poweredBy')}</p>
           </div>
         </div>
-
-        <Tooltip content={EnvHelper.PUBLIC_KEY} className="max-w-48">
-          <p className="font-mono text-xs text-gray-400 bg-white/5 px-3 py-1.5 rounded-lg border border-white/10">
-            {StringHelper.truncateMiddle(EnvHelper.PUBLIC_KEY, 10)}
-          </p>
-        </Tooltip>
       </div>
     </header>
   )

@@ -1,4 +1,4 @@
-import type { TLanguage } from '../types'
+import type { TLanguage } from 'fractapay-shared'
 
 export const APP_NAME = 'FractaPay'
 

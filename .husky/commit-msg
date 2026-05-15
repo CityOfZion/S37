@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+commit_msg=$(cat "$1")
+
+if ! echo "$commit_msg" | grep -qE '^CU-[a-z0-9]+-'; then
+  echo "Commit message must follow ClickUp format: CU-<id>-<name>"
+  echo "Example: CU-86ahefu3e-[Smart Contract] Implement Stellar Passkey Kit"
+
+  exit 1
+fi
