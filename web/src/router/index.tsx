@@ -21,7 +21,10 @@ const paymentRoute = createRoute({
 
 const routeTree = rootRoute.addChildren([homeRoute, paymentRoute])
 
-export const router = createRouter({ routeTree, basepath: '/S37' })
+export const router = createRouter({
+  routeTree,
+  basepath: import.meta.env.PROD ? '/S37' : '/',
+})
 
 declare module '@tanstack/react-router' {
   interface Register {
