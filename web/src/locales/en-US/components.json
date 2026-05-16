@@ -115,19 +115,6 @@
     "orderError": "Could not create the order, please, try again.",
     "onboardingError": "Could not start the onboarding flow, please, try again."
   },
-  "kyc": {
-    "title": "KYC verification",
-    "description": "Complete the verification flow inside the secure iframe below. The status updates automatically.",
-    "back": "Back",
-    "iframeTitle": "Etherfuse KYC",
-    "error": "Could not load status.",
-    "status": {
-      "not_started": "Not started",
-      "pending": "Pending review",
-      "approved": "Approved",
-      "rejected": "Rejected"
-    }
-  },
   "payment": {
     "title": "Payment",
     "back": "Back",

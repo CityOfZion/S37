@@ -115,19 +115,6 @@
     "orderError": "Não foi possível criar o pedido, por favor, tente novamente.",
     "onboardingError": "Não foi possível iniciar o onboarding, por favor, tente novamente."
   },
-  "kyc": {
-    "title": "Verificação KYC",
-    "description": "Conclua a verificação no iframe seguro abaixo. O status atualiza automaticamente.",
-    "back": "Voltar",
-    "iframeTitle": "KYC Etherfuse",
-    "error": "Não foi possível carregar o status.",
-    "status": {
-      "not_started": "Não iniciado",
-      "pending": "Em análise",
-      "approved": "Aprovado",
-      "rejected": "Rejeitado"
-    }
-  },
   "payment": {
     "title": "Pagamento",
     "back": "Voltar",

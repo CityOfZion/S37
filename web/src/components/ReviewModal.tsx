@@ -37,7 +37,7 @@ type TProps = {
 export const ReviewModal = ({ open, onOpenChange, recipientAddress }: TProps) => {
   const { t } = useTranslation('components', { keyPrefix: 'reviewModal' })
   const navigate = useNavigate()
-  const { payments, token } = usePaymentsStore()
+  const { payments, token, setPayments } = usePaymentsStore()
   const account = useEtherfuseStore(state => state.accounts[recipientAddress])
   const setAccount = useEtherfuseStore(state => state.setAccount)
   const onboardingMutation = useOnboardingMutation()
@@ -155,14 +155,7 @@ export const ReviewModal = ({ open, onOpenChange, recipientAddress }: TProps) =>
 
           if (!result.presignedUrl) return
 
-          void navigate({
-            to: '/kyc',
-            search: {
-              customerId: result.customerId,
-              publicKey: recipientAddress,
-              presignedUrl: result.presignedUrl,
-            },
-          })
+          window.open(result.presignedUrl, '_blank', 'noopener,noreferrer')
         },
         onError: () => ToastHelper.error(t('onboardingError')),
       }
@@ -172,14 +165,7 @@ export const ReviewModal = ({ open, onOpenChange, recipientAddress }: TProps) =>
   const continueKyc = () => {
     if (!account?.customerId || !account.presignedUrl) return
 
-    void navigate({
-      to: '/kyc',
-      search: {
-        customerId: account.customerId,
-        publicKey: recipientAddress,
-        presignedUrl: account.presignedUrl,
-      },
-    })
+    window.open(account.presignedUrl, '_blank', 'noopener,noreferrer')
   }
 
   const confirm = () => {
@@ -247,6 +233,7 @@ export const ReviewModal = ({ open, onOpenChange, recipientAddress }: TProps) =>
           orderId={order.orderId}
           onSimulated={() => {
             onOpenChange(false)
+            setPayments([])
             void navigate({ to: '/payment/$orderId', params: { orderId: order.orderId } })
           }}
         />

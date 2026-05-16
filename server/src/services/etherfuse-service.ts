@@ -263,7 +263,7 @@ export const getKycStatus = async (
 ): Promise<TKycStatusResult> => {
   const response = await request<TKycRawResponse>(
     'GET',
-    `/ramp/customer/${customerId}/kyc/${publicKey}`
+    `/ramp/customer/${encodeURIComponent(customerId)}/kyc/${encodeURIComponent(publicKey)}`
   )
 
   return { status: mapKycStatus(response.status) }
@@ -392,8 +392,10 @@ export const createOrder = async (payload: TOrderPayload): Promise<TOrderResult>
 }
 
 export const getOrder = async (orderId: string): Promise<TOrderResult> => {
-  const response = await request<TOrderResponse>('GET', `/ramp/order/${orderId}`)
-  console.log(response)
+  const response = await request<TOrderResponse>(
+    'GET',
+    `/ramp/order/${encodeURIComponent(orderId)}`
+  )
 
   return {
     orderId: response.orderId,
@@ -411,6 +413,5 @@ export const getOrder = async (orderId: string): Promise<TOrderResult> => {
 }
 
 export const simulateFiatReceived = async (orderId: string): Promise<void> => {
-  const a = await request<unknown>('POST', '/ramp/order/fiat_received', { orderId })
-  console.log('simulateFiatReceived', a)
+  await request<unknown>('POST', '/ramp/order/fiat_received', { orderId })
 }
