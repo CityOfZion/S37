@@ -220,7 +220,7 @@ const recoverExistingCustomer = async (publicKey: string): Promise<TOnboardingRe
     }
 
     return { customerId, bankAccountId, presignedUrl: '' }
-  } catch (error) {
+  } catch {
     return null
   }
 }
