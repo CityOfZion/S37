@@ -159,6 +159,7 @@ const mapPixInstructions = (fields: {
   beneficiary?: string
   amount: string
 }): TPixInstructions | undefined => {
+  // TODO: remove comment in Mainnet
   // if (!fields.depositPixCode && !fields.depositPixKey) return undefined
 
   return {
@@ -195,12 +196,6 @@ const recoverExistingCustomer = async (publicKey: string): Promise<TOnboardingRe
         pageNumber,
       })
 
-      console.log(
-        `[Etherfuse] wallets page ${pageNumber}/${wallets.totalPages}`,
-        `items=${wallets.items.length}`,
-        `firstItem=${JSON.stringify(wallets.items[0])}`
-      )
-
       totalPages = wallets.totalPages
 
       const match = wallets.items.find(wallet => wallet.publicKey === publicKey)
@@ -219,17 +214,13 @@ const recoverExistingCustomer = async (publicKey: string): Promise<TOnboardingRe
       `/ramp/customers/${encodeURIComponent(customerId)}/bank-accounts`
     )
 
-    console.log('[Etherfuse] banks recovery', JSON.stringify(banks))
-
     const bankAccountId = banks.items[0]?.bankAccountId
     if (!bankAccountId) {
-      console.warn('[Etherfuse] recovery: no bank account for customer', customerId)
       return null
     }
 
     return { customerId, bankAccountId, presignedUrl: '' }
   } catch (error) {
-    console.error('[Etherfuse] recovery error', error)
     return null
   }
 }

@@ -1,6 +1,8 @@
 import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { match } from 'ts-pattern'
+
 import { Button } from './Button'
 
 import RefreshIcon from '../assets/icons/refresh-icon.svg?react'
@@ -69,11 +71,10 @@ export const CountdownRing = ({
     return () => cancelAnimationFrame(frame)
   }, [expiresAt, isExpired, isRefreshing, totalSeconds])
 
-  const label = isRefreshing
-    ? t('loading')
-    : showExpired
-      ? t('expired')
-      : t('expiresIn', { seconds: remainingSeconds })
+  const label = match({ isRefreshing, showExpired })
+    .with({ isRefreshing: true }, () => t('loading'))
+    .with({ showExpired: true }, () => t('expired'))
+    .otherwise(() => t('expiresIn', { seconds: remainingSeconds }))
 
   return (
     <div className="flex items-center gap-3">
