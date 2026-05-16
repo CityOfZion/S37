@@ -11,7 +11,7 @@ const LINKEDIN_URL = 'https://www.linkedin.com/company/fractapay'
 
 export const Footer = () => {
   const { t } = useTranslation('components', { keyPrefix: 'footer' })
-  const {language, setLanguage} = useLanguageStore()
+  const { language, setLanguage } = useLanguageStore()
 
   const isEnUs = language === 'en-US'
 
