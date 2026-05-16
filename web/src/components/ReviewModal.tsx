@@ -55,7 +55,7 @@ export const ReviewModal = ({ open, onOpenChange, recipientAddress }: TProps) =>
     () =>
       StringHelper.formatAmount(
         payments.reduce(
-          (accumulator, payment) => accumulator.plus(new BigNumber(payment.amount)),
+          (accumulator, payment) => accumulator.plus(new BigNumber(payment.amount || '0')),
           new BigNumber('0')
         )
       ),
