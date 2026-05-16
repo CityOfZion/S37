@@ -5,7 +5,9 @@ dotenv.config()
 
 const envSchema = z.object({
   PORT: z.string().default('3000'),
-  ANTHROPIC_API_KEY: z.string().min(1, 'ANTHROPIC_API_KEY is required'),
+  GEMINI_API_KEY: z.string().min(1, 'GEMINI_API_KEY is required'),
+  ETHERFUSE_API_KEY: z.string().min(1, 'ETHERFUSE_API_KEY is required'),
+  ETHERFUSE_BASE_URL: z.string().url().default('https://api.sand.etherfuse.com'),
 })
 
 const parsed = envSchema.safeParse(process.env)
@@ -19,5 +21,7 @@ const data = parsed.data
 
 export class EnvHelper {
   static readonly PORT = parseInt(data.PORT)
-  static readonly ANTHROPIC_API_KEY = data.ANTHROPIC_API_KEY
+  static readonly GEMINI_API_KEY = data.GEMINI_API_KEY
+  static readonly ETHERFUSE_API_KEY = data.ETHERFUSE_API_KEY
+  static readonly ETHERFUSE_BASE_URL = data.ETHERFUSE_BASE_URL
 }

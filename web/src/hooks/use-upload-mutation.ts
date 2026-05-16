@@ -8,15 +8,12 @@ import { server } from '../services/server'
 
 export function useUploadMutation() {
   return useMutation<TUploadResult, Error, TUploadPayload>({
-    mutationFn: async ({ file, token, destinationAddress }: TUploadPayload) => {
+    mutationFn: async ({ file, token, address }: TUploadPayload) => {
       const formData = new FormData()
 
-      formData.append('file', file)
+      formData.append('address', address)
       formData.append('token', token)
-
-      if (destinationAddress) {
-        formData.append('destinationAddress', destinationAddress)
-      }
+      formData.append('file', file)
 
       try {
         const response = await server.post<TUploadResult>(`/upload`, formData, {
@@ -29,7 +26,7 @@ export function useUploadMutation() {
           return error.response.data as TUploadResult
         }
 
-        return { success: false, payments: [], error: ErrorCode.NETWORK_ERROR }
+        return { success: false, payments: [], price: '0', error: ErrorCode.NETWORK_ERROR }
       }
     },
   })

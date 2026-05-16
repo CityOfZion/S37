@@ -1,3 +1,7 @@
+import BigNumber from 'bignumber.js'
+
+import type { TFiatCurrency, TLanguage, TToken } from '../types'
+
 export const ALLOWED_EXTENSIONS = ['csv', 'xls', 'xlsx', 'pdf', 'txt'] as const
 
 export const ALLOWED_MIME_TYPES = [
@@ -10,6 +14,28 @@ export const ALLOWED_MIME_TYPES = [
 
 export const ALLOWED_INPUT_ACCEPT = ALLOWED_EXTENSIONS.map(extension => `.${extension}`).join(',')
 
-export const SUPPORTED_TOKENS = ['XLM', 'USDC', 'EURC'] as const
+export const SUPPORTED_TOKENS: TToken[] = ['TESOURO'] as const
+
+export const SUPPORTED_LANGUAGES: TLanguage[] = ['en-US', 'pt-BR'] as const
+
+export const DEFAULT_LANGUAGE: TLanguage = 'en-US'
 
 export const STELLAR_DECIMALS = 7
+
+export const FIAT_BY_TOKEN: Record<TToken, TFiatCurrency> = {
+  TESOURO: 'BRL',
+}
+
+export const LANGUAGE_BY_TOKEN: Record<TToken, TLanguage> = {
+  TESOURO: 'pt-BR',
+}
+
+export const SYMBOL_BY_TOKEN: Record<TToken, 'R$'> = {
+  TESOURO: 'R$',
+}
+
+export const RECIPIENT_PERCENTAGE = new BigNumber('0.15')
+
+export const FEE_PERCENTAGE = new BigNumber('0.015')
+
+export const QUOTE_EXPIRY_SECONDS = 60

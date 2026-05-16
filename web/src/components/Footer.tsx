@@ -1,7 +1,8 @@
 import { useTranslation } from 'react-i18next'
 
+import type { TLanguage } from 'fractapay-shared'
+
 import { APP_NAME, LANGUAGE_NAMES } from '../constants'
-import type { TLanguage } from '../types'
 import { Button } from './Button'
 import { Tooltip } from './Tooltip'
 

@@ -10,20 +10,17 @@
   "fileUpload": {
     "form": {
       "token": {
-        "label": "Token",
-        "placeholder": "Select a token",
-        "hint": "Select the token you want to use for payments.",
+        "label": "Coin",
+        "placeholder": "Select a coin",
+        "hint": "Select the coin you want to use for payments.",
         "options": {
-          "XLM": "XLM (Lumens)",
-          "USDC": "USDC (USD)",
-          "EURC": "EURC (EUR)"
+          "TESOURO": "Real"
         }
       },
       "address": {
-        "label": "Destination address",
+        "label": "Address",
         "placeholder": "E.g.: GABCD…VWXYZ",
-        "info": "Optional. If set, all payments go to this address. Otherwise, addresses are extracted from the file.",
-        "error": "Invalid Stellar address"
+        "error": "Invalid address"
       }
     },
     "upload": {
@@ -35,40 +32,115 @@
       "submit": "Analyze payments"
     },
     "uploadSuccess": "File processed successfully",
+    "noPaymentsFound": "No payments found",
+    "verifyYourFile": "Please, verify your file content, then try again",
     "paymentsCount": "{{count}} payment",
     "paymentsCount_other": "{{count}} payments",
     "errors": {
       "NO_FILE": "No file provided",
       "UNSUPPORTED_FILE_TYPE": "Unsupported file type, allowed: CSV, XLSX, XLS, PDF and TXT",
-      "INVALID_TOKEN": "Invalid token selected",
-      "AI_RESPONSE_TYPE": "Unexpected response from AI",
+      "INVALID_TOKEN": "Invalid coin selected",
+      "INVALID_ADDRESS": "Invalid address",
+      "INVALID_PAYLOAD": "Invalid payload",
       "AI_PARSE_FAILED": "Could not parse AI response",
       "NETWORK_ERROR": "Network error, please, try again",
+      "RATE_FETCH_FAILED": "Could not fetch exchange rate, please, try again",
+      "ORDERBOOK_FETCH_FAILED": "Could not fetch price, please, try again",
+      "ETHERFUSE_REQUEST_FAILED": "Etherfuse request failed, please, try again",
+      "KYC_NOT_APPROVED": "KYC not approved yet",
+      "QUOTE_EXPIRED": "Quote expired, please, refresh",
+      "ORDER_NOT_FOUND": "Order not found",
+      "PENDING_ORDER_EXISTS": "A pending order already exists for this account. Pay it or wait for it to expire.",
+      "CUSTOMER_ALREADY_EXISTS": "This Stellar address is already registered. Could not recover the existing customer automatically.",
       "UNKNOWN": "An unexpected error occurred"
     }
   },
   "paymentsList": {
     "title": "Extracted payments",
-    "address": "Stellar address",
     "amount": "Amount",
     "description": "Description",
     "count": "{{count}} payment",
     "count_other": "{{count}} payments",
     "execute": "Execute payments",
+    "reviewAndConfirm": "Review and confirm",
     "empty": "No payments extracted yet. Upload a file to get started.",
-    "copy": "Copy address",
-    "copySuccess": "Address copied to clipboard",
     "edit": "Edit",
     "save": "Save",
     "cancel": "Cancel",
     "delete": "Delete",
     "addPayment": "Add payment",
-    "actions": "Actions"
+    "actions": "Actions",
+    "subtotal": "Subtotal",
+    "subtotalInfo": "Sum of payment amounts before applying the recipient percentage.",
+    "recipient": "Recipient ({{percentage}}%)",
+    "recipientInfo": "Amount sent to the recipient address based on the configured percentage.",
+    "total": "Total",
+    "totalInfo": "Includes the recipient amount plus Etherfuse and FractaPay fees. May change due to price fluctuation."
   },
   "input": {
     "paste": "Paste from clipboard"
   },
   "info": {
     "label": "Info"
+  },
+  "reviewModal": {
+    "title": "Review and confirm",
+    "description": "Review the recipient breakdown and fees before generating the PIX payment.",
+    "close": "Close",
+    "recipientsTitle": "Recipients",
+    "address": "Address",
+    "percentage": "Percentage",
+    "amount": "Amount",
+    "feesTitle": "Conversion to TESOURO and fees",
+    "subtotal": "Recipient amount",
+    "fee": "Etherfuse + FractaPay fee ({{percentage}}%)",
+    "etherfuseFee": "Etherfuse fee",
+    "fractapayFee": "FractaPay fee ({{percentage}}%)",
+    "total": "Total to pay",
+    "rate": "Quoted rate",
+    "expiresIn": "Expires in {{seconds}}s",
+    "expired": "Quote expired",
+    "loading": "Fetching quote…",
+    "refresh": "Refresh",
+    "kycRequired": "You need to complete KYC before paying.",
+    "kycPending": "KYC is still pending review.",
+    "kycRejected": "KYC was rejected. Please, retry.",
+    "startKyc": "Start KYC",
+    "startingKyc": "Starting KYC…",
+    "continueKyc": "Continue KYC",
+    "retryKyc": "Retry KYC",
+    "confirm": "Confirm",
+    "confirming": "Generating PIX…",
+    "orderCreated": "Order created. Pay via PIX to continue.",
+    "orderError": "Could not create the order, please, try again.",
+    "onboardingError": "Could not start the onboarding flow, please, try again."
+  },
+  "payment": {
+    "title": "Payment",
+    "back": "Back",
+    "loading": "Loading order…",
+    "error": "Could not load the order.",
+    "status": "Status",
+    "statuses": {
+      "created": "Created",
+      "funded": "Funded",
+      "completed": "Completed",
+      "failed": "Failed",
+      "refunded": "Refunded",
+      "canceled": "Canceled"
+    }
+  },
+  "pix": {
+    "qrLabel": "PIX QR code",
+    "amount": "Amount",
+    "code": "PIX copy-and-paste code",
+    "copy": "Copy PIX code",
+    "copied": "PIX code copied",
+    "copyError": "Could not copy the PIX code.",
+    "beneficiary": "Beneficiary",
+    "simulate": "Simulate fiat received",
+    "simulating": "Simulating…",
+    "simulateSuccess": "Fiat received simulated",
+    "simulateError": "Could not simulate the deposit."
   }
 }

@@ -1,9 +1,5 @@
 import { ChangeEvent } from 'react'
 
-import BigNumber from 'bignumber.js'
-
-import { STELLAR_DECIMALS } from 'fractapay-shared'
-
 type TSanitizeAmountEventChar = { char: string; position: number }
 
 export class InputHelper {
@@ -26,18 +22,6 @@ export class InputHelper {
     })
 
     return sanitized
-  }
-
-  static formatAmount(value: string): string {
-    try {
-      const bigNumber = new BigNumber(value)
-
-      if (bigNumber.isNaN()) return value
-
-      return bigNumber.decimalPlaces(STELLAR_DECIMALS, BigNumber.ROUND_DOWN).toFixed()
-    } catch {
-      return value
-    }
   }
 
   static sanitizeAmountEvent(event: ChangeEvent<HTMLInputElement>): string {

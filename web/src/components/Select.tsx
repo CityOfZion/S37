@@ -22,6 +22,7 @@ type TProps = {
   name?: string
   options: TSelectOption[]
   value?: string
+  disabled?: boolean
   onValueChange: (value: string) => void
 }
 
@@ -34,6 +35,7 @@ export const Select = ({
   name,
   options,
   value,
+  disabled,
   onValueChange,
 }: TProps) => {
   const generatedId = useId()
@@ -46,15 +48,17 @@ export const Select = ({
         </Field.Label>
       )}
 
-      <RadixSelect.Root name={name} value={value} onValueChange={onValueChange}>
+      <RadixSelect.Root name={name} value={value} disabled={disabled} onValueChange={onValueChange}>
         <RadixSelect.Trigger
           id={generatedId}
           aria-label={label}
+          disabled={disabled}
           className={StyleHelper.merge(
             'flex w-full items-center justify-between rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none transition-colors',
             'placeholder:text-gray-500',
             'focus:border-primary focus:ring-2 focus:ring-primary/20',
             'data-placeholder:text-gray-500',
+            'disabled:opacity-50',
             className
           )}
         >

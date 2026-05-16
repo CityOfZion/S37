@@ -23,6 +23,7 @@ export const Input = ({
   error,
   className,
   id,
+  disabled,
   pasteClassName,
   onPaste,
   ...props
@@ -35,6 +36,8 @@ export const Input = ({
   const isErrorString = hasError && typeof error === 'string'
 
   const handlePaste = async () => {
+    if (disabled) return
+
     const value = await ClipboardHelper.paste()
 
     if (value) onPaste?.(value)
@@ -59,6 +62,7 @@ export const Input = ({
             { 'border-red-400': hasError, 'border-white/10': !hasError, 'pr-12': !!onPaste },
             className
           )}
+          disabled={disabled}
           {...props}
         />
 
@@ -67,6 +71,7 @@ export const Input = ({
             <Button
               aria-label={t('paste')}
               variant="ghost"
+              disabled={disabled}
               className={StyleHelper.merge(
                 'absolute right-4 top-1/2 -translate-y-1/2',
                 pasteClassName

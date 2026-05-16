@@ -5,6 +5,7 @@ import { defineConfig } from 'vite'
 import svgr from 'vite-plugin-svgr'
 
 export default defineConfig({
+  base: '/S37/',
   plugins: [tailwindcss(), react(), svgr()],
   resolve: {
     alias: {

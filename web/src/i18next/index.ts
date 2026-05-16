@@ -2,9 +2,10 @@ import { initReactI18next } from 'react-i18next'
 
 import i18n from 'i18next'
 
+import { TLanguage } from 'fractapay-shared'
+
 import { enUsResources } from '../locales/en-US'
 import { ptBrResources } from '../locales/pt-BR'
-import { TLanguage } from '../types'
 
 const detectLanguage = (): TLanguage => {
   const browserLanguage = navigator.language.toLowerCase()
