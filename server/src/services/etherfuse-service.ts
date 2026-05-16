@@ -183,7 +183,9 @@ type TWalletListResponse = {
 }
 type TBankAccountListResponse = { items: { bankAccountId: string }[] }
 
-const recoverExistingCustomer = async (publicKey: string): Promise<TOnboardingResult | null> => {
+export const findCustomerByPublicKey = async (
+  publicKey: string
+): Promise<TOnboardingResult | null> => {
   try {
     const pageSize = 100
     let pageNumber = 0
@@ -199,7 +201,9 @@ const recoverExistingCustomer = async (publicKey: string): Promise<TOnboardingRe
       totalPages = wallets.totalPages
 
       const match = wallets.items.find(wallet => wallet.publicKey === publicKey)
-      if (match) customerId = match.customerId
+      if (match) {
+        customerId = match.customerId
+      }
 
       pageNumber += 1
     }
@@ -211,7 +215,7 @@ const recoverExistingCustomer = async (publicKey: string): Promise<TOnboardingRe
 
     const banks = await request<TBankAccountListResponse>(
       'GET',
-      `/ramp/customers/${encodeURIComponent(customerId)}/bank-accounts`
+      `/ramp/customer/${encodeURIComponent(customerId)}/bank-accounts`
     )
 
     const bankAccountId = banks.items[0]?.bankAccountId
@@ -241,7 +245,7 @@ export const createOnboarding = async (publicKey: string): Promise<TOnboardingRe
   } catch (error) {
     if ((error as Error).message !== ErrorCode.CUSTOMER_ALREADY_EXISTS) throw error
 
-    const recovered = await recoverExistingCustomer(publicKey)
+    const recovered = await findCustomerByPublicKey(publicKey)
     if (recovered) return recovered
 
     throw error

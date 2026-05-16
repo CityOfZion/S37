@@ -143,7 +143,7 @@ export const PaymentsList = () => {
 
   const totalAmount = useMemo(() => {
     const sum = payments.reduce(
-      (accumulator, payment) => accumulator.plus(new BigNumber(payment.amount)),
+      (accumulator, payment) => accumulator.plus(new BigNumber(payment.amount || '0')),
       new BigNumber('0')
     )
 

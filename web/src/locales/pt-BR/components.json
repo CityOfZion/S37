@@ -52,6 +52,7 @@
       "ORDER_NOT_FOUND": "Pedido não encontrado",
       "PENDING_ORDER_EXISTS": "Já existe um pedido pendente para esta conta. Pague-o ou aguarde expirar.",
       "CUSTOMER_ALREADY_EXISTS": "Este endereço Stellar já está cadastrado. Não foi possível recuperar o cliente automaticamente.",
+      "CUSTOMER_NOT_FOUND": "Nenhum cliente Etherfuse encontrado para este endereço.",
       "UNKNOWN": "Ocorreu um erro inesperado"
     }
   },
@@ -102,6 +103,7 @@
     "expired": "Cotação expirou",
     "loading": "Buscando cotação…",
     "refresh": "Atualizar",
+    "lookingUpCustomer": "Verificando se este endereço já tem conta Etherfuse…",
     "kycRequired": "Você precisa concluir o KYC antes de pagar.",
     "kycPending": "KYC ainda em análise.",
     "kycRejected": "KYC rejeitado. Por favor, tente novamente.",

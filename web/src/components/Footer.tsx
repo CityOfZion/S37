@@ -3,20 +3,22 @@ import { useTranslation } from 'react-i18next'
 import type { TLanguage } from 'fractapay-shared'
 
 import { APP_NAME, LANGUAGE_NAMES } from '../constants'
+import { useLanguageStore } from '../hooks/use-language-store'
 import { Button } from './Button'
 import { Tooltip } from './Tooltip'
 
 const LINKEDIN_URL = 'https://www.linkedin.com/company/fractapay'
 
 export const Footer = () => {
-  const { t, i18n } = useTranslation('components', { keyPrefix: 'footer' })
+  const { t } = useTranslation('components', { keyPrefix: 'footer' })
+  const { language, setLanguage } = useLanguageStore()
 
-  const isEnUs = i18n.language === 'en-US'
+  const isEnUs = language === 'en-US'
 
   const toggleLanguage = () => {
     const next: TLanguage = isEnUs ? 'pt-BR' : 'en-US'
 
-    void i18n.changeLanguage(next)
+    setLanguage(next)
   }
 
   return (

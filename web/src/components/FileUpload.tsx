@@ -138,7 +138,7 @@ export const FileUpload = () => {
         <Controller
           name="address"
           control={control}
-          disabled={isFieldDisabled}
+          disabled={true}
           render={({ field }) => (
             <Input
               name={field.name}
