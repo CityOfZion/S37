@@ -18,6 +18,7 @@ import {
   createOnboarding,
   createOrder,
   createQuote,
+  findCustomerByPublicKey,
   getKycStatus,
   getOrder,
   registerBankAccount,
@@ -74,6 +75,29 @@ export const etherfuseRoute = async (fastify: FastifyInstance): Promise<void> =>
       }
     }
   )
+
+  fastify.get<{
+    Params: { publicKey: string }
+    Reply: TOnboardingResult | TErrorResponse
+  }>('/etherfuse/customer/:publicKey', async (request, reply) => {
+    const { publicKey } = request.params
+
+    if (!StellarHelper.isValidAddress(publicKey)) {
+      return reply.status(400).send({ success: false, error: ErrorCode.INVALID_ADDRESS })
+    }
+
+    try {
+      const result = await findCustomerByPublicKey(publicKey)
+
+      if (!result) {
+        return reply.status(404).send({ success: false, error: ErrorCode.CUSTOMER_NOT_FOUND })
+      }
+
+      return reply.status(200).send(result)
+    } catch (error) {
+      return reply.status(502).send({ success: false, error: mapError(error) })
+    }
+  })
 
   fastify.get<{
     Params: { customerId: string; publicKey: string }

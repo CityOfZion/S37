@@ -16,6 +16,7 @@ import {
 import tesouroIconUrl from '../assets/icons/tesouro-icon.webp'
 import { ToastHelper } from '../helpers/ToastHelper'
 import { useCountdown } from '../hooks/use-countdown'
+import { useCustomerLookupQuery } from '../hooks/use-customer-lookup-query'
 import { useEtherfuseStore } from '../hooks/use-etherfuse-store'
 import { useKycStatusQuery } from '../hooks/use-kyc-status-query'
 import { useOnboardingMutation } from '../hooks/use-onboarding-mutation'
@@ -44,6 +45,23 @@ export const ReviewModal = ({ open, onOpenChange, recipientAddress }: TProps) =>
   const quoteMutation = useQuoteMutation()
   const orderMutation = useOrderMutation()
   const [order, setOrder] = useState<TOrderResult | null>(null)
+
+  const customerLookupQuery = useCustomerLookupQuery({
+    publicKey: recipientAddress,
+    enabled: open && !account?.customerId,
+  })
+
+  useEffect(() => {
+    const found = customerLookupQuery.data
+
+    if (!found || account?.customerId) return
+
+    setAccount(recipientAddress, {
+      customerId: found.customerId,
+      bankAccountId: found.bankAccountId,
+      presignedUrl: found.presignedUrl,
+    })
+  }, [customerLookupQuery.data, account?.customerId, recipientAddress, setAccount])
 
   const kycQuery = useKycStatusQuery({
     customerId: account?.customerId || '',
@@ -192,11 +210,19 @@ export const ReviewModal = ({ open, onOpenChange, recipientAddress }: TProps) =>
   const kycStatus: TKycStatus = kycQuery.data?.status || 'not_started'
   const isReadyForQuote = !!account?.customerId && kycStatus === 'approved'
 
+  const isLookingUpCustomer = customerLookupQuery.isFetching && !account?.customerId
+
   const renderHeaderState = () =>
     match({
+      isLookingUpCustomer,
       hasCustomer: !!account?.customerId,
       kycStatus,
     })
+      .with({ isLookingUpCustomer: true }, () => (
+        <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-gray-300">
+          {t('lookingUpCustomer')}
+        </div>
+      ))
       .with({ hasCustomer: false }, () => (
         <div className="rounded-xl border border-amber-400/30 bg-amber-400/10 px-4 py-3 text-sm text-amber-200">
           {t('kycRequired')}
@@ -334,10 +360,12 @@ export const ReviewModal = ({ open, onOpenChange, recipientAddress }: TProps) =>
             />
 
             {match({
+              isLookingUpCustomer,
               hasCustomer: !!account?.customerId,
               kycStatus,
               isReadyForQuote,
             })
+              .with({ isLookingUpCustomer: true }, () => null)
               .with({ hasCustomer: false }, () => (
                 <Button disabled={onboardingMutation.isPending} onClick={startOnboarding}>
                   {onboardingMutation.isPending ? t('startingKyc') : t('startKyc')}
