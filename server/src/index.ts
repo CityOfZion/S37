@@ -7,13 +7,17 @@ import { etherfuseRoute } from './routes/etherfuse-route'
 import { healthRoute } from './routes/health-route'
 import { uploadRoute } from './routes/upload-route'
 
+const isProduction = process.env.NODE_ENV === 'production'
+
 const fastify = Fastify({
-  logger: {
-    transport: {
-      target: 'pino-pretty',
-      options: { colorize: true },
-    },
-  },
+  logger: isProduction
+    ? true
+    : {
+        transport: {
+          target: 'pino-pretty',
+          options: { colorize: true },
+        },
+      },
 })
 
 async function bootstrap(): Promise<void> {
