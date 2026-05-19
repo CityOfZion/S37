@@ -15,7 +15,7 @@
     "@fastify/multipart": "^10.0.0",
     "@google/genai": "^2.2.0",
     "@stellar/stellar-sdk": "15.0.0",
-    "axios": "^1.7.2",
+    "axios": "1.15.2",
     "bignumber.js": "^11.1.1",
     "csv-parse": "^5.6.0",
     "dotenv": "^16.6.1",
