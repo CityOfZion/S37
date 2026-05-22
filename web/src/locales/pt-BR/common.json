@@ -1,7 +1,7 @@
 {
   "app": {
     "subtitle": "Pagamentos em lote com IA.",
-    "tagline": "Envie um arquivo, deixe a IA extrair os dados de pagamento e execute na Stellar.",
+    "tagline": "Converse com a IA, envie arquivos, e execute pagamentos na Stellar.",
     "hackathon": "Stellar 37°"
   }
 }

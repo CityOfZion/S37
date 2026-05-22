@@ -1,82 +1,73 @@
 {
-  "header": {
-    "poweredBy": "Powered by Stellar"
+  "sidebar": {
+    "label": "Main menu",
+    "chat": "Payments",
+    "destinations": "Recipients",
+    "switchLanguage": "Switch language",
+    "logout": "Log out",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu"
   },
-  "footer": {
-    "builtFor": "Built for Hackathon Stellar 37°",
-    "linkedin": "LinkedIn",
-    "switchLanguage": "Switch language"
-  },
-  "fileUpload": {
-    "form": {
-      "token": {
-        "label": "Coin",
-        "placeholder": "Select a coin",
-        "hint": "Select the coin you want to use for payments.",
-        "options": {
-          "TESOURO": "Real"
-        }
-      },
-      "address": {
-        "label": "Address",
-        "placeholder": "E.g.: GABCD…VWXYZ",
-        "error": "Invalid address"
-      }
-    },
-    "upload": {
-      "description": "Drag & drop or click to upload your payment file",
-      "formats": "Supported formats: CSV, XLSX, XLS, PDF and TXT",
-      "button": "Choose file",
-      "analyzing": "AI analyzing payments…",
-      "dragActive": "Drop the file here…",
-      "submit": "Analyze payments"
-    },
-    "uploadSuccess": "File processed successfully",
-    "noPaymentsFound": "No payments found",
-    "verifyYourFile": "Please, verify your file content, then try again",
+  "chat": {
+    "placeholder": "Type a message or attach a file…",
+    "send": "Send message",
+    "attachFile": "Attach file",
+    "removeFile": "Remove file",
+    "hint": "Enter to send · Shift+Enter for new line · CSV, XLSX, PDF and TXT files",
+    "error": "Error processing message. Please try again.",
     "paymentsCount": "{{count}} payment",
     "paymentsCount_other": "{{count}} payments",
-    "errors": {
-      "NO_FILE": "No file provided",
-      "UNSUPPORTED_FILE_TYPE": "Unsupported file type, allowed: CSV, XLSX, XLS, PDF and TXT",
-      "INVALID_TOKEN": "Invalid coin selected",
-      "INVALID_ADDRESS": "Invalid address",
-      "INVALID_PAYLOAD": "Invalid payload",
-      "AI_PARSE_FAILED": "Could not parse AI response",
-      "NETWORK_ERROR": "Network error, please, try again",
-      "RATE_FETCH_FAILED": "Could not fetch exchange rate, please, try again",
-      "ORDERBOOK_FETCH_FAILED": "Could not fetch price, please, try again",
-      "ETHERFUSE_REQUEST_FAILED": "Etherfuse request failed, please, try again",
-      "KYC_NOT_APPROVED": "KYC not approved yet",
-      "QUOTE_EXPIRED": "Quote expired, please, refresh",
-      "ORDER_NOT_FOUND": "Order not found",
-      "PENDING_ORDER_EXISTS": "A pending order already exists for this account. Pay it or wait for it to expire.",
-      "CUSTOMER_ALREADY_EXISTS": "This Stellar address is already registered. Could not recover the existing customer automatically.",
-      "CUSTOMER_NOT_FOUND": "No Etherfuse customer found for this address.",
-      "UNKNOWN": "An unexpected error occurred"
+    "total": "Total",
+    "allocationsCount": "{{count}} recipient",
+    "allocationsCount_other": "{{count}} recipients",
+    "summaryDestination": "Recipient",
+    "summaryPercentage": "Percentage",
+    "summaryAmount": "Amount"
+  },
+  "destinations": {
+    "title": "Recipients",
+    "description": "Manage authors and agencies that receive payments.",
+    "add": "Add",
+    "empty": "No recipients registered.",
+    "emptyHint": "Add authors and agencies to use in the payments chat.",
+    "addSuccess": "Recipient added",
+    "updateSuccess": "Recipient updated",
+    "deleteSuccess": "Recipient removed",
+    "editAria": "Edit {{name}}",
+    "deleteAria": "Delete {{name}}",
+    "deleteConfirmTitle": "Delete recipient",
+    "deleteConfirmDescription": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
+    "cancel": "Cancel",
+    "deleteConfirm": "Delete",
+    "columns": {
+      "name": "Name",
+      "coin": "Coin",
+      "pixKey": "PIX key",
+      "stellarAddress": "Stellar address",
+      "actions": "Actions"
     }
   },
-  "paymentsList": {
-    "title": "Extracted payments",
-    "amount": "Amount",
-    "description": "Description",
-    "count": "{{count}} payment",
-    "count_other": "{{count}} payments",
-    "execute": "Execute payments",
-    "reviewAndConfirm": "Review and confirm",
-    "empty": "No payments extracted yet. Upload a file to get started.",
-    "edit": "Edit",
-    "save": "Save",
+  "destinationModal": {
+    "addTitle": "Add recipient",
+    "editTitle": "Edit recipient",
+    "description": "Fill in the recipient details.",
+    "close": "Close",
+    "nameLabel": "Name",
+    "namePlaceholder": "E.g.: Carlos Silva",
+    "nameError": "Name is required (max 200 characters)",
+    "coinLabel": "Coin",
+    "stellarAddressLabel": "Stellar address",
+    "stellarAddressPlaceholder": "E.g.: GABCD…VWXYZ",
+    "pixKeyTypeLabel": "PIX key type",
+    "pixKeyLabel": "PIX key",
+    "pixKeyPlaceholder": "Enter the PIX key",
+    "pixKeyError": "Invalid PIX key for the selected type",
     "cancel": "Cancel",
-    "delete": "Delete",
-    "addPayment": "Add payment",
-    "actions": "Actions",
-    "subtotal": "Subtotal",
-    "subtotalInfo": "Sum of payment amounts before applying the recipient percentage.",
-    "recipient": "Recipient ({{percentage}}%)",
-    "recipientInfo": "Amount sent to the recipient address based on the configured percentage.",
-    "total": "Total",
-    "totalInfo": "Includes the recipient amount plus Etherfuse and FractaPay fees. May change due to price fluctuation."
+    "save": "Save",
+    "errors": {
+      "invalidAddress": "Invalid Stellar address",
+      "invalidPixKey": "Invalid PIX key"
+    }
   },
   "input": {
     "paste": "Paste from clipboard"

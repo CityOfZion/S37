@@ -55,11 +55,11 @@ export const Input = ({
         <input
           id={inputId}
           className={StyleHelper.merge(
-            'w-full rounded-xl border bg-white/5 px-4 py-3 text-white outline-none transition-colors',
-            'placeholder:text-gray-500',
+            'w-full rounded-xl border bg-white px-4 py-3 text-neutral-900 outline-none transition-colors min-h-[44px]',
+            'placeholder:text-neutral-400',
             'focus:border-primary focus:ring-2 focus:ring-primary/20',
             'disabled:opacity-50',
-            { 'border-red-400': hasError, 'border-white/10': !hasError, 'pr-12': !!onPaste },
+            { 'border-danger-500': hasError, 'border-neutral-200': !hasError, 'pr-12': !!onPaste },
             className
           )}
           disabled={disabled}

@@ -1,82 +1,73 @@
 {
-  "header": {
-    "poweredBy": "Com tecnologia da Stellar"
+  "sidebar": {
+    "label": "Menu principal",
+    "chat": "Pagamentos",
+    "destinations": "Destinatários",
+    "switchLanguage": "Mudar idioma",
+    "logout": "Sair",
+    "openMenu": "Abrir menu",
+    "closeMenu": "Fechar menu"
   },
-  "footer": {
-    "builtFor": "Construído para o Hackathon Stellar 37°",
-    "linkedin": "LinkedIn",
-    "switchLanguage": "Mudar idioma"
-  },
-  "fileUpload": {
-    "form": {
-      "token": {
-        "label": "Moeda",
-        "placeholder": "Selecione uma moeda",
-        "hint": "Selecione a moeda que deseja usar para pagamentos.",
-        "options": {
-          "TESOURO": "Real"
-        }
-      },
-      "address": {
-        "label": "Endereço",
-        "placeholder": "Ex.: GABCD…VWXYZ",
-        "error": "Endereço inválido"
-      }
-    },
-    "upload": {
-      "description": "Arraste & solte ou clique para enviar seu arquivo",
-      "formats": "Formatos suportados: CSV, XLSX, XLS, PDF e TXT",
-      "button": "Escolher arquivo",
-      "analyzing": "IA analisando pagamentos…",
-      "dragActive": "Solte o arquivo aqui…",
-      "submit": "Analisar pagamentos"
-    },
-    "uploadSuccess": "Arquivo processado com sucesso",
-    "noPaymentsFound": "Nenhum pagamento encontrado",
-    "verifyYourFile": "Por favor, verifique o conteúdo do arquivo, e tente novamente",
+  "chat": {
+    "placeholder": "Digite uma mensagem ou anexe um arquivo…",
+    "send": "Enviar mensagem",
+    "attachFile": "Anexar arquivo",
+    "removeFile": "Remover arquivo",
+    "hint": "Enter para enviar · Shift+Enter para nova linha · arquivos CSV, XLSX, PDF e TXT",
+    "error": "Erro ao processar mensagem. Tente novamente.",
     "paymentsCount": "{{count}} pagamento",
     "paymentsCount_other": "{{count}} pagamentos",
-    "errors": {
-      "NO_FILE": "Nenhum arquivo fornecido",
-      "UNSUPPORTED_FILE_TYPE": "Tipo de arquivo não suportado, permitidos: CSV, XLSX, XLS, PDF e TXT",
-      "INVALID_TOKEN": "Moeda selecionada inválida",
-      "INVALID_ADDRESS": "Endereço inválido",
-      "INVALID_PAYLOAD": "Dados inválidos",
-      "AI_PARSE_FAILED": "Não foi possível processar a resposta da IA",
-      "NETWORK_ERROR": "Erro de rede, por favor, tente novamente",
-      "RATE_FETCH_FAILED": "Não foi possível obter a cotação, por favor, tente novamente",
-      "ORDERBOOK_FETCH_FAILED": "Não foi possível obter o preço, por favor, tente novamente",
-      "ETHERFUSE_REQUEST_FAILED": "Falha na requisição à Etherfuse, por favor, tente novamente",
-      "KYC_NOT_APPROVED": "KYC ainda não aprovado",
-      "QUOTE_EXPIRED": "Cotação expirou, por favor, atualize",
-      "ORDER_NOT_FOUND": "Pedido não encontrado",
-      "PENDING_ORDER_EXISTS": "Já existe um pedido pendente para esta conta. Pague-o ou aguarde expirar.",
-      "CUSTOMER_ALREADY_EXISTS": "Este endereço Stellar já está cadastrado. Não foi possível recuperar o cliente automaticamente.",
-      "CUSTOMER_NOT_FOUND": "Nenhum cliente Etherfuse encontrado para este endereço.",
-      "UNKNOWN": "Ocorreu um erro inesperado"
+    "total": "Total",
+    "allocationsCount": "{{count}} destinatário",
+    "allocationsCount_other": "{{count}} destinatários",
+    "summaryDestination": "Destinatário",
+    "summaryPercentage": "Percentual",
+    "summaryAmount": "Valor"
+  },
+  "destinations": {
+    "title": "Destinatários",
+    "description": "Gerencie autores e agências que recebem pagamentos.",
+    "add": "Adicionar",
+    "empty": "Nenhum destinatário cadastrado.",
+    "emptyHint": "Adicione autores e agências para usar no chat de pagamentos.",
+    "addSuccess": "Destinatário adicionado",
+    "updateSuccess": "Destinatário atualizado",
+    "deleteSuccess": "Destinatário removido",
+    "editAria": "Editar {{name}}",
+    "deleteAria": "Excluir {{name}}",
+    "deleteConfirmTitle": "Excluir destinatário",
+    "deleteConfirmDescription": "Tem certeza que deseja excluir \"{{name}}\"? Esta ação não pode ser desfeita.",
+    "cancel": "Cancelar",
+    "deleteConfirm": "Excluir",
+    "columns": {
+      "name": "Nome",
+      "coin": "Moeda",
+      "pixKey": "Chave PIX",
+      "stellarAddress": "Endereço Stellar",
+      "actions": "Ações"
     }
   },
-  "paymentsList": {
-    "title": "Pagamentos extraídos",
-    "amount": "Valor",
-    "description": "Descrição",
-    "count": "{{count}} pagamento",
-    "count_other": "{{count}} pagamentos",
-    "execute": "Executar pagamentos",
-    "reviewAndConfirm": "Revisar e confirmar",
-    "empty": "Nenhum pagamento extraído ainda. Envie um arquivo para começar.",
-    "edit": "Editar",
-    "save": "Salvar",
+  "destinationModal": {
+    "addTitle": "Adicionar destinatário",
+    "editTitle": "Editar destinatário",
+    "description": "Preencha os dados do destinatário.",
+    "close": "Fechar",
+    "nameLabel": "Nome",
+    "namePlaceholder": "Ex.: Carlos Silva",
+    "nameError": "Nome é obrigatório (máx. 200 caracteres)",
+    "coinLabel": "Moeda",
+    "stellarAddressLabel": "Endereço Stellar",
+    "stellarAddressPlaceholder": "Ex.: GABCD…VWXYZ",
+    "pixKeyTypeLabel": "Tipo de chave PIX",
+    "pixKeyLabel": "Chave PIX",
+    "pixKeyPlaceholder": "Digite a chave PIX",
+    "pixKeyError": "Chave PIX inválida para o tipo selecionado",
     "cancel": "Cancelar",
-    "delete": "Excluir",
-    "addPayment": "Adicionar pagamento",
-    "actions": "Ações",
-    "subtotal": "Subtotal",
-    "subtotalInfo": "Soma dos valores dos pagamentos antes da aplicação do percentual ao destinatário.",
-    "recipient": "Destinatário ({{percentage}}%)",
-    "recipientInfo": "Valor enviado ao endereço destinatário, conforme o percentual configurado.",
-    "total": "Total",
-    "totalInfo": "Inclui o valor do destinatário mais as taxas Etherfuse e FractaPay. Pode mudar com a flutuação da cotação."
+    "save": "Salvar",
+    "errors": {
+      "invalidAddress": "Endereço Stellar inválido",
+      "invalidPixKey": "Chave PIX inválida"
+    }
   },
   "input": {
     "paste": "Colar da área de transferência"

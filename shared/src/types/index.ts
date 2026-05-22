@@ -132,3 +132,61 @@ export type TOrderResult = {
   amountInFiat?: string
   amountInTokens?: string
 }
+
+export type TDestination = {
+  id: string
+  name: string
+  token: TToken
+  stellarAddress: string
+  pixKey: string
+  pixKeyType: TPixKeyType
+}
+
+export type TDestinationAllocation = {
+  destination: TDestination
+  percentage: number
+}
+
+export type TPaymentSummaryItem = {
+  destinationName: string
+  stellarAddress: string
+  amount: string
+  percentage: number
+}
+
+export type TChatRole = 'user' | 'assistant'
+
+export type TChatMessage = {
+  id: string
+  role: TChatRole
+  content: string
+  type: 'text' | 'file-import' | 'summary'
+  payments?: TPayment[]
+  summary?: TPaymentSummaryItem[]
+  timestamp: string
+}
+
+export type TChatAction =
+  | 'none'
+  | 'add_payments'
+  | 'set_allocations'
+  | 'request_confirmation'
+  | 'execute'
+  | 'clear'
+
+export type TChatRequest = {
+  messages: { role: TChatRole; content: string }[]
+  destinations: TDestination[]
+  payments: TPayment[]
+  allocations: TDestinationAllocation[]
+  language: TLanguage
+}
+
+export type TChatResponse = {
+  message: string
+  action: TChatAction
+  payments?: TPayment[]
+  price?: string
+  allocations?: TDestinationAllocation[]
+  summary?: TPaymentSummaryItem[]
+}

@@ -33,9 +33,15 @@ type TProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
   recipientAddress: string
+  recipientPercentage?: BigNumber
 }
 
-export const ReviewModal = ({ open, onOpenChange, recipientAddress }: TProps) => {
+export const ReviewModal = ({
+  open,
+  onOpenChange,
+  recipientAddress,
+  recipientPercentage,
+}: TProps) => {
   const { t } = useTranslation('components', { keyPrefix: 'reviewModal' })
   const navigate = useNavigate()
   const { payments, token, setPayments } = usePaymentsStore()
@@ -81,8 +87,11 @@ export const ReviewModal = ({ open, onOpenChange, recipientAddress }: TProps) =>
   )
 
   const recipientAmount = useMemo(
-    () => StringHelper.formatAmount(new BigNumber(totalAmount).times(RECIPIENT_PERCENTAGE)),
-    [totalAmount]
+    () =>
+      StringHelper.formatAmount(
+        new BigNumber(totalAmount).times(recipientPercentage ?? RECIPIENT_PERCENTAGE)
+      ),
+    [totalAmount, recipientPercentage]
   )
 
   const quote: TQuoteResult | undefined = quoteMutation.data
@@ -219,27 +228,27 @@ export const ReviewModal = ({ open, onOpenChange, recipientAddress }: TProps) =>
       kycStatus,
     })
       .with({ isLookingUpCustomer: true }, () => (
-        <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-gray-300">
+        <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-700">
           {t('lookingUpCustomer')}
         </div>
       ))
       .with({ hasCustomer: false }, () => (
-        <div className="rounded-xl border border-amber-400/30 bg-amber-400/10 px-4 py-3 text-sm text-amber-200">
+        <div className="rounded-xl border border-warning-500/30 bg-warning-100 px-4 py-3 text-sm text-neutral-700">
           {t('kycRequired')}
         </div>
       ))
       .with({ kycStatus: 'not_started' }, () => (
-        <div className="rounded-xl border border-blue-400/30 bg-blue-400/10 px-4 py-3 text-sm text-blue-200">
+        <div className="rounded-xl border border-info-500/30 bg-info-100 px-4 py-3 text-sm text-neutral-700">
           {t('kycPending')}
         </div>
       ))
       .with({ kycStatus: 'pending' }, () => (
-        <div className="rounded-xl border border-blue-400/30 bg-blue-400/10 px-4 py-3 text-sm text-blue-200">
+        <div className="rounded-xl border border-info-500/30 bg-info-100 px-4 py-3 text-sm text-neutral-700">
           {t('kycPending')}
         </div>
       ))
       .with({ kycStatus: 'rejected' }, () => (
-        <div className="rounded-xl border border-red-400/30 bg-red-400/10 px-4 py-3 text-sm text-red-200">
+        <div className="rounded-xl border border-danger-500/30 bg-danger-100 px-4 py-3 text-sm text-neutral-700">
           {t('kycRejected')}
         </div>
       ))
@@ -268,34 +277,34 @@ export const ReviewModal = ({ open, onOpenChange, recipientAddress }: TProps) =>
           {renderHeaderState()}
 
           <section aria-label={t('recipientsTitle')} className="space-y-2">
-            <h3 className="text-xs font-medium text-gray-400 uppercase tracking-wider">
+            <h3 className="text-xs font-medium text-neutral-500 uppercase tracking-wider">
               {t('recipientsTitle')}
             </h3>
 
-            <div className="rounded-xl border border-white/10 overflow-x-auto">
+            <div className="rounded-xl border border-neutral-200 overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="bg-white/5">
+                <thead className="bg-neutral-50">
                   <tr>
-                    <th className="text-left px-4 py-2 text-xs font-medium text-gray-400 uppercase">
+                    <th className="text-left px-4 py-2 text-xs font-medium text-neutral-500 uppercase">
                       {t('address')}
                     </th>
-                    <th className="text-right px-4 py-2 text-xs font-medium text-gray-400 uppercase">
+                    <th className="text-right px-4 py-2 text-xs font-medium text-neutral-500 uppercase">
                       {t('percentage')}
                     </th>
-                    <th className="text-right px-4 py-2 text-xs font-medium text-gray-400 uppercase">
+                    <th className="text-right px-4 py-2 text-xs font-medium text-neutral-500 uppercase">
                       {t('amount')}
                     </th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
-                    <td className="px-4 py-2 font-mono text-white">
+                    <td className="px-4 py-2 font-mono text-neutral-900">
                       {StringHelper.truncateMiddle(recipientAddress, 20)}
                     </td>
-                    <td className="px-4 py-2 text-right text-white">
-                      {RECIPIENT_PERCENTAGE.times(100).toFixed(0)}%
+                    <td className="px-4 py-2 text-right text-neutral-900">
+                      {(recipientPercentage ?? RECIPIENT_PERCENTAGE).times(100).toFixed(0)}%
                     </td>
-                    <td className="px-4 py-2 text-right font-semibold text-white whitespace-nowrap">
+                    <td className="px-4 py-2 text-right font-semibold text-neutral-900 whitespace-nowrap">
                       {StringHelper.formatCurrencyAmount(recipientAmount, token)}
                     </td>
                   </tr>
@@ -332,14 +341,14 @@ export const ReviewModal = ({ open, onOpenChange, recipientAddress }: TProps) =>
                 <dt>{t('fractapayFee', { percentage: FEE_PERCENTAGE.times(100).toFixed(1) })}</dt>
                 <dd>{StringHelper.formatCurrencyAmount(fractapayFeeAmount, token)}</dd>
               </div>
-              <div className="flex items-center justify-between border-t border-white/10 pt-2">
-                <dt className="text-white font-semibold">{t('total')}</dt>
-                <dd className="text-white font-semibold">
+              <div className="flex items-center justify-between border-t border-neutral-200 pt-2">
+                <dt className="font-semibold text-neutral-900">{t('total')}</dt>
+                <dd className="font-semibold text-neutral-900">
                   {StringHelper.formatCurrencyAmount(totalToPay, token)}
                 </dd>
               </div>
               {quote && (
-                <div className="flex items-center justify-between pt-2 text-xs text-gray-400">
+                <div className="flex items-center justify-between pt-2 text-xs text-neutral-500">
                   <dt>{t('rate')}</dt>
                   <dd>
                     1 BRL ≈ {StringHelper.formatAmount(quote.exchangeRate)} {token}

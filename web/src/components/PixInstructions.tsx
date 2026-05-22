@@ -42,22 +42,25 @@ export const PixInstructions = ({ pix, orderId, onSimulated }: TProps) => {
   }
 
   return (
-    <div className="space-y-4 rounded-2xl border border-white/10 bg-white/5 p-4">
+    <div className="space-y-4 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
       <div className="flex flex-col items-center gap-3">
         <div className="rounded-xl bg-white p-3">
           <QRCode value={pix.pixCode} size={180} level="M" aria-label={t('qrLabel')} />
         </div>
 
-        <p className="text-sm text-gray-300 text-center">
+        <p className="text-sm text-neutral-500 text-center">
           {t('amount')}:{' '}
-          <strong className="text-white">
+          <strong className="text-neutral-900">
             {StringHelper.formatCurrencyAmount(pix.amount, 'TESOURO')}
           </strong>
         </p>
       </div>
 
       <div className="space-y-2">
-        <label htmlFor="pix-code" className="text-xs font-medium text-gray-400 uppercase">
+        <label
+          htmlFor="pix-code"
+          className="text-xs font-semibold text-neutral-500 uppercase tracking-wider"
+        >
           {t('code')}
         </label>
 
@@ -67,7 +70,7 @@ export const PixInstructions = ({ pix, orderId, onSimulated }: TProps) => {
             readOnly
             value={pix.pixCode}
             rows={3}
-            className="w-full rounded-xl border border-white/10 bg-gray-950 p-3 text-xs font-mono text-white outline-none resize-none break-all"
+            className="w-full rounded-xl border border-neutral-200 bg-white p-3 text-xs font-mono text-neutral-900 outline-none resize-none break-all"
           />
 
           <Button aria-label={t('copy')} variant="outline" size="sm" onClick={copyCode}>
@@ -77,8 +80,8 @@ export const PixInstructions = ({ pix, orderId, onSimulated }: TProps) => {
       </div>
 
       {pix.beneficiary && (
-        <p className="text-xs text-gray-400">
-          {t('beneficiary')}: <span className="text-white">{pix.beneficiary}</span>
+        <p className="text-xs text-neutral-500">
+          {t('beneficiary')}: <span className="text-neutral-900">{pix.beneficiary}</span>
         </p>
       )}
 

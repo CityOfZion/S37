@@ -34,7 +34,7 @@ export const Modal = ({
         className={StyleHelper.merge(
           'fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2',
           'w-[min(94vw,640px)] max-h-[92vh] overflow-y-auto',
-          'rounded-2xl border border-white/10 bg-gray-900 text-white shadow-2xl',
+          'rounded-2xl border border-neutral-200 bg-white text-neutral-900 shadow-lg',
           'data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95',
           'p-6 space-y-4',
           className

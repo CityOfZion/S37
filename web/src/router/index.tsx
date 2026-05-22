@@ -1,16 +1,31 @@
 import { createRootRoute, createRoute, createRouter, Outlet } from '@tanstack/react-router'
 
-import { HomePage } from '../pages/HomePage'
+import { Sidebar } from '../components/Sidebar'
+import { ChatPage } from '../pages/ChatPage'
+import { DestinationsPage } from '../pages/DestinationsPage'
 import { PaymentPage } from '../pages/PaymentPage'
 
 const rootRoute = createRootRoute({
-  component: () => <Outlet />,
+  component: () => (
+    <div className="flex bg-neutral-50 text-neutral-900 min-h-screen">
+      <Sidebar />
+      <div className="flex-1 min-w-0">
+        <Outlet />
+      </div>
+    </div>
+  ),
 })
 
-const homeRoute = createRoute({
+const chatRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
-  component: HomePage,
+  component: ChatPage,
+})
+
+const destinationsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/destinations',
+  component: DestinationsPage,
 })
 
 const paymentRoute = createRoute({
@@ -19,7 +34,7 @@ const paymentRoute = createRoute({
   component: PaymentPage,
 })
 
-const routeTree = rootRoute.addChildren([homeRoute, paymentRoute])
+const routeTree = rootRoute.addChildren([chatRoute, destinationsRoute, paymentRoute])
 
 export const router = createRouter({
   routeTree,

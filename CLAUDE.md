@@ -79,20 +79,23 @@ WASM output: `contracts/target/wasm32v1-none/release/fractapay.wasm`. The `wasm3
 ### Request flow
 
 ```
-web (FileUpload component)
-  → user provides address + selects token + picks file
-  → POST multipart/form-data to server /upload (fields: address, token, file — in that order, file LAST)
-    → upload-route.ts validates: file present, token in SUPPORTED_TOKENS, address is a valid Stellar address (else ErrorCode.INVALID_ADDRESS)
-    → FileHelper.ts parses buffer by type (csv-parse / xlsx / pdf-parse)
-    → ai-service.ts sends extracted text to Gemini (extracts ONLY { amount, description } per row — no addresses, no currency conversion) and computes `price` (`fetchTesouroPerUsdcPrice() × fetchUsdPerBrlPrice()` via prices-service.ts)
-    → Gemini returns { payments: [{ amount in BRL, description }] } (or [] if file currency ≠ BRL)
-    → server returns { payments: [{ id, amount, description }], price } where `amount` is the BRL value from the file and `price` is the TESOURO-per-BRL conversion factor. Both `amount` and `price` are transported as 7-decimal strings (`STELLAR_DECIMALS`).
-  → web stores token, price, address, and payments in usePaymentsStore (zustand). PaymentsList shows the subtotal (file total), the recipient amount (`subtotal × 15%`) and the total to pay (`recipient × 1.02`).
-  → user clicks Review and confirm → ReviewModal opens:
-    → If no Etherfuse customer yet → "Start KYC" button → POST /etherfuse/onboarding → store customerId/bankAccountId/presignedUrl/publicKey in useEtherfuseStore (persisted to localStorage) → navigate to /kyc (TanStack Router) which renders the Etherfuse onboarding URL in an iframe and polls GET /etherfuse/kyc/:customerId/:publicKey every 5s.
-    → Once KYC status === 'approved', user goes back to "/" and reopens the modal → POST /etherfuse/quote with sourceAmount = recipientAmount (BRL) → modal renders the quote with the countdown ring (QUOTE_EXPIRY_SECONDS = 60) and a Refresh button.
-    → Confirm → POST /etherfuse/order → response includes the PIX `{ pixCode, pixKey, amount }` → modal swaps to PixInstructions (QR code + copy-and-paste textarea).
-    → /payment/:orderId is the dedicated status page (polls GET /etherfuse/order/:orderId until status is terminal: completed/failed/refunded/canceled).
+web (ChatPage component)
+  → user interacts via AI chat: types payment amounts or uploads a file (CSV/XLS/XLSX/PDF/TXT)
+    → file upload: POST multipart/form-data to server /chat (same multipart fields as /upload)
+      → chat-route.ts parses file, calls FileHelper + analyze() to extract payments + price
+      → chat-service.ts calls Gemini with full conversation history + current state context
+      → Gemini returns structured JSON { message, action, payments?, allocations?, summary? }
+      → action "add_payments": client merges new payments into useChatStore
+      → action "set_allocations": client updates destination allocations in useChatStore
+      → action "request_confirmation": client renders summary table in chat bubble
+      → action "execute": client starts sequential ReviewModal flow per allocation
+    → text message: POST /chat with messages history + context (destinations, payments, allocations)
+  → user registers destinations (DestinationsPage) with name, token, Stellar address, PIX key
+    → stored in useDestinationsStore (Zustand persist → localStorage, key: fractapay.destinations)
+  → after AI confirms, ReviewModal opens per allocation (one per destination):
+    → same KYC/quote/order/PIX flow as before
+    → after all allocations executed, conversation resets
+  → /payment/:orderId is the dedicated status page (polls GET /etherfuse/order/:orderId until terminal)
 ```
 
 ### Server internals
@@ -103,6 +106,8 @@ web (FileUpload component)
   - Extract ONLY `{ amount, description }` per row — never addresses (the destination is provided separately and is global to the upload).
   - NEVER convert currencies — return amounts in the file's FIAT as-is. If file currency doesn't match expected FIAT (BRL for TESOURO, USD for USDC), return `{ payments: [] }`.
   - Treat bare numbers (e.g. `42,90` or `58.22`) as already-denominated in the expected FIAT for the selected token.
+- **`src/services/chat-service.ts`** — Conversational AI agent. `processChat(input)` takes the full message history, available destinations, current payments, and allocations. Builds a context block injected into the Gemini system prompt each call. If `filePayments` are passed (from `/chat` route's file processing), they override AI-parsed payments. Returns `TChatResponse` with `action` field driving client state transitions.
+- **`src/routes/chat-route.ts`** — `POST /chat` accepts multipart with `messages` (JSON string), `context` (JSON string with destinations/payments/allocations/language), and an optional `file`. If a file is present and valid, processes it through `FileHelper` + `analyze()` first, then passes results to `chat-service`. Returns `TChatResponse`.
 - **`src/services/prices-service.ts`** — Pure I/O. `fetchUsdPerBrlPrice()` calls AwesomeAPI (`https://economia.awesomeapi.com.br/json/last/USD-BRL`); `fetchTesouroPerUsdcPrice()` queries Stellar Horizon orderbook. Both return `BigNumber` and throw typed `ErrorCode` (`RATE_FETCH_FAILED` / `ORDERBOOK_FETCH_FAILED`) on any failure — never falls back to 1:1. Called by `ai-service.ts` during `analyze` (TESOURO only) to compute the upload-time `price`.
 - **`src/routes/upload-route.ts`** — Validates token + address (both required; address must be a valid Stellar G-address). File validation uses both MIME type AND extension (browsers sometimes send wrong MIME for `.xls`). 10 MB file-size limit is set in `@fastify/multipart` registration. Multipart fields must come BEFORE the file in the FormData stream (`token` and `address` first, `file` last) — `@fastify/multipart` only populates `data.fields` from parts that arrive before the file.
 - **`src/services/etherfuse-service.ts`** — Thin wrapper around the Etherfuse Ramp REST API built on a pre-configured `axios` instance (same version `1.7.2` as the web client). Auth header is the raw key (no `Bearer` prefix), set on the axios instance once at module load. Generates partner-side UUIDs for `customerId` / `bankAccountId` / `quoteId` / `orderId`. Exposes `createOnboarding`, `getKycStatus`, `registerBankAccount`, `createQuote`, `createOrder`, `getOrder`, `simulateFiatReceived`. Network/HTTP errors are normalised to `ErrorCode.ETHERFUSE_REQUEST_FAILED`; 404 on order paths maps to `ErrorCode.ORDER_NOT_FOUND`. Quote `sourceAsset` is always `BRL`; `targetAsset` is `TESOURO:GCRYUGD5...`.
@@ -111,8 +116,10 @@ web (FileUpload component)
 
 ### Web internals
 
-- **Routing** — TanStack Router (`src/router/index.tsx`) wires three routes mounted under `<App />`: `/` (HomePage — FileUpload + PaymentsList), `/kyc` (KycPage — Etherfuse onboarding iframe + status polling, requires `customerId`/`publicKey`/`presignedUrl` search params or it redirects home), `/payment/$orderId` (PaymentPage — order status + PIX instructions). Header and Footer live outside the `<RouterProvider>` so they render on every route.
-- **State** — `src/hooks/use-payments-store.ts` (Zustand) holds `payments: TPayment[]`, `token: TToken`, `price: string`, `address: string`, `hasPayments`, plus actions `setPayments` / `mergePayments` / `addPayment` / `updatePayment` / `deletePayment` / `setToken` / `setPrice` / `setAddress`. Payments are deduplicated by `id` on every mutation. **`TPayment` is `{ id, amount, description? }`** where `amount` is the **BRL** value — no per-row address or token; the destination address and token are global to the upload. `address` is populated by `FileUpload` after a successful upload so `PaymentsList`/`ReviewModal` can read it.
+- **Routing** — TanStack Router (`src/router/index.tsx`) defines the root route with `<Sidebar />` layout and three child routes: `/` (ChatPage — AI payment chat), `/destinations` (DestinationsPage — recipients CRUD), `/payment/$orderId` (PaymentPage — order status polling). The root route component wraps all pages with the sidebar layout.
+- **State** — `src/hooks/use-payments-store.ts` (Zustand) holds `payments: TPayment[]`, `token: TToken`, `price: string`, `address: string`, `hasPayments`, plus actions `setPayments` / `mergePayments` / `addPayment` / `updatePayment` / `deletePayment` / `setToken` / `setPrice` / `setAddress`. Payments are deduplicated by `id` on every mutation. **`TPayment` is `{ id, amount, description? }`** where `amount` is the **BRL** value — no per-row address or token; the destination address and token are global to the upload. `address` is populated after a successful upload so `ReviewModal` can read it. See also `TDestination` for the named destination model.
+- **Destinations state** — `src/hooks/use-destinations-store.ts` (Zustand + `persist` middleware, key `fractapay.destinations`) holds `destinations: TDestination[]` with actions `addDestination` / `updateDestination` / `deleteDestination`. Persisted to localStorage. Each destination has `id`, `name` (max 200 chars), `token`, `stellarAddress` (for payment execution), `pixKey`, `pixKeyType`.
+- **Chat state** — `src/hooks/use-chat-store.ts` (Zustand, not persisted) holds the active conversation: `messages: TChatMessage[]`, `payments: TPayment[]`, `price: string`, `allocations: TDestinationAllocation[]`, `summary: TPaymentSummaryItem[]`. Resets when execution completes. `useChatMutation` (TanStack Query mutation) posts to `POST /chat` with full conversation history + context.
 - **Etherfuse state** — `src/hooks/use-etherfuse-store.ts` (Zustand + `persist` middleware, key `fractapay.etherfuse`) holds `customerId`, `bankAccountId`, `presignedUrl`, `publicKey`. Persistence is intentional: after the user finishes KYC and returns to the app, the customer/bank-account IDs survive a page reload so we don't restart onboarding.
 - **Data fetching** — `src/hooks/use-upload-mutation.ts` wraps a TanStack Query `useMutation`. Posts `multipart/form-data` to `/upload` with fields appended in this exact order: `address`, `token`, `file` (file LAST — `@fastify/multipart` requires non-file fields to arrive before the file). Etherfuse hooks live alongside it: `use-onboarding-mutation.ts`, `use-kyc-status-query.ts` (polls every 5s until `approved` or `rejected`), `use-quote-mutation.ts`, `use-order-mutation.ts`, `use-order-query.ts` (polls every 5s until the order reaches a terminal status).
 - **Form validation** — Zod schemas in `src/schemas/`. `fileUploadSchema` requires a valid Stellar address via `StellarHelper.isValidAddress`. `paymentEditSchema` has `amount` (BigNumber > 0) and `description` (max 200).
@@ -123,7 +130,7 @@ web (FileUpload component)
 
 ### Shared internals (`shared/` — imported as `fractapay-shared`)
 
-- **Types** — `TToken = 'TESOURO'`; `TLanguage = 'en-US' | 'pt-BR'`; `TFiatCurrency = 'BRL'`; `TPixKeyType = 'evp' | 'cpf' | 'cnpj' | 'email' | 'phone'`; `TPayment = { id, amount, description? }`; `TPaymentResponse = { payments, price }`; `TUploadPayload = { file, token, address }` (address REQUIRED); `TUploadResult = { success, payments, price, error? }`; `TRecipientShare = { address, percentage }`. **Etherfuse types**: `TKycStatus`, `TOnboardingPayload`/`TOnboardingResult`, `TKycStatusResult`, `TBankAccountPayload`/`TBankAccountResult`, `TQuotePayload`/`TQuoteResult`, `TOrderPayload`/`TOrderResult` (with `pix?: TPixInstructions`), `TPixInstructions`, `TOrderStatus = 'created' | 'funded' | 'completed' | 'failed' | 'refunded' | 'canceled'`. `ErrorCode` enum adds: `INVALID_PAYLOAD`, `ETHERFUSE_REQUEST_FAILED`, `KYC_NOT_APPROVED`, `QUOTE_EXPIRED`, `ORDER_NOT_FOUND`.
+- **Types** — `TToken = 'TESOURO'`; `TLanguage = 'en-US' | 'pt-BR'`; `TFiatCurrency = 'BRL'`; `TPixKeyType = 'evp' | 'cpf' | 'cnpj' | 'email' | 'phone'`; `TPayment = { id, amount, description? }`; `TPaymentResponse = { payments, price }`; `TUploadPayload = { file, token, address }` (address REQUIRED); `TUploadResult = { success, payments, price, error? }`; `TRecipientShare = { address, percentage }`; `TDestination = { id, name, token, stellarAddress, pixKey, pixKeyType }`; `TDestinationAllocation = { destination: TDestination, percentage: number }`; `TChatMessage`, `TChatRequest`, `TChatResponse`, `TPaymentSummaryItem`. **Etherfuse types**: `TKycStatus`, `TOnboardingPayload`/`TOnboardingResult`, `TKycStatusResult`, `TBankAccountPayload`/`TBankAccountResult`, `TQuotePayload`/`TQuoteResult`, `TOrderPayload`/`TOrderResult` (with `pix?: TPixInstructions`), `TPixInstructions`, `TOrderStatus = 'created' | 'funded' | 'completed' | 'failed' | 'refunded' | 'canceled'`. `ErrorCode` enum adds: `INVALID_PAYLOAD`, `ETHERFUSE_REQUEST_FAILED`, `KYC_NOT_APPROVED`, `QUOTE_EXPIRED`, `ORDER_NOT_FOUND`.
 - **Constants** — `ALLOWED_EXTENSIONS`, `ALLOWED_MIME_TYPES`, `ALLOWED_INPUT_ACCEPT`, `SUPPORTED_TOKENS`, `STELLAR_DECIMALS = 7`, `FIAT_BY_TOKEN = { TESOURO: 'BRL' }`, `LANGUAGE_BY_TOKEN`, `SYMBOL_BY_TOKEN = { TESOURO: 'R$' }`, `RECIPIENT_PERCENTAGE = BigNumber('0.15')`, `FEE_PERCENTAGE = BigNumber('0.02')`, `QUOTE_EXPIRY_SECONDS = 60`.
 - **Helpers** — `StellarHelper.isValidAddress(value)` (wraps `StrKey.isValidEd25519PublicKey`). `StringHelper.truncateMiddle(value, max)`, `StringHelper.formatAmount(value)` (accepts `string | number | BigNumber`, Stellar 7-decimal cap with `ROUND_DOWN`), `StringHelper.formatCurrencyAmount(value, token)` (locale + symbol via `Intl.NumberFormat`, fixed at 2 decimals for display).
 

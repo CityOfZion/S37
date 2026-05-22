@@ -4,6 +4,7 @@ import Fastify from 'fastify'
 
 import { isProduction } from './constants'
 import { EnvHelper } from './helpers/EnvHelper'
+import { chatRoute } from './routes/chat-route'
 import { etherfuseRoute } from './routes/etherfuse-route'
 import { healthRoute } from './routes/health-route'
 import { uploadRoute } from './routes/upload-route'
@@ -34,6 +35,7 @@ async function bootstrap(): Promise<void> {
   await fastify.register(healthRoute)
   await fastify.register(uploadRoute)
   await fastify.register(etherfuseRoute)
+  await fastify.register(chatRoute)
 
   await fastify.listen({ port: EnvHelper.PORT, host: '0.0.0.0' })
 

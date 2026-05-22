@@ -54,10 +54,10 @@ export const Select = ({
           aria-label={label}
           disabled={disabled}
           className={StyleHelper.merge(
-            'flex w-full items-center justify-between rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none transition-colors',
-            'placeholder:text-gray-500',
+            'flex w-full items-center justify-between rounded-xl border border-neutral-200 bg-white px-4 py-3 text-neutral-900 outline-none transition-colors min-h-[44px]',
+            'placeholder:text-neutral-400',
             'focus:border-primary focus:ring-2 focus:ring-primary/20',
-            'data-placeholder:text-gray-500',
+            'data-placeholder:text-neutral-400',
             'disabled:opacity-50',
             className
           )}
@@ -65,13 +65,13 @@ export const Select = ({
           <RadixSelect.Value placeholder={placeholder} />
 
           <RadixSelect.Icon>
-            <ChevronDownIcon className="size-4 text-gray-400" aria-hidden="true" />
+            <ChevronDownIcon className="size-4 text-neutral-400" aria-hidden="true" />
           </RadixSelect.Icon>
         </RadixSelect.Trigger>
 
         <RadixSelect.Portal>
           <RadixSelect.Content
-            className="z-50 w-(--radix-select-trigger-width) overflow-hidden rounded-xl border border-white/10 bg-gray-900 shadow-xl"
+            className="z-50 w-(--radix-select-trigger-width) overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-md"
             position="popper"
             sideOffset={4}
           >
@@ -81,8 +81,8 @@ export const Select = ({
                   key={option.value}
                   value={option.value}
                   className={StyleHelper.merge(
-                    'flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2.5 text-sm text-white outline-none transition-colors',
-                    'data-highlighted:bg-primary/10 data-highlighted:text-white',
+                    'flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2.5 text-sm text-neutral-900 outline-none transition-colors',
+                    'data-highlighted:bg-brand-50 data-highlighted:text-primary',
                     'data-[state=checked]:text-primary'
                   )}
                 >
