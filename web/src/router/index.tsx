@@ -1,5 +1,12 @@
-import { createRootRoute, createRoute, createRouter, Outlet } from '@tanstack/react-router'
+import {
+  createRootRoute,
+  createRoute,
+  createRouter,
+  Outlet,
+  redirect,
+} from '@tanstack/react-router'
 
+import { MobileHeader } from '../components/MobileHeader'
 import { Sidebar } from '../components/Sidebar'
 import { ChatPage } from '../pages/ChatPage'
 import { DestinationsPage } from '../pages/DestinationsPage'
@@ -7,18 +14,29 @@ import { PaymentPage } from '../pages/PaymentPage'
 
 const rootRoute = createRootRoute({
   component: () => (
-    <div className="flex bg-neutral-50 text-neutral-900 min-h-screen">
-      <Sidebar />
-      <div className="flex-1 min-w-0">
-        <Outlet />
+    <div className="bg-neutral-50 text-neutral-900 min-h-screen">
+      <MobileHeader />
+      <div className="lg:flex">
+        <Sidebar />
+        <div className="flex-1 min-w-0">
+          <Outlet />
+        </div>
       </div>
     </div>
   ),
 })
 
-const chatRoute = createRoute({
+const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
+  beforeLoad: () => {
+    throw redirect({ to: '/payments' })
+  },
+})
+
+const chatRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/payments',
   component: ChatPage,
 })
 
@@ -34,7 +52,21 @@ const paymentRoute = createRoute({
   component: PaymentPage,
 })
 
-const routeTree = rootRoute.addChildren([chatRoute, destinationsRoute, paymentRoute])
+const catchAllRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '$',
+  beforeLoad: () => {
+    throw redirect({ to: '/payments' })
+  },
+})
+
+const routeTree = rootRoute.addChildren([
+  indexRoute,
+  chatRoute,
+  destinationsRoute,
+  paymentRoute,
+  catchAllRoute,
+])
 
 export const router = createRouter({
   routeTree,

@@ -7,6 +7,7 @@ import { StringHelper } from 'fractapay-shared'
 import { Button } from '../components/Button'
 import { DestinationModal } from '../components/DestinationModal'
 import { Modal } from '../components/Modal'
+import { Tooltip } from '../components/Tooltip'
 import { ToastHelper } from '../helpers/ToastHelper'
 import { useDestinationsStore } from '../hooks/use-destinations-store'
 
@@ -55,15 +56,20 @@ export const DestinationsPage = () => {
 
   return (
     <main className="max-w-5xl mx-auto px-4 py-8 space-y-6">
-      <div className="flex items-center justify-between flex-wrap gap-4">
+      <div className="flex items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-neutral-900">{t('title')}</h2>
           <p className="text-neutral-500 text-sm mt-1">{t('description')}</p>
         </div>
 
-        <Button onClick={handleAdd} size="sm">
+        <Button
+          onClick={handleAdd}
+          size="sm"
+          className="max-sm:size-11 max-sm:min-w-11 max-sm:max-w-11 max-sm:p-0"
+          aria-label={t('add')}
+        >
           <AddIcon className="size-4" aria-hidden="true" />
-          {t('add')}
+          <span className="hidden sm:inline">{t('add')}</span>
         </Button>
       </div>
 
@@ -116,23 +122,27 @@ export const DestinationsPage = () => {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-2">
-                      <Button
-                        variant="ghost"
-                        size="xs"
-                        aria-label={t('editAria', { name: destination.name })}
-                        onClick={() => handleEdit(destination)}
-                      >
-                        <EditIcon className="size-4" aria-hidden="true" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="xs"
-                        aria-label={t('deleteAria', { name: destination.name })}
-                        className="hover:text-red-400 focus:text-red-400"
-                        onClick={() => setDeleteConfirmId(destination.id)}
-                      >
-                        <DeleteIcon className="size-4" aria-hidden="true" />
-                      </Button>
+                      <Tooltip content={t('editAria', { name: destination.name })}>
+                        <Button
+                          variant="ghost"
+                          size="xs"
+                          aria-label={t('editAria', { name: destination.name })}
+                          onClick={() => handleEdit(destination)}
+                        >
+                          <EditIcon className="size-4" aria-hidden="true" />
+                        </Button>
+                      </Tooltip>
+                      <Tooltip content={t('deleteAria', { name: destination.name })}>
+                        <Button
+                          variant="ghost"
+                          size="xs"
+                          aria-label={t('deleteAria', { name: destination.name })}
+                          className="hover:text-red-400 focus:text-red-400"
+                          onClick={() => setDeleteConfirmId(destination.id)}
+                        >
+                          <DeleteIcon className="size-4" aria-hidden="true" />
+                        </Button>
+                      </Tooltip>
                     </div>
                   </td>
                 </tr>

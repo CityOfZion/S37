@@ -17,9 +17,36 @@ import { EnvHelper } from '../helpers/EnvHelper'
 
 const ai = new GoogleGenAI({ apiKey: EnvHelper.GEMINI_API_KEY })
 
-const SYSTEM_PROMPT = `You are FractaPay's payment assistant. You help users create batch payments for authors and agencies on the Stellar blockchain platform.
+const SYSTEM_PROMPT = `You are FractaPay's AI payment assistant — the conversational core of FractaPay, an AI-powered batch payment platform built for the Stellar 37° × NearX Hackathon.
 
-LANGUAGE: Always respond in the same language the user is writing in. Default is Brazilian Portuguese (pt-BR).
+ABOUT FRACTAPAY:
+FractaPay automates batch payments for publishers, agencies, and content creators. Users upload payment files or describe amounts in natural language, confirm the breakdown, and pay via PIX — money arrives in the recipients' accounts in real Brazilian Reais. The platform is a Real World Asset (RWA) application: it bridges real-world money (BRL via PIX) to a digital representation that settles instantly, then converts back to real money for the recipient. The entire technical layer is invisible to the user.
+
+YOUR ROLE:
+- Primary function: guide the user through creating and confirming batch payments conversationally
+- Secondary function: answer questions about FractaPay — how it works, what it does, fees (1.5% total), supported file formats, PIX flow, identity verification requirements, etc.
+- You are NOT a general-purpose assistant — stay focused on FractaPay and payments
+- If asked about unrelated topics, politely redirect to payment tasks
+
+BLOCKCHAIN-INVISIBLE LANGUAGE — CRITICAL:
+NEVER use any of the following words or concepts in your messages to the user:
+- Blockchain, on-chain, off-chain, smart contract, Web3, DeFi, crypto, cryptocurrency
+- Stellar, Horizon, Soroban, TESOURO, USDC, token, stablecoin, wallet, seed phrase, private key
+- BRL as a ticker (say "Reais" or "Real" instead), USD as a ticker (say "Dólares" or "Dollars")
+- Transaction hash, block, ledger, gas fee, network fee
+- "Sign a transaction", "deploy", "execute contract", "submit to network"
+
+ALWAYS use real-world equivalents instead:
+- "pagamento" / "payment" instead of "transaction"
+- "conta" / "account" instead of "wallet"
+- "Real" / "Reais" / "R$" for Brazilian currency
+- "taxa" / "fee" for the 1.5% service fee — never mention it as a blockchain fee
+- "verificação de identidade" / "identity verification" instead of "KYC" (or explain it simply: "precisamos confirmar sua identidade")
+- "enviado via PIX" / "sent via PIX" to describe how money moves
+- "comprovante" / "receipt" instead of "transaction hash"
+- If asked about how it works technically, say: "Os pagamentos são processados de forma segura e chegam via PIX em até 10 minutos."
+
+LANGUAGE: Detect the language from the user's messages and always respond in that same language. If the system provides a preferred language hint, use it only for the very first message when no user language is detectable yet.
 
 CRITICAL RULES:
 1. ALWAYS return valid JSON only — no markdown wrapper, no explanations, just the raw JSON object
@@ -128,14 +155,14 @@ const buildContextBlock = (
           .join('\n')
       : '  (nenhuma ainda)'
 
-  return `ESTADO ATUAL DA CONVERSA:
-Destinatários cadastrados:
+  return `CURRENT STATE:
+Registered destinations:
 ${destinationList}
 
-Pagamentos coletados (${payments.length}, total R$ ${StringHelper.formatAmount(total)}):
+Collected payments (${payments.length}, total R$ ${StringHelper.formatAmount(total)}):
 ${paymentList}
 
-Alocações por destinatário:
+Destination allocations:
 ${allocationList}`
 }
 
@@ -145,6 +172,8 @@ export const processChat = async (input: TChatInput): Promise<TChatResponse> => 
   const systemWithContext = `${SYSTEM_PROMPT}
 
 ---
+Language hint (use only if user language not yet detectable): ${input.language}
+
 ${contextBlock}`
 
   const contents: { role: 'user' | 'model'; parts: { text: string }[] }[] = input.messages.map(
@@ -165,10 +194,7 @@ ${contextBlock}`
 
   if (!jsonMatch) {
     return {
-      message:
-        input.language === 'pt-BR'
-          ? 'Desculpe, não consegui processar sua mensagem. Por favor, tente novamente.'
-          : 'Sorry, I could not process your message. Please try again.',
+      message: text || 'Sorry, I could not process your message. Please try again.',
       action: 'none',
     }
   }
@@ -205,12 +231,37 @@ ${contextBlock}`
       }))
   }
 
+  const effectiveAllocations =
+    resolvedAllocations && resolvedAllocations.length > 0 ? resolvedAllocations : input.allocations
+
+  let computedSummary: TPaymentSummaryItem[] | undefined
+
+  if (
+    (parsed.action === 'request_confirmation' || parsed.action === 'execute') &&
+    effectiveAllocations &&
+    effectiveAllocations.length > 0
+  ) {
+    const allPayments = resolvedPayments ?? input.payments
+
+    const total = allPayments.reduce(
+      (sum, payment) => sum.plus(new BigNumber(payment.amount || '0')),
+      new BigNumber(0)
+    )
+
+    computedSummary = effectiveAllocations.map(allocation => ({
+      destinationName: allocation.destination.name,
+      stellarAddress: allocation.destination.stellarAddress,
+      amount: StringHelper.formatAmount(total.times(allocation.percentage / 100)),
+      percentage: allocation.percentage,
+    }))
+  }
+
   return {
     message: parsed.message || '',
     action: (parsed.action as TChatAction) || 'none',
     payments: resolvedPayments,
     price: input.filePrice,
-    allocations: resolvedAllocations,
-    summary: parsed.summary,
+    allocations: effectiveAllocations,
+    summary: computedSummary,
   }
 }

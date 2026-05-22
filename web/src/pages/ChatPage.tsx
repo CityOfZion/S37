@@ -1,6 +1,7 @@
 import {
   type ChangeEvent,
   type CSSProperties,
+  type DragEvent,
   type KeyboardEvent,
   useCallback,
   useEffect,
@@ -17,6 +18,7 @@ import { StringHelper as SH, StringHelper } from 'fractapay-shared'
 
 import { Button } from '../components/Button'
 import { ReviewModal } from '../components/ReviewModal'
+import { Tooltip } from '../components/Tooltip'
 import { StyleHelper } from '../helpers/StyleHelper'
 import { ToastHelper } from '../helpers/ToastHelper'
 import { useChatMutation } from '../hooks/use-chat-mutation'
@@ -26,6 +28,7 @@ import { useLanguageStore } from '../hooks/use-language-store'
 import { usePaymentsStore } from '../hooks/use-payments-store'
 
 import AttachIcon from '../assets/icons/attach-icon.svg?react'
+import CloseIcon from '../assets/icons/close-icon.svg?react'
 import LoadingSpinnerIcon from '../assets/icons/loading-spinner-icon.svg?react'
 import SendIcon from '../assets/icons/send-icon.svg?react'
 import UploadIcon from '../assets/icons/upload-icon.svg?react'
@@ -73,14 +76,11 @@ export const ChatPage = () => {
   }, [messages, scrollToBottom])
 
   useEffect(() => {
-    if (messages.length === 0) {
+    if (useChatStore.getState().messages.length === 0) {
       addMessage({
         id: uuid.v4(),
         role: 'assistant',
-        content:
-          language === 'pt-BR'
-            ? 'Olá! Sou o assistente de pagamentos do FractaPay. Posso ajudá-lo a criar pagamentos em lote para seus destinatários. Você pode me enviar um arquivo (CSV, XLSX, PDF ou TXT) ou digitar os valores diretamente. Como posso ajudar?'
-            : "Hello! I am FractaPay's payment assistant. I can help you create batch payments for your recipients. You can send me a file (CSV, XLSX, PDF or TXT) or type the values directly. How can I help?",
+        content: t('greeting'),
         type: 'text',
         timestamp: new Date().toISOString(),
       })
@@ -152,6 +152,7 @@ export const ChatPage = () => {
             }
 
             addMessage(assistantMessage)
+            textareaRef.current?.focus()
 
             if (
               response.action === 'add_payments' &&
@@ -262,6 +263,30 @@ export const ChatPage = () => {
     event.target.value = ''
   }
 
+  const [isDragging, setIsDragging] = useState(false)
+
+  const handleDragOver = (event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault()
+    setIsDragging(true)
+  }
+
+  const handleDragLeave = (event: DragEvent<HTMLDivElement>) => {
+    if (!event.currentTarget.contains(event.relatedTarget as Node)) {
+      setIsDragging(false)
+    }
+  }
+
+  const handleDrop = (event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault()
+    setIsDragging(false)
+
+    const file = event.dataTransfer.files[0]
+
+    if (file) {
+      setAttachedFile(file)
+    }
+  }
+
   const isLoading = chatMutation.isPending
 
   const allocationTotal = chatPayments.reduce(
@@ -270,8 +295,19 @@ export const ChatPage = () => {
   )
 
   return (
-    <div className="flex flex-col h-[calc(100vh)] bg-neutral-50">
-      <div className="flex-1 overflow-y-auto px-4 pt-16 lg:pt-6 pb-4 space-y-4 max-w-3xl mx-auto w-full">
+    <div
+      className="relative flex flex-col min-h-[calc(100dvh-3.5rem)] lg:min-h-screen"
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
+      {isDragging && (
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-3 bg-primary/10 border-2 border-dashed border-primary pointer-events-none">
+          <AttachIcon className="size-10 text-primary" aria-hidden="true" />
+          <p className="text-primary font-semibold text-lg">{t('dropFile')}</p>
+        </div>
+      )}
+      <div className="flex-1 px-4 pt-6 pb-4 space-y-4 max-w-3xl mx-auto w-full">
         {messages.map(message => (
           <div
             key={message.id}
@@ -325,7 +361,7 @@ export const ChatPage = () => {
 
               <p
                 className={StyleHelper.merge(
-                  'text-xs mt-1.5 text-right',
+                  'text-[10px] mt-1 text-right',
                   message.role === 'user' ? 'text-white/60' : 'text-neutral-400'
                 )}
               >
@@ -352,6 +388,7 @@ export const ChatPage = () => {
         <div ref={messagesEndRef} />
       </div>
 
+      <div className="sticky bottom-0 z-10 bg-neutral-50 border-t border-neutral-100 pt-2">
       {chatPayments.length > 0 && (
         <div className="max-w-3xl mx-auto w-full px-4">
           <div className="rounded-xl bg-white border border-neutral-200 shadow-sm px-4 py-2 flex items-center justify-between text-xs text-neutral-500">
@@ -375,14 +412,16 @@ export const ChatPage = () => {
           <div className="flex items-center gap-2 mb-2 px-3 py-2 bg-white border border-neutral-200 rounded-xl text-sm text-neutral-700">
             <UploadIcon className="size-4 text-primary shrink-0" aria-hidden="true" />
             <span className="truncate">{attachedFile.name}</span>
-            <button
-              type="button"
-              onClick={() => setAttachedFile(null)}
-              className="ml-auto text-neutral-400 hover:text-neutral-900 transition-colors shrink-0"
-              aria-label={t('removeFile')}
-            >
-              ×
-            </button>
+            <Tooltip content={t('removeFile')}>
+              <button
+                type="button"
+                onClick={() => setAttachedFile(null)}
+                className="ml-auto size-6 flex items-center justify-center rounded-lg text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100 transition-colors shrink-0"
+                aria-label={t('removeFile')}
+              >
+                <CloseIcon className="size-4" aria-hidden="true" />
+              </button>
+            </Tooltip>
           </div>
         )}
 
@@ -391,7 +430,7 @@ export const ChatPage = () => {
             event.preventDefault()
             void sendMessage(inputText, attachedFile)
           }}
-          className="flex items-end gap-2 bg-white border border-neutral-200 rounded-2xl p-2 shadow-sm"
+          className="flex items-end gap-2 bg-white border border-neutral-200 rounded-2xl px-3 py-3 shadow-sm"
         >
           <input
             ref={fileInputRef}
@@ -402,16 +441,19 @@ export const ChatPage = () => {
             onChange={handleFileChange}
           />
 
-          <Button
-            type="button"
-            variant="ghost"
-            size="xs"
-            aria-label={t('attachFile')}
-            onClick={() => fileInputRef.current?.click()}
-            disabled={isLoading}
-          >
-            <AttachIcon className="size-5" aria-hidden="true" />
-          </Button>
+          <Tooltip content={t('attachFile')}>
+            <Button
+              type="button"
+              variant="ghost"
+              size="xs"
+              className="p-2 shrink-0"
+              aria-label={t('attachFile')}
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isLoading}
+            >
+              <AttachIcon className="size-5" aria-hidden="true" />
+            </Button>
+          </Tooltip>
 
           <textarea
             ref={textareaRef}
@@ -421,26 +463,31 @@ export const ChatPage = () => {
             placeholder={t('placeholder')}
             aria-label={t('placeholder')}
             rows={1}
+            maxLength={5000}
             disabled={isLoading}
             className="flex-1 bg-transparent text-neutral-900 placeholder:text-neutral-400 text-sm resize-none outline-none py-2 max-h-32 overflow-y-auto disabled:opacity-50"
             style={{ fieldSizing: 'content' } as CSSProperties}
           />
 
-          <Button
-            type="submit"
-            variant="ghost"
-            size="xs"
-            aria-label={t('send')}
-            disabled={isLoading || (!inputText.trim() && !attachedFile)}
-          >
-            {isLoading ? (
-              <LoadingSpinnerIcon className="size-5 animate-spin" aria-hidden="true" />
-            ) : (
-              <SendIcon className="size-5 text-primary" aria-hidden="true" />
-            )}
-          </Button>
+          <Tooltip content={t('send')}>
+            <Button
+              type="submit"
+              variant="ghost"
+              size="xs"
+              className="p-2 shrink-0"
+              aria-label={t('send')}
+              disabled={isLoading || (!inputText.trim() && !attachedFile)}
+            >
+              {isLoading ? (
+                <LoadingSpinnerIcon className="size-5 animate-spin" aria-hidden="true" />
+              ) : (
+                <SendIcon className="size-5 text-primary" aria-hidden="true" />
+              )}
+            </Button>
+          </Tooltip>
         </form>
-        <p className="text-xs text-neutral-400 text-center mt-2">{t('hint')}</p>
+        <p className="text-xs text-neutral-400 text-center mt-2 pb-2">{t('hint')}</p>
+      </div>
       </div>
 
       {currentAllocation && (

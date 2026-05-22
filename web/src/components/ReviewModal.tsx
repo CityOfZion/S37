@@ -228,7 +228,11 @@ export const ReviewModal = ({
       kycStatus,
     })
       .with({ isLookingUpCustomer: true }, () => (
-        <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-700">
+        <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-700 flex items-center gap-2">
+          <span
+            className="inline-block size-4 rounded-full border-2 border-neutral-300 border-t-primary animate-spin shrink-0"
+            aria-hidden="true"
+          />
           {t('lookingUpCustomer')}
         </div>
       ))
@@ -275,6 +279,13 @@ export const ReviewModal = ({
       ) : (
         <div className="space-y-4">
           {renderHeaderState()}
+
+          <div className="flex items-start gap-3 rounded-xl border-l-4 border-warning-500 bg-warning-100 px-4 py-3 text-sm text-neutral-700">
+            <span aria-hidden="true" className="shrink-0 text-base">
+              ⚠️
+            </span>
+            <p>{t('reviewWarning')}</p>
+          </div>
 
           <section aria-label={t('recipientsTitle')} className="space-y-2">
             <h3 className="text-xs font-medium text-neutral-500 uppercase tracking-wider">

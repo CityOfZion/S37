@@ -7,6 +7,7 @@ import { StringHelper } from 'fractapay-shared'
 import { ToastHelper } from '../helpers/ToastHelper'
 import { useSimulateFiatMutation } from '../hooks/use-simulate-fiat-mutation'
 import { Button } from './Button'
+import { Tooltip } from './Tooltip'
 
 import ClipboardIcon from '../assets/icons/clipboard-icon.svg?react'
 
@@ -73,9 +74,11 @@ export const PixInstructions = ({ pix, orderId, onSimulated }: TProps) => {
             className="w-full rounded-xl border border-neutral-200 bg-white p-3 text-xs font-mono text-neutral-900 outline-none resize-none break-all"
           />
 
-          <Button aria-label={t('copy')} variant="outline" size="sm" onClick={copyCode}>
-            <ClipboardIcon className="size-4" aria-hidden="true" />
-          </Button>
+          <Tooltip content={t('copy')}>
+            <Button aria-label={t('copy')} variant="outline" size="sm" onClick={copyCode}>
+              <ClipboardIcon className="size-4" aria-hidden="true" />
+            </Button>
+          </Tooltip>
         </div>
       </div>
 
