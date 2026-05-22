@@ -155,6 +155,7 @@ web (FileUpload component)
 | `server/.env` | `ETHERFUSE_API_KEY` | Required — Etherfuse Ramp API key (raw key, no `Bearer` prefix) |
 | `server/.env` | `ETHERFUSE_BASE_URL` | Default `https://api.sand.etherfuse.com` (sandbox). Use `https://api.etherfuse.com` for production |
 | `server/.env` | `PORT` | Default 3000 |
+| `server/.env` | `CORS_ORIGIN` | Default `http://localhost:5173`. Comma-separated list of allowed origins for CORS |
 | `web/.env` | `VITE_API_URL` | Default `http://localhost:3000` |
 
 ---

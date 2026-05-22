@@ -14,6 +14,7 @@ import type {
 } from 'fractapay-shared'
 import { ErrorCode, StellarHelper, SUPPORTED_TOKENS } from 'fractapay-shared'
 
+import { isProduction } from '../constants'
 import {
   createOnboarding,
   createOrder,
@@ -231,15 +232,17 @@ export const etherfuseRoute = async (fastify: FastifyInstance): Promise<void> =>
     }
   )
 
-  fastify.post<{ Params: { orderId: string }; Reply: { success: boolean } | TErrorResponse }>(
-    '/etherfuse/order/:orderId/simulate',
-    async (request, reply) => {
-      try {
-        await simulateFiatReceived(request.params.orderId)
-        return reply.status(200).send({ success: true })
-      } catch (error) {
-        return reply.status(502).send({ success: false, error: mapError(error) })
+  if (!isProduction) {
+    fastify.post<{ Params: { orderId: string }; Reply: { success: boolean } | TErrorResponse }>(
+      '/etherfuse/order/:orderId/simulate',
+      async (request, reply) => {
+        try {
+          await simulateFiatReceived(request.params.orderId)
+          return reply.status(200).send({ success: true })
+        } catch (error) {
+          return reply.status(502).send({ success: false, error: mapError(error) })
+        }
       }
-    }
-  )
+    )
+  }
 }
