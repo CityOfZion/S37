@@ -5,6 +5,7 @@ import i18n from '../i18next'
 
 export const server = axios.create({
   baseURL: EnvHelper.API_URL,
+  withCredentials: true,
 })
 
 server.interceptors.request.use(config => {

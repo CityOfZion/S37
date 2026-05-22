@@ -1,14 +1,51 @@
-import { createRootRoute, createRoute, createRouter, redirect } from '@tanstack/react-router'
+import { createRootRoute, Outlet, createRoute, createRouter, redirect } from '@tanstack/react-router'
 
+import type { TAuthMeResult, TUser } from 'fractapay-shared'
+
+import { EnvHelper } from '../helpers/EnvHelper'
 import { RootLayout } from '../components/RootLayout'
 import { ChatPage } from '../pages/ChatPage'
 import { DestinationsPage } from '../pages/DestinationsPage'
+import { LoginPage } from '../pages/LoginPage'
 import { PaymentPage } from '../pages/PaymentPage'
 
-const rootRoute = createRootRoute({ component: RootLayout })
+
+const fetchCurrentUser = async (): Promise<TUser | null> => {
+  try {
+    const response = await fetch(`${EnvHelper.API_URL}/auth/me`, {
+      credentials: 'include',
+    })
+
+    if (!response.ok) return null
+
+    const data = (await response.json()) as TAuthMeResult
+
+    return data.success ? data.user : null
+  } catch {
+    return null
+  }
+}
+
+const rootRoute = createRootRoute({
+  component: () => <Outlet />,
+})
+
+const authRoute = createRootRoute({
+  getParentRoute: () => rootRoute,
+  id: 'auth',
+  component: RootLayout,
+  beforeLoad: async () => {
+    const user = await fetchCurrentUser()
+
+    if (!user) {
+      throw redirect({ to: '/login' })
+    }
+  },
+})
+
 
 const indexRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => authRoute,
   path: '/',
   beforeLoad: () => {
     throw redirect({ to: '/payments' })
@@ -16,21 +53,34 @@ const indexRoute = createRoute({
 })
 
 const chatRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => authRoute,
   path: '/payments',
   component: ChatPage,
 })
 
 const destinationsRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => authRoute,
   path: '/destinations',
   component: DestinationsPage,
 })
 
 const paymentRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => authRoute,
   path: '/payment/$orderId',
   component: PaymentPage,
+})
+
+const loginRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/login',
+  beforeLoad: async () => {
+    const user = await fetchCurrentUser()
+
+    if (user) {
+      throw redirect({ to: '/payments' })
+    }
+  },
+  component: LoginPage,
 })
 
 const catchAllRoute = createRoute({
@@ -42,10 +92,8 @@ const catchAllRoute = createRoute({
 })
 
 const routeTree = rootRoute.addChildren([
-  indexRoute,
-  chatRoute,
-  destinationsRoute,
-  paymentRoute,
+  authRoute.addChildren([indexRoute, chatRoute, destinationsRoute, paymentRoute]),
+  loginRoute,
   catchAllRoute,
 ])
 

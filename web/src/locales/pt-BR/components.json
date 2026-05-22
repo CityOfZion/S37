@@ -1,4 +1,22 @@
 {
+  "auth": {
+    "headline": "Pagamentos sem complicação.",
+    "subtitle": "Distribua royalties, folha e comissões automaticamente. Você descreve. A gente faz.",
+    "features": {
+      "ai": "✨ IA entende seus arquivos",
+      "pix": "⚡ PIX em até 10 min",
+      "audit": "🔒 Comprovante público auditável"
+    },
+    "signInTitle": "Entrar",
+    "signInSubtitle": "Use sua conta Google para continuar.",
+    "signInWithGoogle": "Entrar com Google",
+    "signInError": "Falha ao entrar. Tente novamente.",
+    "newHere": "Primeira vez aqui?",
+    "signUp": "Criar conta",
+    "signupComingSoon": "Cadastro chegando em breve. Por enquanto, use o Google.",
+    "signupError": "Não foi possível conectar ao cadastro. Tente novamente.",
+    "switchLanguage": "Mudar idioma"
+  },
   "sidebar": {
     "label": "Menu principal",
     "menuSection": "Menu principal",

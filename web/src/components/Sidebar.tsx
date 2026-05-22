@@ -1,16 +1,19 @@
 import { type ComponentType, type SVGProps, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { Link, useRouterState } from '@tanstack/react-router'
+import { Link, useNavigate, useRouterState } from '@tanstack/react-router'
 
-import type { TLanguage } from 'fractapay-shared'
+import type { TLanguage, TUser } from 'fractapay-shared'
 import { DEFAULT_LANGUAGE } from 'fractapay-shared'
+import { StringHelper } from 'fractapay-shared'
 
 import logoUrl from '../assets/logos/logo.svg'
 import { APP_NAME, LANGUAGE_NAMES } from '../constants'
 import { StyleHelper } from '../helpers/StyleHelper'
 import { useLanguageStore } from '../hooks/use-language-store'
+import { useLogoutMutation } from '../hooks/use-logout-mutation'
 import { useSidebarStore } from '../hooks/use-sidebar-store'
+import { useUserQuery } from '../hooks/use-user-query'
 import { Button } from './Button'
 import { Tooltip } from './Tooltip'
 
@@ -39,9 +42,19 @@ type TNavContentProps = {
   onClose: () => void
   isActive: (path: string) => boolean
   toggleLanguage: () => void
+  handleLogout: () => void
+  user: TUser | null | undefined
+  isLoggingOut: boolean
 }
 
-const NavContent = ({ onClose, isActive, toggleLanguage }: TNavContentProps) => {
+const NavContent = ({
+  onClose,
+  isActive,
+  toggleLanguage,
+  handleLogout,
+  user,
+  isLoggingOut,
+}: TNavContentProps) => {
   const { t } = useTranslation('components', { keyPrefix: 'sidebar' })
   const { language } = useLanguageStore()
 
@@ -87,6 +100,29 @@ const NavContent = ({ onClose, isActive, toggleLanguage }: TNavContentProps) => 
       </div>
 
       <div className="px-2 py-4 border-t border-white/10 space-y-0.5">
+        {user && (
+          <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm">
+            {user.picture ? (
+              <img
+                src={user.picture}
+                alt=""
+                className="size-8 rounded-full shrink-0 object-cover"
+                referrerPolicy="no-referrer"
+              />
+            ) : (
+              <span
+                className="size-8 rounded-full bg-primary/20 text-white font-semibold flex items-center justify-center shrink-0"
+                aria-hidden="true"
+              >
+                {user.name.charAt(0).toUpperCase()}
+              </span>
+            )}
+            <span className="text-white font-medium truncate">
+              {StringHelper.truncateMiddle(user.name, 22)}
+            </span>
+          </div>
+        )}
+
         <Button
           variant="ghost"
           onClick={toggleLanguage}
@@ -106,6 +142,8 @@ const NavContent = ({ onClose, isActive, toggleLanguage }: TNavContentProps) => 
 
         <Button
           variant="ghost"
+          onClick={handleLogout}
+          disabled={isLoggingOut}
           className={StyleHelper.merge(
             BOTTOM_BUTTON_CLASS,
             'text-neutral-400 hover:text-red-400 hover:bg-red-400/5 active:bg-red-400/10'
@@ -122,9 +160,12 @@ const NavContent = ({ onClose, isActive, toggleLanguage }: TNavContentProps) => 
 
 export const Sidebar = () => {
   const { t } = useTranslation('components', { keyPrefix: 'sidebar' })
+  const navigate = useNavigate()
   const currentPath = useRouterState({ select: state => state.location.pathname })
   const { language, setLanguage } = useLanguageStore()
   const { mobileOpen, setMobileOpen } = useSidebarStore()
+  const { data: user } = useUserQuery()
+  const logoutMutation = useLogoutMutation()
 
   const asideRef = useRef<HTMLElement>(null)
 
@@ -157,6 +198,16 @@ export const Sidebar = () => {
     const next: TLanguage = language === 'en-US' ? 'pt-BR' : 'en-US'
 
     setLanguage(next)
+  }
+
+  const handleLogout = async () => {
+    setMobileOpen(false)
+
+    try {
+      await logoutMutation.mutateAsync()
+    } finally {
+      void navigate({ to: '/login' })
+    }
   }
 
   return (
@@ -194,6 +245,9 @@ export const Sidebar = () => {
           onClose={() => setMobileOpen(false)}
           isActive={isActive}
           toggleLanguage={toggleLanguage}
+          handleLogout={handleLogout}
+          user={user}
+          isLoggingOut={logoutMutation.isPending}
         />
       </aside>
     </>

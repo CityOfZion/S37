@@ -1,9 +1,13 @@
+import cookie from '@fastify/cookie'
 import cors from '@fastify/cors'
+import jwt from '@fastify/jwt'
 import multipart from '@fastify/multipart'
+import oauth2 from '@fastify/oauth2'
 import Fastify from 'fastify'
 
 import { isProduction } from './constants'
 import { EnvHelper } from './helpers/EnvHelper'
+import { authRoute } from './routes/auth-route'
 import { chatRoute } from './routes/chat-route'
 import { etherfuseRoute } from './routes/etherfuse-route'
 import { healthRoute } from './routes/health-route'
@@ -20,9 +24,33 @@ const fastify = Fastify({
 })
 
 async function bootstrap(): Promise<void> {
+  await fastify.register(cookie, {
+    secret: EnvHelper.SESSION_SECRET,
+  })
+
+  await fastify.register(jwt, {
+    secret: EnvHelper.SESSION_SECRET,
+    cookie: { cookieName: 'fractapay_session', signed: false },
+  })
+
   await fastify.register(cors, {
     origin: [EnvHelper.CORS_ORIGIN],
     methods: ['GET', 'POST', 'OPTIONS'],
+    credentials: true,
+  })
+
+  await fastify.register(oauth2, {
+    name: 'googleOAuth2',
+    scope: ['openid', 'email', 'profile'],
+    credentials: {
+      client: {
+        id: EnvHelper.GOOGLE_CLIENT_ID,
+        secret: EnvHelper.GOOGLE_CLIENT_SECRET,
+      },
+      auth: oauth2.GOOGLE_CONFIGURATION,
+    },
+    startRedirectPath: '/auth/google',
+    callbackUri: EnvHelper.OAUTH_CALLBACK_URL,
   })
 
   await fastify.register(multipart, {
@@ -32,7 +60,7 @@ async function bootstrap(): Promise<void> {
   })
 
   await fastify.register(healthRoute)
-
+  await fastify.register(authRoute)
   await fastify.register(etherfuseRoute)
   await fastify.register(chatRoute)
 

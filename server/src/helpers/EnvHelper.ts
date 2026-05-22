@@ -9,6 +9,12 @@ const envSchema = z.object({
   ETHERFUSE_API_KEY: z.string().min(1, 'ETHERFUSE_API_KEY is required'),
   ETHERFUSE_BASE_URL: z.string().url().default('https://api.sand.etherfuse.com'),
   CORS_ORIGIN: z.string().default('http://localhost:5173'),
+  GOOGLE_CLIENT_ID: z.string().min(1, 'GOOGLE_CLIENT_ID is required'),
+  GOOGLE_CLIENT_SECRET: z.string().min(1, 'GOOGLE_CLIENT_SECRET is required'),
+  OAUTH_CALLBACK_URL: z.string().url().default('http://localhost:3000/auth/google/callback'),
+  WEB_BASE_URL: z.string().url().default('http://localhost:5173'),
+  SESSION_SECRET: z.string().min(32, 'SESSION_SECRET must be at least 32 characters'),
+  COOKIE_DOMAIN: z.string().optional(),
 })
 
 const parsed = envSchema.safeParse(process.env)
@@ -26,4 +32,10 @@ export class EnvHelper {
   static readonly ETHERFUSE_API_KEY = data.ETHERFUSE_API_KEY
   static readonly ETHERFUSE_BASE_URL = data.ETHERFUSE_BASE_URL
   static readonly CORS_ORIGIN = data.CORS_ORIGIN
+  static readonly GOOGLE_CLIENT_ID = data.GOOGLE_CLIENT_ID
+  static readonly GOOGLE_CLIENT_SECRET = data.GOOGLE_CLIENT_SECRET
+  static readonly OAUTH_CALLBACK_URL = data.OAUTH_CALLBACK_URL
+  static readonly WEB_BASE_URL = data.WEB_BASE_URL
+  static readonly SESSION_SECRET = data.SESSION_SECRET
+  static readonly COOKIE_DOMAIN = data.COOKIE_DOMAIN
 }

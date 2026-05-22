@@ -23,8 +23,20 @@ export enum ErrorCode {
   CUSTOMER_NOT_FOUND = 'CUSTOMER_NOT_FOUND',
   FILE_PARSE_FAILED = 'FILE_PARSE_FAILED',
   NO_PAYMENTS_FOUND = 'NO_PAYMENTS_FOUND',
+  UNAUTHORIZED = 'UNAUTHORIZED',
+  OAUTH_FAILED = 'OAUTH_FAILED',
+  NOT_IMPLEMENTED = 'NOT_IMPLEMENTED',
   UNKNOWN = 'UNKNOWN',
 }
+
+export type TUser = {
+  id: string
+  email: string
+  name: string
+  picture?: string
+}
+
+export type TAuthMeResult = { success: true; user: TUser } | { success: false; error: ErrorCode }
 
 export type TPayment = {
   id: string

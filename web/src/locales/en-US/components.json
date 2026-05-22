@@ -1,4 +1,22 @@
 {
+  "auth": {
+    "headline": "Payments without the hassle.",
+    "subtitle": "Distribute royalties, payroll and commissions automatically. You describe it. We handle the rest.",
+    "features": {
+      "ai": "✨ AI reads your files",
+      "pix": "⚡ PIX delivered in ~10 min",
+      "audit": "🔒 Public, auditable receipts"
+    },
+    "signInTitle": "Sign in",
+    "signInSubtitle": "Use your Google account to continue.",
+    "signInWithGoogle": "Sign in with Google",
+    "signInError": "Sign-in failed. Please try again.",
+    "newHere": "New here?",
+    "signUp": "Create an account",
+    "signupComingSoon": "Sign-up is coming soon. For now, use Google.",
+    "signupError": "Couldn't reach the sign-up service. Try again.",
+    "switchLanguage": "Switch language"
+  },
   "sidebar": {
     "label": "Main menu",
     "menuSection": "Main menu",
