@@ -1,0 +1,22 @@
+services:
+  mariadb:
+    image: mariadb:11
+    container_name: fractapay-mariadb
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: fractapay
+      MARIADB_DATABASE: fractapay
+      MARIADB_USER: fractapay
+      MARIADB_PASSWORD: fractapay
+    ports:
+      - '3306:3306'
+    volumes:
+      - mariadb-data:/var/lib/mysql
+    healthcheck:
+      test: ['CMD', 'healthcheck.sh', '--connect', '--innodb_initialized']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  mariadb-data:

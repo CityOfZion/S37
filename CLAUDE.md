@@ -21,13 +21,14 @@ User provides a destination address + selects a token + uploads a payment file (
 
 ## Monorepo Structure
 
-Four packages, each with its own `node_modules` / `Cargo.lock` (no root `package.json`):
+Five packages, each with its own `node_modules` / `Cargo.lock` (no root `package.json`):
 
 ```
 server/     Node.js + Fastify + TypeScript  (port 3000) — upload, AI, rate fetch, conversion
 web/        React + Vite + TypeScript       (port 5173) — UI
 contracts/  Rust + Soroban SDK 26                       — on-chain batch_pay
 shared/     TypeScript types + constants + helpers      — imported by web and server as `fractapay-shared`
+db/         Prisma + MariaDB (port 3306)               — schema, migrations, typed client `fractapay-db`
 ```
 
 ---
@@ -55,6 +56,25 @@ npm run build             # tsc + vite build
 npm run lint              # ESLint and Prettier
 npm run typecheck
 ```
+
+### DB (`cd db`)
+
+```bash
+npm install               # installs Prisma; postinstall runs `prisma generate`
+cp .env.example .env      # then set DATABASE_URL if not using the default
+npm run db:up             # docker compose up -d (MariaDB on :3306)
+npm run db:down           # docker compose down
+npm run db:migrate        # prisma migrate dev — create + apply a migration
+npm run db:deploy         # prisma migrate deploy — apply pending migrations (CI/prod)
+npm run db:generate       # prisma generate — regenerate client after schema edits
+npm run db:studio         # open Prisma Studio
+npm run db:seed           # tsx prisma/seed.ts
+npm run db:reset          # prisma migrate reset (DROPS the database)
+npm run lint              # ESLint and Prettier
+npm run typecheck         # tsc --noEmit
+```
+
+After editing `db/prisma/schema.prisma`, run `npm run db:generate` in `db/` (or `npm install` in any consumer — `postinstall` triggers it) before `tsx watch` will see new model types.
 
 ### Contracts (`cd contracts`)
 
@@ -113,6 +133,8 @@ web (ChatPage component)
 - **`src/services/etherfuse-service.ts`** — Thin wrapper around the Etherfuse Ramp REST API built on a pre-configured `axios` instance (same version `1.7.2` as the web client). Auth header is the raw key (no `Bearer` prefix), set on the axios instance once at module load. Generates partner-side UUIDs for `customerId` / `bankAccountId` / `quoteId` / `orderId`. Exposes `createOnboarding`, `getKycStatus`, `registerBankAccount`, `createQuote`, `createOrder`, `getOrder`, `simulateFiatReceived`. Network/HTTP errors are normalised to `ErrorCode.ETHERFUSE_REQUEST_FAILED`; 404 on order paths maps to `ErrorCode.ORDER_NOT_FOUND`. Quote `sourceAsset` is always `BRL`; `targetAsset` is `TESOURO:GCRYUGD5...`.
 - **`src/services/etherfuse-webhook-store.ts`** — In-memory cache (`Map`) of the most recent webhook event per `${event}:${id}` key (e.g. `order_updated:abc-123`). Records the event status, the full data payload and the originating timestamp. Used by the webhook receiver and available for future short-circuiting of polling.
 - **`src/routes/etherfuse-route.ts`** — Proxies the Etherfuse flow so the API key never reaches the browser. Endpoints: `POST /etherfuse/onboarding`, `GET /etherfuse/kyc/:customerId/:publicKey`, `POST /etherfuse/bank-account`, `POST /etherfuse/quote`, `POST /etherfuse/order`, `GET /etherfuse/order/:orderId`, `POST /etherfuse/order/:orderId/simulate` (sandbox only), `POST /etherfuse/webhook` (receives Etherfuse webhook events — `order_updated` / `kyc_updated` / etc. — validates the payload, logs through Fastify and stores in `etherfuse-webhook-store`). All routes validate the public key with `StellarHelper.isValidAddress` where applicable and return `{ success: false, error: ErrorCode }` shapes for failures.
+- **`src/hooks/require-auth.ts`** — Fastify `preHandler` factories. `requireAuth` reads the signed session cookie (`EnvHelper.SESSION_COOKIE_NAME`), unsigns it via `request.unsignCookie(raw)` (registered by `@fastify/cookie` with `EnvHelper.SESSION_SECRET`), calls `getSessionWithUser`, and replies `401 UNAUTHORIZED` / `401 SESSION_EXPIRED` on failure. On success, decorates `request.user` (TUser) and `request.session` (TSession) via a `fastify` module augmentation. `optionalAuth` does the same but never replies — useful for endpoints that personalize when logged in but don't require it.
+- **`src/routes/auth-route.ts`** — `GET /auth/google` is registered automatically by `@fastify/oauth2` (as `startRedirectPath`) and kicks off the authorization-code + PKCE flow. `GET /auth/google/callback` exchanges the code for tokens, fetches the userinfo, upserts the user, creates a `Session`, sets the signed httpOnly `fractapay_session` cookie, then redirects to `WEB_LOGIN_SUCCESS_URL` (or `WEB_LOGIN_FAILURE_URL` on any error). `POST /auth/logout` deletes the session row and clears the cookie. `GET /auth/me` requires `requireAuth` and returns `{ user: TUser }`.
 
 ### Web internals
 
@@ -133,6 +155,14 @@ web (ChatPage component)
 - **Types** — `TToken = 'TESOURO'`; `TLanguage = 'en-US' | 'pt-BR'`; `TFiatCurrency = 'BRL'`; `TPixKeyType = 'evp' | 'cpf' | 'cnpj' | 'email' | 'phone'`; `TPayment = { id, amount, description? }`; `TPaymentResponse = { payments, price }`; `TUploadPayload = { file, token, address? }` (address optional — destination is selected separately); `TUploadResult = { success, payments, price, error? }`; `TRecipientShare = { address, percentage }`; `TDestination = { id, name, token, pixKey, pixKeyType }` (no `stellarAddress` — the global address comes from `usePaymentsStore`); `TDestinationAllocation = { destination: TDestination, percentage: number }`; `TChatMessage`, `TChatRequest`, `TChatResponse`, `TChatHistoryMessage`, `TChatAction` (includes `update_payments` with delta `add | remove` per item), `TPaymentSummaryItem = { destinationName, token, amount, percentage, feeAmount?, totalAmount? }` (server computes `feeAmount` and `totalAmount` from `FEE_PERCENTAGE`; `token` derived from `allocation.destination.token`). **Etherfuse types**: `TKycStatus`, `TOnboardingPayload`/`TOnboardingResult`, `TKycStatusResult`, `TBankAccountPayload`/`TBankAccountResult`, `TQuotePayload`/`TQuoteResult`, `TOrderPayload`/`TOrderResult` (with `pix?: TPixInstructions`), `TPixInstructions`, `TOrderStatus = 'created' | 'funded' | 'completed' | 'failed' | 'refunded' | 'canceled'`. `ErrorCode` enum adds: `INVALID_PAYLOAD`, `ETHERFUSE_REQUEST_FAILED`, `KYC_NOT_APPROVED`, `QUOTE_EXPIRED`, `ORDER_NOT_FOUND`.
 - **Constants** — `ALLOWED_EXTENSIONS`, `ALLOWED_MIME_TYPES`, `ALLOWED_INPUT_ACCEPT`, `SUPPORTED_TOKENS`, `STELLAR_DECIMALS = 7`, `FIAT_BY_TOKEN = { TESOURO: 'BRL' }`, `LANGUAGE_BY_TOKEN`, `SYMBOL_BY_TOKEN = { TESOURO: 'R$' }`, `RECIPIENT_PERCENTAGE = BigNumber('0.15')`, `FEE_PERCENTAGE = BigNumber('0.02')`, `QUOTE_EXPIRY_SECONDS = 60`.
 - **Helpers** — `StellarHelper.isValidAddress(value)` (wraps `StrKey.isValidEd25519PublicKey`). `StringHelper.truncateMiddle(value, max)`, `StringHelper.formatAmount(value)` (accepts `string | number | BigNumber`, Stellar 7-decimal cap with `ROUND_DOWN`), `StringHelper.formatCurrencyAmount(value, token)` (locale + symbol via `Intl.NumberFormat`, fixed at 2 decimals for display).
+
+### DB internals (`db/` — imported as `fractapay-db`)
+
+- **Schema** — `db/prisma/schema.prisma` uses `provider = "mysql"` (Prisma's MariaDB-compatible driver). `DATABASE_URL` is read from `db/.env` for CLI commands and from the consumer's env (e.g. `server/.env`) at runtime. Note: `@db.Json` columns are stored as `LONGTEXT` on MariaDB.
+- **Auth models** — `User` (id cuid, unique email, optional `emailVerified` / `name` / `avatarUrl`); `OAuthAccount` (FK `userId`, `provider` + `providerAccountId` uniquely identifies the IdP identity — Google `sub` for now — plus the cached `accessToken` / `refreshToken` / `idToken` / `expiresAt`, all `@db.Text`); `Session` (cuid id is the opaque token in the signed cookie; `expiresAt` indexed; cascade-deletes with the user). `OAuthAccount` has `@@unique([provider, providerAccountId])` so the same Google account can't be attached to two users.
+- **Client** — `db/src/client.ts` exports a `PrismaClient` singleton cached on `globalThis` so `tsx watch` reloads don't open new connection pools. `db/src/index.ts` re-exports both the singleton (`prisma`) and everything from `@prisma/client` (`export * from '@prisma/client'`) so consumers can import model types (`User`, `Session`, `OAuthAccount`) and the `Prisma` namespace (for `Prisma.PrismaClientKnownRequestError` etc.) directly from `fractapay-db` — see `server/src/services/session-service.ts` for the `P2025` catch pattern.
+- **Local dev** — `docker compose up -d` in `db/` brings up `mariadb:11` on `:3306` (db `fractapay`, user/pass `fractapay`/`fractapay`). `npm run db:migrate` creates a timestamped migration; `npm run db:seed` runs `prisma/seed.ts`.
+- **Linking** — server consumes the package via `"fractapay-db": "file:../db"`; the `main`/`types` field points at `./src/index.ts`, so source changes are picked up live by `tsx`. `postinstall` runs `prisma generate`, so a fresh `npm install` always has a usable client.
 
 ### Contract internals (`contracts/src/lib.rs` → `FractaPayContract`, version `"0.4.0"`)
 
@@ -163,6 +193,15 @@ web (ChatPage component)
 | `server/.env` | `ETHERFUSE_BASE_URL` | Default `https://api.sand.etherfuse.com` (sandbox). Use `https://api.etherfuse.com` for production |
 | `server/.env` | `PORT` | Default 3000 |
 | `server/.env` | `CORS_ORIGIN` | Default `http://localhost:5173`. Comma-separated list of allowed origins for CORS |
+| `server/.env` | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Required — Google OAuth credentials registered with `@fastify/oauth2` |
+| `server/.env` | `OAUTH_CALLBACK_URL` | Default `http://localhost:3000/auth/google/callback`. Must match the redirect URI registered in Google Cloud Console |
+| `server/.env` | `WEB_BASE_URL` | Default `http://localhost:5173`. Base of the web app; default for the login redirect URLs below |
+| `server/.env` | `WEB_LOGIN_SUCCESS_URL` | Default `${WEB_BASE_URL}`. Where `/auth/google/callback` redirects after a successful login |
+| `server/.env` | `WEB_LOGIN_FAILURE_URL` | Default `${WEB_BASE_URL}/?login=failed`. Redirect target on OAuth callback failure |
+| `server/.env` | `SESSION_SECRET` | Required, ≥32 chars. Used by `@fastify/cookie` to sign the session cookie |
+| `server/.env` | `SESSION_COOKIE_NAME` | Default `fractapay_session`. Name of the signed httpOnly cookie holding `Session.id` |
+| `server/.env` | `COOKIE_DOMAIN` | Optional. Cookie `Domain` attribute — leave blank for localhost dev |
+| `db/.env` | `DATABASE_URL` | Required — same connection string; consumed by Prisma CLI (`migrate`, `seed`, `studio`) |
 | `web/.env` | `VITE_API_URL` | Default `http://localhost:3000` |
 
 ---

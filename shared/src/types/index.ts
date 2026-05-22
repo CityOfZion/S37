@@ -24,6 +24,7 @@ export enum ErrorCode {
   FILE_PARSE_FAILED = 'FILE_PARSE_FAILED',
   NO_PAYMENTS_FOUND = 'NO_PAYMENTS_FOUND',
   UNAUTHORIZED = 'UNAUTHORIZED',
+  SESSION_EXPIRED = 'SESSION_EXPIRED',
   OAUTH_FAILED = 'OAUTH_FAILED',
   NOT_IMPLEMENTED = 'NOT_IMPLEMENTED',
   UNKNOWN = 'UNKNOWN',
@@ -32,8 +33,14 @@ export enum ErrorCode {
 export type TUser = {
   id: string
   email: string
-  name: string
-  picture?: string
+  name: string | null
+  picture: string | null
+}
+
+export type TSession = {
+  id: string
+  userId: string
+  expiresAt: string
 }
 
 export type TAuthMeResult = { success: true; user: TUser } | { success: false; error: ErrorCode }

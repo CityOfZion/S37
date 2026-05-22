@@ -2,7 +2,7 @@ import type { OAuth2Namespace } from '@fastify/oauth2'
 import axios from 'axios'
 import type { FastifyInstance } from 'fastify'
 
-import { ErrorCode, type TAuthMeResult, type TUser } from 'fractapay-shared'
+import { ErrorCode, type TAuthMeResult } from 'fractapay-shared'
 
 declare module 'fastify' {
   interface FastifyInstance {
@@ -12,15 +12,17 @@ declare module 'fastify' {
 
 import { isProduction } from '../constants'
 import { EnvHelper } from '../helpers/EnvHelper'
+import { optionalAuth, requireAuth } from '../hooks/require-auth'
+import { createSession, deleteSession, SESSION_MAX_AGE_SECONDS } from '../services/session-service'
+import { upsertGoogleUser } from '../services/user-service'
 
-const SESSION_COOKIE = 'fractapay_session'
-const SESSION_MAX_AGE_SECONDS = 7 * 24 * 60 * 60
 const GOOGLE_USERINFO_URL = 'https://www.googleapis.com/oauth2/v3/userinfo'
 
 type TGoogleUserInfo = {
   sub: string
   email: string
-  name: string
+  email_verified?: boolean
+  name?: string
   picture?: string
 }
 
@@ -36,16 +38,31 @@ export const authRoute = async (fastify: FastifyInstance): Promise<void> => {
         timeout: 10_000,
       })
 
-      const user: TUser = {
-        id: data.sub,
-        email: data.email,
-        name: data.name,
-        picture: data.picture,
+      const token = tokenResponse.token as typeof tokenResponse.token & {
+        id_token?: string
+        scope?: string
       }
 
-      const sessionToken = fastify.jwt.sign(user, { expiresIn: '7d' })
+      const user = await upsertGoogleUser({
+        profile: data,
+        tokenSet: {
+          access_token: token.access_token,
+          refresh_token: token.refresh_token,
+          id_token: token.id_token,
+          token_type: token.token_type,
+          scope: token.scope,
+          expires_at: token.expires_at,
+        },
+      })
 
-      reply.setCookie(SESSION_COOKIE, sessionToken, {
+      const session = await createSession({
+        userId: user.id,
+        userAgent: request.headers['user-agent'] ?? null,
+        ip: request.ip,
+      })
+
+      reply.setCookie(EnvHelper.SESSION_COOKIE_NAME, session.id, {
+        signed: true,
         httpOnly: true,
         secure: isProduction,
         sameSite: 'lax',
@@ -56,39 +73,44 @@ export const authRoute = async (fastify: FastifyInstance): Promise<void> => {
 
       request.log.info({ userId: user.id, email: user.email }, '[Auth] login')
 
-      return reply.redirect(EnvHelper.WEB_BASE_URL)
+      return reply.redirect(EnvHelper.WEB_LOGIN_SUCCESS_URL)
     } catch (error) {
       request.log.error({ error }, '[Auth] OAuth callback failed')
 
-      return reply.redirect(EnvHelper.WEB_BASE_URL)
+      return reply.redirect(EnvHelper.WEB_LOGIN_FAILURE_URL)
     }
   })
 
-  fastify.get<{ Reply: TAuthMeResult }>('/auth/me', async (request, reply) => {
-    try {
-      const user = await request.jwtVerify<TUser>({ onlyCookie: true })
-
-      return reply.status(200).send({ success: true, user })
-    } catch {
-      return reply.status(401).send({ success: false, error: ErrorCode.UNAUTHORIZED })
+  fastify.get<{ Reply: TAuthMeResult }>(
+    '/auth/me',
+    { preHandler: requireAuth },
+    async (request, reply) => {
+      return reply.status(200).send({ success: true, user: request.user! })
     }
-  })
+  )
 
-  fastify.post<{ Reply: { success: true } }>('/auth/logout', async (request, reply) => {
-    reply.clearCookie(SESSION_COOKIE, {
-      path: '/',
-      domain: EnvHelper.COOKIE_DOMAIN,
-    })
+  fastify.post<{ Reply: { success: true } }>(
+    '/auth/logout',
+    { preHandler: optionalAuth },
+    async (request, reply) => {
+      if (request.session) {
+        await deleteSession(request.session.id)
+      }
 
-    request.log.info('[Auth] logout')
+      reply.clearCookie(EnvHelper.SESSION_COOKIE_NAME, {
+        path: '/',
+        domain: EnvHelper.COOKIE_DOMAIN,
+      })
 
-    return reply.status(200).send({ success: true })
-  })
+      request.log.info({ userId: request.user?.id }, '[Auth] logout')
+
+      return reply.status(200).send({ success: true })
+    }
+  )
 
   fastify.post<{ Reply: { success: false; error: ErrorCode } }>(
     '/auth/signup',
     async (request, reply) => {
-      // TODO(signup): implement email/password (or magic-link) sign-up.
       request.log.info('[Auth] signup endpoint hit — not yet implemented')
 
       return reply.status(501).send({ success: false, error: ErrorCode.NOT_IMPLEMENTED })

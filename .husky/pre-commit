@@ -11,5 +11,6 @@ if ! echo "$branch" | grep -qE '^CU-[a-z0-9]+$'; then
 fi
 
 (cd shared && npx lint-staged && npm run typecheck)
+(cd db && npx lint-staged && npm run typecheck)
 (cd web && npx lint-staged && npm run typecheck)
 (cd server && npx lint-staged && npm run typecheck)

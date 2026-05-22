@@ -114,11 +114,11 @@ const NavContent = ({
                 className="size-8 rounded-full bg-primary/20 text-white font-semibold flex items-center justify-center shrink-0"
                 aria-hidden="true"
               >
-                {user.name.charAt(0).toUpperCase()}
+                {(user.name ?? user.email).charAt(0).toUpperCase()}
               </span>
             )}
             <span className="text-white font-medium truncate">
-              {StringHelper.truncateMiddle(user.name, 22)}
+              {StringHelper.truncateMiddle(user.name ?? user.email, 22)}
             </span>
           </div>
         )}

@@ -1,6 +1,5 @@
 import cookie from '@fastify/cookie'
 import cors from '@fastify/cors'
-import jwt from '@fastify/jwt'
 import multipart from '@fastify/multipart'
 import oauth2 from '@fastify/oauth2'
 import Fastify from 'fastify'
@@ -28,11 +27,6 @@ async function bootstrap(): Promise<void> {
     secret: EnvHelper.SESSION_SECRET,
   })
 
-  await fastify.register(jwt, {
-    secret: EnvHelper.SESSION_SECRET,
-    cookie: { cookieName: 'fractapay_session', signed: false },
-  })
-
   await fastify.register(cors, {
     origin: [EnvHelper.CORS_ORIGIN],
     methods: ['GET', 'POST', 'OPTIONS'],
@@ -51,6 +45,7 @@ async function bootstrap(): Promise<void> {
     },
     startRedirectPath: '/auth/google',
     callbackUri: EnvHelper.OAUTH_CALLBACK_URL,
+    pkce: 'S256',
   })
 
   await fastify.register(multipart, {
