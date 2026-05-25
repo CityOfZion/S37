@@ -1,7 +1,8 @@
 // Prisma talks to MariaDB through the `mysql` provider.
 // Note: `@db.Json` columns are stored as LONGTEXT under the hood on MariaDB.
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
 datasource db {
