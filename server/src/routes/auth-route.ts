@@ -65,7 +65,7 @@ export const authRoute = async (fastify: FastifyInstance): Promise<void> => {
         signed: true,
         httpOnly: true,
         secure: isProduction,
-        sameSite: 'lax',
+        sameSite: isProduction ? 'none' : 'lax',
         path: '/',
         maxAge: SESSION_MAX_AGE_SECONDS,
         domain: EnvHelper.COOKIE_DOMAIN,
