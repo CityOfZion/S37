@@ -9,7 +9,7 @@ import { useOrderQuery } from '../hooks/use-order-query'
 export const PaymentPage = () => {
   const { t } = useTranslation('components', { keyPrefix: 'payment' })
   const navigate = useNavigate()
-  const { orderId } = useParams({ from: '/authLayout/payment/$orderId' })
+  const { orderId } = useParams({ from: '/auth/payment/$orderId' })
   const { data, isLoading, isError } = useOrderQuery(orderId)
 
   return (

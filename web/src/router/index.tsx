@@ -1,14 +1,19 @@
-import { createRootRoute, Outlet, createRoute, createRouter, redirect } from '@tanstack/react-router'
+import {
+  createRootRoute,
+  createRoute,
+  createRouter,
+  Outlet,
+  redirect,
+} from '@tanstack/react-router'
 
 import type { TAuthMeResult, TUser } from 'fractapay-shared'
 
-import { EnvHelper } from '../helpers/EnvHelper'
 import { RootLayout } from '../components/RootLayout'
+import { EnvHelper } from '../helpers/EnvHelper'
 import { ChatPage } from '../pages/ChatPage'
 import { DestinationsPage } from '../pages/DestinationsPage'
 import { LoginPage } from '../pages/LoginPage'
 import { PaymentPage } from '../pages/PaymentPage'
-
 
 const fetchCurrentUser = async (): Promise<TUser | null> => {
   try {
@@ -42,7 +47,6 @@ const authRoute = createRootRoute({
     }
   },
 })
-
 
 const indexRoute = createRoute({
   getParentRoute: () => authRoute,

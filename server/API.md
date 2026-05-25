@@ -343,26 +343,26 @@ Each endpoint section uses the same layout:
 
 Mirror of the enum in `shared/src/types/index.ts`. When the server returns a non-2xx with `{ "success": false, "error": "<code>" }`, the `<code>` is one of these.
 
-| Code | Typical status | When |
-|---|---|---|
-| `NO_FILE` | 400 | `/upload` called without a file part. |
-| `UNSUPPORTED_FILE_TYPE` | 400 | File MIME and extension both rejected. |
-| `INVALID_TOKEN` | 400 | `token` missing or not in `SUPPORTED_TOKENS`. |
-| `INVALID_ADDRESS` | 400 | Stellar address fails `StrKey.isValidEd25519PublicKey`. |
-| `INVALID_PAYLOAD` | 400 | Required JSON / multipart fields missing or malformed. |
-| `AI_PARSE_FAILED` | 500 | Gemini returned a non-JSON or unparsable response. |
-| `NETWORK_ERROR` | 500 | Generic network failure inside a service. |
-| `RATE_FETCH_FAILED` | 500 | AwesomeAPI USD/BRL fetch failed. |
-| `ORDERBOOK_FETCH_FAILED` | 500 | Stellar Horizon orderbook fetch failed. |
-| `ETHERFUSE_REQUEST_FAILED` | 502 | Etherfuse HTTP/network error. |
-| `KYC_NOT_APPROVED` | 502 | Order creation blocked by KYC status. |
-| `QUOTE_EXPIRED` | 502 | Quote used past `expiresAt`. |
-| `ORDER_NOT_FOUND` | 404 | `GET /etherfuse/order/:orderId` missing. |
-| `PENDING_ORDER_EXISTS` | 502 | Existing pending order blocks a new one. |
-| `CUSTOMER_ALREADY_EXISTS` | 502 | Onboarding called for an already-onboarded `publicKey`. |
-| `CUSTOMER_NOT_FOUND` | 404 | `GET /etherfuse/customer/:publicKey` missing. |
-| `UNAUTHORIZED` | 401 | `requireAuth` saw no/invalid cookie. |
-| `SESSION_EXPIRED` | 401 | Session row missing or past `expiresAt`. |
-| `OAUTH_FAILED` | — | Reserved; currently the OAuth callback redirects on failure rather than returning JSON. |
-| `NOT_IMPLEMENTED` | 501 | `POST /auth/signup` stub. |
-| `UNKNOWN` | 500 / 502 | Fallback when an upstream error string doesn't match any other `ErrorCode`. |
+| Code                       | Typical status | When                                                                                    |
+| -------------------------- | -------------- | --------------------------------------------------------------------------------------- |
+| `NO_FILE`                  | 400            | `/upload` called without a file part.                                                   |
+| `UNSUPPORTED_FILE_TYPE`    | 400            | File MIME and extension both rejected.                                                  |
+| `INVALID_TOKEN`            | 400            | `token` missing or not in `SUPPORTED_TOKENS`.                                           |
+| `INVALID_ADDRESS`          | 400            | Stellar address fails `StrKey.isValidEd25519PublicKey`.                                 |
+| `INVALID_PAYLOAD`          | 400            | Required JSON / multipart fields missing or malformed.                                  |
+| `AI_PARSE_FAILED`          | 500            | Gemini returned a non-JSON or unparsable response.                                      |
+| `NETWORK_ERROR`            | 500            | Generic network failure inside a service.                                               |
+| `RATE_FETCH_FAILED`        | 500            | AwesomeAPI USD/BRL fetch failed.                                                        |
+| `ORDERBOOK_FETCH_FAILED`   | 500            | Stellar Horizon orderbook fetch failed.                                                 |
+| `ETHERFUSE_REQUEST_FAILED` | 502            | Etherfuse HTTP/network error.                                                           |
+| `KYC_NOT_APPROVED`         | 502            | Order creation blocked by KYC status.                                                   |
+| `QUOTE_EXPIRED`            | 502            | Quote used past `expiresAt`.                                                            |
+| `ORDER_NOT_FOUND`          | 404            | `GET /etherfuse/order/:orderId` missing.                                                |
+| `PENDING_ORDER_EXISTS`     | 502            | Existing pending order blocks a new one.                                                |
+| `CUSTOMER_ALREADY_EXISTS`  | 502            | Onboarding called for an already-onboarded `publicKey`.                                 |
+| `CUSTOMER_NOT_FOUND`       | 404            | `GET /etherfuse/customer/:publicKey` missing.                                           |
+| `UNAUTHORIZED`             | 401            | `requireAuth` saw no/invalid cookie.                                                    |
+| `SESSION_EXPIRED`          | 401            | Session row missing or past `expiresAt`.                                                |
+| `OAUTH_FAILED`             | —              | Reserved; currently the OAuth callback redirects on failure rather than returning JSON. |
+| `NOT_IMPLEMENTED`          | 501            | `POST /auth/signup` stub.                                                               |
+| `UNKNOWN`                  | 500 / 502      | Fallback when an upstream error string doesn't match any other `ErrorCode`.             |
