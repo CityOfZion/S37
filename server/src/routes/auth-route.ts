@@ -61,15 +61,18 @@ export const authRoute = async (fastify: FastifyInstance): Promise<void> => {
         ip: request.ip,
       })
 
-      reply.setCookie(EnvHelper.SESSION_COOKIE_NAME, session.id, {
+      const COOKIE = reply.setCookie(EnvHelper.SESSION_COOKIE_NAME, session.id, {
         signed: true,
-        httpOnly: true,
-        secure: isProduction,
         sameSite: isProduction ? 'none' : 'lax',
         path: '/',
         maxAge: SESSION_MAX_AGE_SECONDS,
-        domain: EnvHelper.COOKIE_DOMAIN,
       })
+
+      console.log(
+        `FRACTAPAY ----------------------------------------------------------------`,
+        COOKIE.cookies[EnvHelper.SESSION_COOKIE_NAME],
+        isProduction ? 'none' : 'lax'
+      )
 
       request.log.info({ userId: user.id, email: user.email }, '[Auth] login')
 
