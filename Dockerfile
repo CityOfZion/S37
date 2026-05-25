@@ -24,10 +24,13 @@ FROM node:22-alpine
 WORKDIR /app/server
 ENV NODE_ENV=production
 
+RUN apk add --no-cache openssl
+
 COPY --from=builder /app/shared /app/shared
 COPY --from=builder /app/server/node_modules ./node_modules
 COPY --from=builder /app/server/dist ./dist
 COPY --from=builder /app/server/package.json ./package.json
+COPY --from=builder /app/server/prisma ./prisma
 
 EXPOSE 3000
 CMD ["npm", "start"]
