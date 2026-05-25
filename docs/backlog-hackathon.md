@@ -43,7 +43,7 @@
 - **[0.9] [BE] Logs estruturados (pino → CloudWatch) + correlation IDs** · Fase: H · Est: M · Dep: 0.4
 - **[0.10] [BE] Sentry FE+BE (DSN segregada por ambiente)** · Fase: F1 · Est: P · Dep: —
 - **[0.11] [BE] Backup automatizado RDS, definir RPO 24h / RTO 1h** · Fase: F1 · Est: P · Dep: 0.3
-- **[0.12] [BE] Domínio fractapay.app + ACM + DNS records** · Fase: F1 · Est: P · Dep: 0.2
+- **[0.12] [BE] Domínio https://cityofzion.github.io/S37 + ACM + DNS records** · Fase: F1 · Est: P · Dep: 0.2
 - **[0.13] [BE/SC] Soroban testnet deploy automation (Makefile + GH Action)** · Fase: H · Est: M · Dep: 0.7
 - **[0.14] [BE/SC] Wallet operacional FractaPay com multisig (recipient de taxa)** · Fase: F1 · Est: M · Dep: —
 - **[0.15] [FE3] Setup `web/` Vite + Tailwind + lint/format/test (Vitest+Playwright)** · Fase: H · Est: M · Dep: 0.7

@@ -231,8 +231,8 @@ export const etherfuseRoute = async (fastify: FastifyInstance): Promise<void> =>
     }
   )
 
-  // TODO: remove in Mainnet solution
-  // if (!isProduction) {
+  // TODO: remove comment in Mainnet
+  // if (!isProduction) {}
   fastify.post<{ Params: { orderId: string }; Reply: { success: boolean } | TErrorResponse }>(
     '/etherfuse/order/:orderId/simulate',
     async (request, reply) => {
@@ -244,5 +244,4 @@ export const etherfuseRoute = async (fastify: FastifyInstance): Promise<void> =>
       }
     }
   )
-  // }
 }
