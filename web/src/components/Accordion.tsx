@@ -23,7 +23,7 @@ export const Accordion = ({ value, trigger, className, defaultOpen, children }: 
   >
     <RadixAccordion.Item value={value} className="overflow-hidden">
       <RadixAccordion.Header className="flex">
-        <RadixAccordion.Trigger className="group flex flex-1 items-center justify-between gap-2 px-4 py-3 text-left text-sm text-neutral-900 font-medium outline-none transition-colors hover:bg-neutral-50 focus:bg-neutral-50">
+        <RadixAccordion.Trigger className="group flex flex-1 items-center justify-between gap-2 px-4 py-3 text-left text-sm text-neutral-900 font-medium outline-none transition-colors hover:opacity-80 focus:opacity-80 active:opacity-60">
           <span className="flex items-center gap-2">{trigger}</span>
 
           <ChevronDownIcon

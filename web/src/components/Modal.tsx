@@ -1,4 +1,5 @@
 import { type ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import * as Dialog from '@radix-ui/react-dialog'
 
@@ -15,6 +16,7 @@ type TProps = {
   description?: string
   className?: string
   closeLabel?: string
+  preventClose?: boolean
   children: ReactNode
 }
 
@@ -25,44 +27,52 @@ export const Modal = ({
   description,
   className,
   closeLabel,
+  preventClose,
   children,
-}: TProps) => (
-  <Dialog.Root open={open} onOpenChange={onOpenChange}>
-    <Dialog.Portal>
-      <Dialog.Overlay className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:duration-150" />
+}: TProps) => {
+  const { t } = useTranslation('common', { keyPrefix: 'actions' })
+  const resolvedCloseLabel = closeLabel ?? t('close')
 
-      <Dialog.Content
-        className={StyleHelper.merge(
-          'fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2',
-          'w-[min(94vw,640px)] max-h-[92vh] overflow-y-auto',
-          'rounded-2xl border border-neutral-200 bg-white text-neutral-900 shadow-lg',
-          'data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=open]:slide-in-from-bottom-2',
-          'data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=closed]:slide-out-to-bottom-2 data-[state=closed]:duration-150',
-          'p-6 space-y-4',
-          className
-        )}
-      >
-        <header className="flex items-start justify-between gap-4">
-          <div className="space-y-1">
-            <Dialog.Title className="text-lg font-semibold text-neutral-900">{title}</Dialog.Title>
-            {description && (
-              <Dialog.Description className="text-sm text-neutral-500">
-                {description}
-              </Dialog.Description>
-            )}
-          </div>
+  return (
+    <Dialog.Root open={open} onOpenChange={onOpenChange}>
+      <Dialog.Portal>
+        <Dialog.Overlay className="modal-overlay fixed inset-0 z-50 bg-black/60 backdrop-blur-sm" />
 
-          <Dialog.Close asChild>
-            <Tooltip content={closeLabel || 'Close'}>
-              <Button aria-label={closeLabel || 'Close'} variant="ghost">
-                <CloseIcon className="size-5" aria-hidden="true" />
-              </Button>
+        <Dialog.Content
+          onInteractOutside={preventClose ? event => event.preventDefault() : undefined}
+          onEscapeKeyDown={preventClose ? event => event.preventDefault() : undefined}
+          className={StyleHelper.merge(
+            'modal-content fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2',
+            'w-[min(94vw,640px)] max-h-[92vh] overflow-y-auto',
+            'rounded-2xl border border-neutral-200 bg-white text-neutral-900 shadow-lg',
+            'p-6 space-y-4',
+            className
+          )}
+        >
+          <header className="flex items-start justify-between gap-4">
+            <div className="space-y-1">
+              <Dialog.Title className="text-lg font-semibold text-neutral-900">
+                {title}
+              </Dialog.Title>
+              {description && (
+                <Dialog.Description className="text-sm text-neutral-500">
+                  {description}
+                </Dialog.Description>
+              )}
+            </div>
+
+            <Tooltip content={resolvedCloseLabel}>
+              <Dialog.Close asChild>
+                <Button aria-label={resolvedCloseLabel} variant="ghost">
+                  <CloseIcon className="size-5" aria-hidden="true" />
+                </Button>
+              </Dialog.Close>
             </Tooltip>
-          </Dialog.Close>
-        </header>
+          </header>
 
-        <div>{children}</div>
-      </Dialog.Content>
-    </Dialog.Portal>
-  </Dialog.Root>
-)
+          <div>{children}</div>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
+  )
+}

@@ -7,7 +7,6 @@ import { EnvHelper } from './helpers/EnvHelper'
 import { chatRoute } from './routes/chat-route'
 import { etherfuseRoute } from './routes/etherfuse-route'
 import { healthRoute } from './routes/health-route'
-import { uploadRoute } from './routes/upload-route'
 
 const fastify = Fastify({
   logger: isProduction
@@ -33,7 +32,7 @@ async function bootstrap(): Promise<void> {
   })
 
   await fastify.register(healthRoute)
-  await fastify.register(uploadRoute)
+
   await fastify.register(etherfuseRoute)
   await fastify.register(chatRoute)
 

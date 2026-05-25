@@ -1,17 +1,18 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import type { TDestination } from 'fractapay-shared'
-import { StringHelper } from 'fractapay-shared'
 
 import { Button } from '../components/Button'
 import { DestinationModal } from '../components/DestinationModal'
 import { Modal } from '../components/Modal'
 import { Tooltip } from '../components/Tooltip'
+import { InputHelper } from '../helpers/InputHelper'
 import { ToastHelper } from '../helpers/ToastHelper'
 import { useDestinationsStore } from '../hooks/use-destinations-store'
 
 import AddIcon from '../assets/icons/add-icon.svg?react'
+import BrazilFlagIcon from '../assets/icons/brazil-flag-icon.svg?react'
 import DeleteIcon from '../assets/icons/delete-icon.svg?react'
 import EditIcon from '../assets/icons/edit-icon.svg?react'
 import EmptyStateIcon from '../assets/icons/empty-state-icon.svg?react'
@@ -23,6 +24,12 @@ export const DestinationsPage = () => {
   const [modalOpen, setModalOpen] = useState(false)
   const [editingDestination, setEditingDestination] = useState<TDestination | undefined>(undefined)
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
+  const deletingNameRef = useRef<string>('')
+
+  const openDeleteConfirm = (id: string) => {
+    deletingNameRef.current = destinations.find(destination => destination.id === id)?.name ?? ''
+    setDeleteConfirmId(id)
+  }
 
   const handleAdd = () => {
     setEditingDestination(undefined)
@@ -51,8 +58,6 @@ export const DestinationsPage = () => {
     setDeleteConfirmId(null)
     ToastHelper.success(t('deleteSuccess'))
   }
-
-  const deletingDestination = destinations.find(destination => destination.id === deleteConfirmId)
 
   return (
     <main className="max-w-5xl mx-auto px-4 py-8 space-y-6">
@@ -99,9 +104,6 @@ export const DestinationsPage = () => {
                 <th className="text-left px-4 py-3 text-xs font-medium text-neutral-500 uppercase tracking-wider hidden sm:table-cell">
                   {t('columns.pixKey')}
                 </th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-neutral-500 uppercase tracking-wider hidden md:table-cell">
-                  {t('columns.stellarAddress')}
-                </th>
                 <th className="text-right px-4 py-3 text-xs font-medium text-neutral-500 uppercase tracking-wider">
                   {t('columns.actions')}
                 </th>
@@ -112,13 +114,15 @@ export const DestinationsPage = () => {
                 <tr key={destination.id} className="hover:bg-neutral-50 transition-colors">
                   <td className="px-4 py-3 font-medium text-neutral-900">{destination.name}</td>
                   <td className="px-4 py-3 text-neutral-700">
-                    {destination.token === 'TESOURO' ? 'Real' : destination.token}
+                    <span className="flex items-center gap-2">
+                      {destination.token === 'TESOURO' && (
+                        <BrazilFlagIcon className="size-4 shrink-0 rounded-sm" aria-hidden="true" />
+                      )}
+                      {destination.token === 'TESOURO' ? 'Real' : destination.token}
+                    </span>
                   </td>
                   <td className="px-4 py-3 text-neutral-500 font-mono text-xs hidden sm:table-cell">
-                    {StringHelper.truncateMiddle(destination.pixKey, 24)}
-                  </td>
-                  <td className="px-4 py-3 text-neutral-500 font-mono text-xs hidden md:table-cell">
-                    {StringHelper.truncateMiddle(destination.stellarAddress, 20)}
+                    {InputHelper.maskPixKeyDisplay(destination.pixKey, destination.pixKeyType)}
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-2">
@@ -138,7 +142,7 @@ export const DestinationsPage = () => {
                           size="xs"
                           aria-label={t('deleteAria', { name: destination.name })}
                           className="hover:text-red-400 focus:text-red-400"
-                          onClick={() => setDeleteConfirmId(destination.id)}
+                          onClick={() => openDeleteConfirm(destination.id)}
                         >
                           <DeleteIcon className="size-4" aria-hidden="true" />
                         </Button>
@@ -163,7 +167,7 @@ export const DestinationsPage = () => {
         open={!!deleteConfirmId}
         onOpenChange={open => !open && setDeleteConfirmId(null)}
         title={t('deleteConfirmTitle')}
-        description={t('deleteConfirmDescription', { name: deletingDestination?.name ?? '' })}
+        description={t('deleteConfirmDescription', { name: deletingNameRef.current })}
         closeLabel={t('cancel')}
       >
         <div className="flex justify-end gap-3 pt-2">

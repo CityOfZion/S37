@@ -5,14 +5,17 @@ import { useTranslation } from 'react-i18next'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as uuid from 'uuid'
 
-import type { TDestination, TPixKeyType } from 'fractapay-shared'
+import type { TDestination } from 'fractapay-shared'
 
 import { InputHelper } from '../helpers/InputHelper'
+import { useDestinationsStore } from '../hooks/use-destinations-store'
 import { destinationSchema, type TDestinationFormValues } from '../schemas/destination-schema'
 import { Button } from './Button'
 import { Input } from './Input'
 import { Modal } from './Modal'
 import { Select } from './Select'
+
+import BrazilFlagIcon from '../assets/icons/brazil-flag-icon.svg?react'
 
 type TProps = {
   open: boolean
@@ -21,37 +24,46 @@ type TProps = {
   onSave: (destination: TDestination) => void
 }
 
-const TOKEN_OPTIONS = [{ value: 'TESOURO', label: 'Real (TESOURO)' }]
-
-const PIX_KEY_TYPE_LABELS: Record<TPixKeyType, string> = {
-  evp: 'Chave aleatória (EVP)',
-  cpf: 'CPF',
-  cnpj: 'CNPJ',
-  email: 'E-mail',
-  phone: 'Telefone',
-}
-
-const PIX_KEY_TYPE_OPTIONS = Object.entries(PIX_KEY_TYPE_LABELS).map(([value, label]) => ({
-  value,
-  label,
-}))
+const TOKEN_OPTIONS = [
+  {
+    value: 'TESOURO',
+    label: 'Real',
+    icon: <BrazilFlagIcon className="size-5 rounded-sm" aria-hidden="true" />,
+  },
+]
 
 export const DestinationModal = ({ open, onOpenChange, destination, onSave }: TProps) => {
   const { t } = useTranslation('components', { keyPrefix: 'destinationModal' })
+
+  const PIX_KEY_TYPE_OPTIONS = [
+    { value: 'evp', label: t('pixKeyTypeEvp') },
+    { value: 'cpf', label: t('pixKeyTypeCpf') },
+    { value: 'cnpj', label: t('pixKeyTypeCnpj') },
+    { value: 'email', label: t('pixKeyTypeEmail') },
+    { value: 'phone', label: t('pixKeyTypePhone') },
+  ]
   const isEditing = !!destination
+
+  const { destinations } = useDestinationsStore()
 
   const {
     control,
     handleSubmit,
     reset,
+    watch,
+    setValue,
+    setError,
+    clearErrors,
     formState: { errors, isValid },
   } = useForm<TDestinationFormValues>({
     resolver: zodResolver(destinationSchema),
     defaultValues: {
       name: destination?.name ?? '',
       token: destination?.token ?? 'TESOURO',
-      stellarAddress: destination?.stellarAddress ?? '',
-      pixKey: destination?.pixKey ?? '',
+      pixKey: InputHelper.applyPixKeyMask(
+        destination?.pixKey ?? '',
+        destination?.pixKeyType ?? 'evp'
+      ),
       pixKeyType: destination?.pixKeyType ?? 'evp',
     },
     mode: 'onChange',
@@ -59,23 +71,45 @@ export const DestinationModal = ({ open, onOpenChange, destination, onSave }: TP
 
   useEffect(() => {
     if (open) {
+      const pixKeyType = destination?.pixKeyType ?? 'evp'
+
       reset({
         name: destination?.name ?? '',
         token: destination?.token ?? 'TESOURO',
-        stellarAddress: destination?.stellarAddress ?? '',
-        pixKey: destination?.pixKey ?? '',
-        pixKeyType: destination?.pixKeyType ?? 'evp',
+        pixKey: InputHelper.applyPixKeyMask(destination?.pixKey ?? '', pixKeyType),
+        pixKeyType,
       })
     }
   }, [open, destination, reset])
 
+  const pixKeyType = watch('pixKeyType')
+
   const onSubmit = (values: TDestinationFormValues) => {
+    const currentId = destination?.id
+    const name = values.name.trim()
+    const nameLowercase = name.toLowerCase()
+    const others = destinations.filter(existing => existing.id !== currentId)
+    const nameTaken = others.some(existing => existing.name.trim().toLowerCase() === nameLowercase)
+    const normalizedPixKey = InputHelper.normalizePixKeyForStorage(values.pixKey, values.pixKeyType)
+    const pixKeyTaken = others.some(existing => existing.pixKey === normalizedPixKey)
+
+    if (nameTaken) {
+      setError('name', { message: t('nameAlreadyExists') })
+
+      return
+    }
+
+    if (pixKeyTaken) {
+      setError('pixKey', { message: 'pixKeyAlreadyExists' })
+
+      return
+    }
+
     const saved: TDestination = {
-      id: destination?.id ?? uuid.v4(),
-      name: values.name,
+      id: currentId ?? uuid.v4(),
+      name,
       token: values.token,
-      stellarAddress: values.stellarAddress,
-      pixKey: values.pixKey,
+      pixKey: normalizedPixKey,
       pixKeyType: values.pixKeyType,
     }
 
@@ -102,7 +136,13 @@ export const DestinationModal = ({ open, onOpenChange, destination, onSave }: TP
               placeholder={t('namePlaceholder')}
               required
               maxLength={200}
-              error={errors.name ? t('nameError') : undefined}
+              error={
+                errors.name
+                  ? errors.name.message
+                    ? errors.name.message
+                    : t('nameError')
+                  : undefined
+              }
             />
           )}
         />
@@ -122,22 +162,6 @@ export const DestinationModal = ({ open, onOpenChange, destination, onSave }: TP
         />
 
         <Controller
-          name="stellarAddress"
-          control={control}
-          render={({ field }) => (
-            <Input
-              {...field}
-              label={t('stellarAddressLabel')}
-              placeholder={t('stellarAddressPlaceholder')}
-              required
-              error={errors.stellarAddress ? t('errors.invalidAddress') : undefined}
-              onPaste={value => field.onChange(InputHelper.sanitizeAddress(value))}
-              onChange={event => field.onChange(InputHelper.sanitizeAddressEvent(event))}
-            />
-          )}
-        />
-
-        <Controller
           name="pixKeyType"
           control={control}
           render={({ field }) => (
@@ -146,7 +170,11 @@ export const DestinationModal = ({ open, onOpenChange, destination, onSave }: TP
               required
               options={PIX_KEY_TYPE_OPTIONS}
               value={field.value}
-              onValueChange={field.onChange}
+              onValueChange={value => {
+                field.onChange(value)
+                setValue('pixKey', '', { shouldValidate: false })
+                clearErrors('pixKey')
+              }}
             />
           )}
         />
@@ -157,11 +185,24 @@ export const DestinationModal = ({ open, onOpenChange, destination, onSave }: TP
           render={({ field }) => (
             <Input
               {...field}
+              type={pixKeyType === 'email' ? 'email' : 'text'}
               label={t('pixKeyLabel')}
               placeholder={t('pixKeyPlaceholder')}
               required
-              error={errors.pixKey ? t('pixKeyError') : undefined}
-              onPaste={value => field.onChange(value.trim())}
+              maxLength={200}
+              error={
+                errors.pixKey
+                  ? errors.pixKey.message
+                    ? t(errors.pixKey.message as 'pixKeyError')
+                    : t('pixKeyError')
+                  : undefined
+              }
+              onChange={event =>
+                field.onChange(InputHelper.applyPixKeyMask(event.target.value, pixKeyType))
+              }
+              onPaste={value =>
+                field.onChange(InputHelper.applyPixKeyMask(value.trim(), pixKeyType))
+              }
             />
           )}
         />

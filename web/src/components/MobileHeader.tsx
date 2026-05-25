@@ -27,7 +27,9 @@ export const MobileHeader = () => {
 
       <div className="flex items-center gap-2">
         <img src={logoUrl} alt={APP_NAME} className="size-6 shrink-0" />
-        <span className="font-extrabold text-neutral-900 text-sm tracking-tight">{APP_NAME}</span>
+        <span className="font-extrabold text-neutral-900 text-lg tracking-tight select-none">
+          {APP_NAME}
+        </span>
       </div>
     </header>
   )

@@ -19,8 +19,10 @@ export const Tooltip = ({ content, className, open, onOpenChange, children }: TP
     <RadixTooltip.Portal>
       <RadixTooltip.Content
         sideOffset={6}
+        avoidCollisions
+        collisionPadding={8}
         className={StyleHelper.merge(
-          'z-50 rounded-lg w-fit text-center wrap-break-word bg-neutral-900 px-2.5 py-1.5 text-xs text-white shadow-md border border-neutral-700 animate-in fade-in-0 zoom-in-95',
+          'z-50 rounded-lg max-w-[72dvw] md:max-w-64 w-fit text-center wrap-break-word bg-neutral-900 px-2.5 py-1.5 text-xs text-white shadow-md border border-neutral-700 animate-in fade-in-0 zoom-in-95',
           className
         )}
       >

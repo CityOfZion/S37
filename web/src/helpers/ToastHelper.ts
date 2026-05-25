@@ -8,4 +8,8 @@ export class ToastHelper {
   static error(title: string, description?: string): void {
     toast.error(title, { description })
   }
+
+  static info(title: string, description?: string): void {
+    toast.info(title, { description })
+  }
 }

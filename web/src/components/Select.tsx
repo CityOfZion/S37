@@ -54,7 +54,7 @@ export const Select = ({
           aria-label={label}
           disabled={disabled}
           className={StyleHelper.merge(
-            'flex w-full items-center justify-between rounded-xl border border-neutral-200 bg-white px-4 py-3 text-neutral-900 outline-none transition-colors min-h-[44px]',
+            'flex w-full items-center justify-between rounded-xl border border-neutral-200 bg-white px-4 py-3 text-neutral-900 transition-colors min-h-[44px]',
             'placeholder:text-neutral-400',
             'focus:border-primary focus:ring-2 focus:ring-primary/20',
             'data-placeholder:text-neutral-400',
@@ -81,7 +81,7 @@ export const Select = ({
                   key={option.value}
                   value={option.value}
                   className={StyleHelper.merge(
-                    'flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2.5 text-sm text-neutral-900 outline-none transition-colors',
+                    'flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2.5 text-sm text-neutral-900 transition-colors',
                     'data-highlighted:bg-brand-50 data-highlighted:text-primary',
                     'data-[state=checked]:text-primary'
                   )}

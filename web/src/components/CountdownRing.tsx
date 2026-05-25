@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { match } from 'ts-pattern'
 
 import { Button } from './Button'
+import { Tooltip } from './Tooltip'
 
 import RefreshIcon from '../assets/icons/refresh-icon.svg?react'
 
@@ -77,7 +78,7 @@ export const CountdownRing = ({
     .otherwise(() => t('expiresIn', { seconds: remainingSeconds }))
 
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex items-center gap-2">
       <span aria-live="polite" className="text-xs text-neutral-500 tabular-nums whitespace-nowrap">
         {label}
       </span>
@@ -109,12 +110,26 @@ export const CountdownRing = ({
         </svg>
       </div>
 
+      <Tooltip content={t('refresh')}>
+        <Button
+          aria-label={t('refresh')}
+          variant="outline"
+          size="xs"
+          disabled={isRefreshing}
+          onClick={onRefresh}
+          className="sm:hidden"
+        >
+          <RefreshIcon className="size-4" aria-hidden="true" />
+        </Button>
+      </Tooltip>
+
       <Button
         aria-label={t('refresh')}
         variant="outline"
         size="xs"
         disabled={isRefreshing}
         onClick={onRefresh}
+        className="hidden sm:inline-flex"
       >
         <RefreshIcon className="size-4" aria-hidden="true" />
         {t('refresh')}

@@ -1,30 +1,11 @@
-import {
-  createRootRoute,
-  createRoute,
-  createRouter,
-  Outlet,
-  redirect,
-} from '@tanstack/react-router'
+import { createRootRoute, createRoute, createRouter, redirect } from '@tanstack/react-router'
 
-import { MobileHeader } from '../components/MobileHeader'
-import { Sidebar } from '../components/Sidebar'
+import { RootLayout } from '../components/RootLayout'
 import { ChatPage } from '../pages/ChatPage'
 import { DestinationsPage } from '../pages/DestinationsPage'
 import { PaymentPage } from '../pages/PaymentPage'
 
-const rootRoute = createRootRoute({
-  component: () => (
-    <div className="bg-neutral-50 text-neutral-900 min-h-screen">
-      <MobileHeader />
-      <div className="lg:flex">
-        <Sidebar />
-        <div className="flex-1 min-w-0">
-          <Outlet />
-        </div>
-      </div>
-    </div>
-  ),
-})
+const rootRoute = createRootRoute({ component: RootLayout })
 
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -70,7 +51,7 @@ const routeTree = rootRoute.addChildren([
 
 export const router = createRouter({
   routeTree,
-  basepath: import.meta.env.PROD ? '/S37' : '/',
+  basepath: import.meta.env.PROD ? '/S37' : undefined,
 })
 
 declare module '@tanstack/react-router' {

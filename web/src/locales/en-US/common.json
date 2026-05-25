@@ -1,7 +1,5 @@
 {
-  "app": {
-    "subtitle": "AI-powered batch payment processor.",
-    "tagline": "Chat with AI, upload files, and execute payments on Stellar.",
-    "hackathon": "Stellar 37°"
+  "actions": {
+    "close": "Close"
   }
 }

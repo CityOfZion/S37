@@ -36,6 +36,6 @@ export const SYMBOL_BY_TOKEN: Record<TToken, 'R$'> = {
 
 export const RECIPIENT_PERCENTAGE = new BigNumber('0.15')
 
-export const FEE_PERCENTAGE = new BigNumber('0.015')
+export const FEE_PERCENTAGE = new BigNumber('0.02')
 
 export const QUOTE_EXPIRY_SECONDS = 60

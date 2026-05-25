@@ -2,6 +2,7 @@ import type { MultipartValue } from '@fastify/multipart'
 import type { FastifyInstance } from 'fastify'
 
 import type {
+  TChatHistoryMessage,
   TChatResponse,
   TDestination,
   TDestinationAllocation,
@@ -37,7 +38,7 @@ export const chatRoute = async (fastify: FastifyInstance): Promise<void> => {
       return reply.status(400).send({ success: false, error: ErrorCode.INVALID_PAYLOAD })
     }
 
-    let messages: { role: 'user' | 'assistant'; content: string }[] = []
+    let messages: TChatHistoryMessage[] = []
     let destinations: TDestination[] = []
     let payments: TPayment[] = []
     let allocations: TDestinationAllocation[] = []
@@ -63,6 +64,7 @@ export const chatRoute = async (fastify: FastifyInstance): Promise<void> => {
 
     let filePayments: TPayment[] | undefined
     let filePrice: string | undefined
+    let fileContent: string | undefined
 
     const hasFile =
       data.filename &&
@@ -85,17 +87,48 @@ export const chatRoute = async (fastify: FastifyInstance): Promise<void> => {
 
         const buffer = Buffer.concat(chunks)
 
+        let parsedFileContent: string
+
         try {
-          const fileContent = await FileHelper.parse(buffer, data.filename, data.mimetype)
-          const result = await analyze(fileContent, {
+          parsedFileContent = await FileHelper.parse(buffer, data.filename, data.mimetype)
+        } catch (error) {
+          request.log.error({ filename: data.filename, error }, 'File parse failed')
+
+          return reply.status(200).send({
+            message: '',
+            action: 'none',
+            errorCode: ErrorCode.FILE_PARSE_FAILED,
+            filename: data.filename,
+          })
+        }
+
+        try {
+          const result = await analyze(parsedFileContent, {
             token: 'TESOURO',
             language: detectedLanguage,
           })
 
+          if (result.payments.length === 0) {
+            return reply.status(200).send({
+              message: '',
+              action: 'none',
+              errorCode: ErrorCode.NO_PAYMENTS_FOUND,
+              filename: data.filename,
+            })
+          }
+
+          fileContent = parsedFileContent
           filePayments = result.payments
           filePrice = result.price
-        } catch {
-          // file processing failed — continue without file payments
+        } catch (error) {
+          request.log.error({ filename: data.filename, error }, 'AI analysis failed')
+
+          return reply.status(200).send({
+            message: '',
+            action: 'none',
+            errorCode: ErrorCode.FILE_PARSE_FAILED,
+            filename: data.filename,
+          })
         }
       } else {
         for await (const _ of data.file) {
@@ -117,6 +150,7 @@ export const chatRoute = async (fastify: FastifyInstance): Promise<void> => {
         language: detectedLanguage,
         filePayments,
         filePrice,
+        fileContent,
       })
 
       return reply.status(200).send(result)

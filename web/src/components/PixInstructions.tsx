@@ -43,13 +43,13 @@ export const PixInstructions = ({ pix, orderId, onSimulated }: TProps) => {
   }
 
   return (
-    <div className="space-y-4 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
+    <div className="space-y-4 mt-8">
       <div className="flex flex-col items-center gap-3">
         <div className="rounded-xl bg-white p-3">
           <QRCode value={pix.pixCode} size={180} level="M" aria-label={t('qrLabel')} />
         </div>
 
-        <p className="text-sm text-neutral-500 text-center">
+        <p className="text-lg text-neutral-500 text-center">
           {t('amount')}:{' '}
           <strong className="text-neutral-900">
             {StringHelper.formatCurrencyAmount(pix.amount, 'TESOURO')}
@@ -66,33 +66,27 @@ export const PixInstructions = ({ pix, orderId, onSimulated }: TProps) => {
         </label>
 
         <div className="flex items-stretch gap-2">
-          <textarea
+          <div
             id="pix-code"
-            readOnly
-            value={pix.pixCode}
-            rows={3}
-            className="w-full rounded-xl border border-neutral-200 bg-white p-3 text-xs font-mono text-neutral-900 outline-none resize-none break-all"
-          />
+            className="w-full rounded-xl border border-neutral-200 bg-white p-3 text-xs font-mono text-neutral-900 resize-none break-all"
+          >
+            {pix.pixCode}
+          </div>
 
           <Tooltip content={t('copy')}>
             <Button aria-label={t('copy')} variant="outline" size="sm" onClick={copyCode}>
-              <ClipboardIcon className="size-4" aria-hidden="true" />
+              <ClipboardIcon className="size-5" aria-hidden="true" />
             </Button>
           </Tooltip>
         </div>
       </div>
-
-      {pix.beneficiary && (
-        <p className="text-xs text-neutral-500">
-          {t('beneficiary')}: <span className="text-neutral-900">{pix.beneficiary}</span>
-        </p>
-      )}
 
       {orderId && (
         <div className="flex justify-end">
           <Button
             variant="outline"
             size="sm"
+            className="max-sm:w-full"
             disabled={simulateMutation.isPending}
             onClick={simulate}
           >

@@ -59,48 +59,111 @@
   --font-mono: 'JetBrains Mono';
 
   /* Shadows */
-  --shadow-sm: 0 1px 2px rgba(26, 24, 50, 0.06);
-  --shadow-md: 0 4px 12px rgba(26, 24, 50, 0.08);
-  --shadow-lg: 0 12px 28px rgba(26, 24, 50, 0.12);
-  --shadow-brand: 0 8px 24px rgba(123, 97, 255, 0.28);
+  --shadow-sm: 0 1px 2px color-mix(in srgb, var(--color-neutral-900) 6%, transparent);
+  --shadow-md: 0 4px 12px color-mix(in srgb, var(--color-neutral-900) 8%, transparent);
+  --shadow-lg: 0 12px 28px color-mix(in srgb, var(--color-neutral-900) 12%, transparent);
+  --shadow-brand: 0 8px 24px color-mix(in srgb, var(--color-brand-500) 28%, transparent);
+}
+
+@keyframes overlay-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes overlay-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    scale: 0.96;
+    margin-top: 12px;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+    margin-top: 0;
+  }
+}
+
+@keyframes modal-out {
+  from {
+    opacity: 1;
+    scale: 1;
+    margin-top: 0;
+  }
+  to {
+    opacity: 0;
+    scale: 0.96;
+    margin-top: 8px;
+  }
+}
+
+.modal-overlay[data-state='open'] {
+  animation: overlay-in 0.2s ease-out;
+}
+.modal-overlay[data-state='closed'] {
+  animation: overlay-out 0.15s ease-in forwards;
+}
+.modal-content[data-state='open'] {
+  animation: modal-in 0.2s ease-out;
+}
+.modal-content[data-state='closed'] {
+  animation: modal-out 0.15s ease-in forwards;
 }
 
 @layer base {
   * {
-    box-sizing: border-box;
+    @apply box-border;
   }
 
   body {
-    @apply bg-neutral-50 text-neutral-900 antialiased;
+    @apply bg-neutral-50 text-neutral-900 antialiased font-sans;
+  }
 
-    font-family: var(--font-sans), system-ui, sans-serif;
+  img {
+    @apply select-none pointer-events-none;
   }
 
   button {
-    cursor: pointer;
+    @apply cursor-pointer;
   }
 
   button:disabled {
-    cursor: default;
+    @apply cursor-default;
+  }
+
+  :focus-visible {
+    @apply outline-none ring-2 ring-brand-500;
   }
 
   ::-webkit-scrollbar {
-    --size: 6px;
-
-    width: var(--size);
-    height: var(--size);
+    @apply size-1.5;
   }
 
   ::-webkit-scrollbar-track {
-    background: #efedf5;
+    @apply bg-neutral-100;
   }
 
   ::-webkit-scrollbar-thumb {
-    background: #c4bfd4;
-    border-radius: 9999px;
+    @apply bg-neutral-300 rounded-full;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: #9690ae;
+    @apply bg-neutral-400;
+  }
+
+  ::selection {
+    @apply bg-brand-500/72 text-white;
   }
 }

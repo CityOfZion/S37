@@ -21,6 +21,8 @@ export enum ErrorCode {
   PENDING_ORDER_EXISTS = 'PENDING_ORDER_EXISTS',
   CUSTOMER_ALREADY_EXISTS = 'CUSTOMER_ALREADY_EXISTS',
   CUSTOMER_NOT_FOUND = 'CUSTOMER_NOT_FOUND',
+  FILE_PARSE_FAILED = 'FILE_PARSE_FAILED',
+  NO_PAYMENTS_FOUND = 'NO_PAYMENTS_FOUND',
   UNKNOWN = 'UNKNOWN',
 }
 
@@ -33,24 +35,6 @@ export type TPayment = {
 export type TPaymentResponse = {
   payments: TPayment[]
   price: string
-}
-
-export type TUploadPayload = {
-  file: File
-  token: TToken
-  address: string
-}
-
-export type TUploadResult = {
-  success: boolean
-  payments: TPayment[]
-  price: string
-  error?: ErrorCode
-}
-
-export type TRecipientShare = {
-  address: string
-  percentage: number
 }
 
 export type TFiatCurrency = 'BRL'
@@ -137,7 +121,6 @@ export type TDestination = {
   id: string
   name: string
   token: TToken
-  stellarAddress: string
   pixKey: string
   pixKeyType: TPixKeyType
 }
@@ -149,12 +132,16 @@ export type TDestinationAllocation = {
 
 export type TPaymentSummaryItem = {
   destinationName: string
-  stellarAddress: string
+  token: TToken
   amount: string
   percentage: number
+  feeAmount?: string
+  totalAmount?: string
 }
 
 export type TChatRole = 'user' | 'assistant'
+
+export type TChatHistoryMessage = { role: TChatRole; content: string }
 
 export type TChatMessage = {
   id: string
@@ -169,18 +156,11 @@ export type TChatMessage = {
 export type TChatAction =
   | 'none'
   | 'add_payments'
+  | 'update_payments'
   | 'set_allocations'
   | 'request_confirmation'
   | 'execute'
   | 'clear'
-
-export type TChatRequest = {
-  messages: { role: TChatRole; content: string }[]
-  destinations: TDestination[]
-  payments: TPayment[]
-  allocations: TDestinationAllocation[]
-  language: TLanguage
-}
 
 export type TChatResponse = {
   message: string
@@ -189,4 +169,6 @@ export type TChatResponse = {
   price?: string
   allocations?: TDestinationAllocation[]
   summary?: TPaymentSummaryItem[]
+  errorCode?: ErrorCode
+  filename?: string
 }

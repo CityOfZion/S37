@@ -1,14 +1,14 @@
 import { useMutation } from '@tanstack/react-query'
 import { isAxiosError } from 'axios'
 
-import type { TChatResponse } from 'fractapay-shared'
+import type { TChatHistoryMessage, TChatResponse } from 'fractapay-shared'
 import type { TDestination, TDestinationAllocation, TLanguage, TPayment } from 'fractapay-shared'
 import { ErrorCode } from 'fractapay-shared'
 
 import { server } from '../services/server'
 
 type TChatMutationInput = {
-  messages: { role: 'user' | 'assistant'; content: string }[]
+  messages: TChatHistoryMessage[]
   destinations: TDestination[]
   payments: TPayment[]
   allocations: TDestinationAllocation[]

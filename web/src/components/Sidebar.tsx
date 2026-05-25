@@ -1,26 +1,25 @@
-import { type ComponentType, type SVGProps } from 'react'
+import { type ComponentType, type SVGProps, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Link, useRouterState } from '@tanstack/react-router'
 
-import { DEFAULT_LANGUAGE } from 'fractapay-shared'
 import type { TLanguage } from 'fractapay-shared'
+import { DEFAULT_LANGUAGE } from 'fractapay-shared'
 
 import logoUrl from '../assets/logos/logo.svg'
 import { APP_NAME, LANGUAGE_NAMES } from '../constants'
 import { StyleHelper } from '../helpers/StyleHelper'
-import { useChatStore } from '../hooks/use-chat-store'
-import { useEtherfuseStore } from '../hooks/use-etherfuse-store'
 import { useLanguageStore } from '../hooks/use-language-store'
-import { usePaymentsStore } from '../hooks/use-payments-store'
 import { useSidebarStore } from '../hooks/use-sidebar-store'
 import { Button } from './Button'
 import { Tooltip } from './Tooltip'
 
+import BrazilFlagIcon from '../assets/icons/brazil-flag-icon.svg?react'
 import ChatIcon from '../assets/icons/chat-icon.svg?react'
 import CloseIcon from '../assets/icons/close-icon.svg?react'
 import DestinationsIcon from '../assets/icons/destinations-icon.svg?react'
 import LogoutIcon from '../assets/icons/logout-icon.svg?react'
+import UsaFlagIcon from '../assets/icons/usa-flag-icon.svg?react'
 
 type TNavItem = {
   path: string
@@ -40,24 +39,23 @@ type TNavContentProps = {
   onClose: () => void
   isActive: (path: string) => boolean
   toggleLanguage: () => void
-  handleLogout: () => void
 }
 
-const NavContent = ({ onClose, isActive, toggleLanguage, handleLogout }: TNavContentProps) => {
+const NavContent = ({ onClose, isActive, toggleLanguage }: TNavContentProps) => {
   const { t } = useTranslation('components', { keyPrefix: 'sidebar' })
   const { language } = useLanguageStore()
 
   return (
     <nav className="flex flex-col h-full" aria-label={t('label')}>
-      <div className="flex items-center gap-3 px-4 py-5 border-b border-white/10">
+      <div className="flex items-center gap-2 px-4 py-5 border-b border-white/10">
         <img src={logoUrl} alt={APP_NAME} className="size-8 shrink-0" />
-        <span className="font-extrabold text-white text-base tracking-tight truncate">
+        <span className="font-extrabold text-white text-xl tracking-tight truncate select-none">
           {APP_NAME}
         </span>
       </div>
 
       <div className="flex-1 overflow-y-auto px-2 py-3">
-        <p className="text-[10px] font-bold tracking-widest uppercase text-neutral-500 px-3 mb-2">
+        <p className="text-[10px] font-bold tracking-widest uppercase text-neutral-500 px-3 mb-2 select-none">
           {t('menuSection')}
         </p>
         <ul className="space-y-0.5">
@@ -92,22 +90,26 @@ const NavContent = ({ onClose, isActive, toggleLanguage, handleLogout }: TNavCon
         <Button
           variant="ghost"
           onClick={toggleLanguage}
-          className={StyleHelper.merge(BOTTOM_BUTTON_CLASS, 'text-neutral-400 hover:text-white hover:bg-white/5')}
+          className={StyleHelper.merge(
+            BOTTOM_BUTTON_CLASS,
+            'text-neutral-400 hover:text-white hover:bg-white/5 active:bg-white/10'
+          )}
           aria-label={t('switchLanguage')}
         >
-          <span
-            className="size-5 flex items-center justify-center text-base shrink-0"
-            aria-hidden="true"
-          >
-            {language === DEFAULT_LANGUAGE ? '🇺🇸' : '🇧🇷'}
-          </span>
+          {language === DEFAULT_LANGUAGE ? (
+            <UsaFlagIcon className="size-5 shrink-0 rounded-sm" aria-hidden="true" />
+          ) : (
+            <BrazilFlagIcon className="size-5 shrink-0 rounded-sm" aria-hidden="true" />
+          )}
           <span>{LANGUAGE_NAMES[language]}</span>
         </Button>
 
         <Button
           variant="ghost"
-          onClick={handleLogout}
-          className={StyleHelper.merge(BOTTOM_BUTTON_CLASS, 'text-neutral-400 hover:text-red-400 hover:bg-red-400/5')}
+          className={StyleHelper.merge(
+            BOTTOM_BUTTON_CLASS,
+            'text-neutral-400 hover:text-red-400 hover:bg-red-400/5 active:bg-red-400/10'
+          )}
           aria-label={t('logout')}
         >
           <LogoutIcon className="size-5 shrink-0" aria-hidden="true" />
@@ -122,10 +124,32 @@ export const Sidebar = () => {
   const { t } = useTranslation('components', { keyPrefix: 'sidebar' })
   const currentPath = useRouterState({ select: state => state.location.pathname })
   const { language, setLanguage } = useLanguageStore()
-  const { reset: resetChat } = useChatStore()
-  const { reset: resetEtherfuse } = useEtherfuseStore()
-  const { setPayments, setAddress, setPrice } = usePaymentsStore()
   const { mobileOpen, setMobileOpen } = useSidebarStore()
+
+  const asideRef = useRef<HTMLElement>(null)
+
+  useEffect(() => {
+    const aside = asideRef.current
+    if (!aside) return
+
+    const update = () => {
+      const isDesktop = window.matchMedia('(min-width: 1024px)').matches
+
+      if (!isDesktop && !mobileOpen) {
+        aside.setAttribute('inert', '')
+      } else {
+        aside.removeAttribute('inert')
+      }
+    }
+
+    update()
+
+    const media = window.matchMedia('(min-width: 1024px)')
+
+    media.addEventListener('change', update)
+
+    return () => media.removeEventListener('change', update)
+  }, [mobileOpen])
 
   const isActive = (path: string) => currentPath.startsWith(path)
 
@@ -135,26 +159,18 @@ export const Sidebar = () => {
     setLanguage(next)
   }
 
-  const handleLogout = () => {
-    resetChat()
-    resetEtherfuse()
-    setPayments([])
-    setAddress('')
-    setPrice('0')
-    setMobileOpen(false)
-  }
-
   return (
     <>
       {mobileOpen && (
         <div
-          className="lg:hidden fixed inset-0 z-40 bg-neutral-900/60 backdrop-blur-sm"
+          className="lg:hidden fixed inset-0 z-40 bg-neutral-900/60 backdrop-blur-xs"
           onClick={() => setMobileOpen(false)}
           aria-hidden="true"
         />
       )}
 
       <aside
+        ref={asideRef}
         className={StyleHelper.merge(
           'fixed top-0 left-0 z-50 h-full w-60 bg-neutral-900 border-r border-white/20 transition-transform duration-300',
           'lg:sticky lg:top-0 lg:h-screen lg:z-auto lg:translate-x-0 lg:shrink-0',
@@ -178,7 +194,6 @@ export const Sidebar = () => {
           onClose={() => setMobileOpen(false)}
           isActive={isActive}
           toggleLanguage={toggleLanguage}
-          handleLogout={handleLogout}
         />
       </aside>
     </>

@@ -5,16 +5,21 @@ import { useNavigate } from '@tanstack/react-router'
 import BigNumber from 'bignumber.js'
 import { match } from 'ts-pattern'
 
-import type { TKycStatus, TOrderResult, TQuoteResult } from 'fractapay-shared'
-import {
-  FEE_PERCENTAGE,
-  QUOTE_EXPIRY_SECONDS,
-  RECIPIENT_PERCENTAGE,
-  StringHelper,
+import type {
+  TDestinationAllocation,
+  TKycStatus,
+  TOrderResult,
+  TQuoteResult,
 } from 'fractapay-shared'
+import { FEE_PERCENTAGE, FIAT_BY_TOKEN, QUOTE_EXPIRY_SECONDS, StringHelper } from 'fractapay-shared'
 
 import tesouroIconUrl from '../assets/icons/tesouro-icon.webp'
 import { ToastHelper } from '../helpers/ToastHelper'
+
+const TOKEN_ICON_URL: Partial<Record<string, string>> = {
+  TESOURO: tesouroIconUrl,
+}
+
 import { useCountdown } from '../hooks/use-countdown'
 import { useCustomerLookupQuery } from '../hooks/use-customer-lookup-query'
 import { useEtherfuseStore } from '../hooks/use-etherfuse-store'
@@ -28,29 +33,60 @@ import { Button } from './Button'
 import { CountdownRing } from './CountdownRing'
 import { Modal } from './Modal'
 import { PixInstructions } from './PixInstructions'
+import { Skeleton } from './Skeleton'
+import { Tooltip } from './Tooltip'
+
+import InfoIcon from '../assets/icons/info-icon.svg?react'
+
+const TruncatedAddress = ({ address }: { address: string }) => {
+  const [open, setOpen] = useState(false)
+
+  return (
+    <dd className="font-mono text-right">
+      <Tooltip content={address} open={open} onOpenChange={setOpen}>
+        <span
+          tabIndex={0}
+          className="sm:hidden cursor-pointer"
+          onClick={() => setOpen(previous => !previous)}
+          onKeyDown={event => event.key === 'Enter' && setOpen(previous => !previous)}
+        >
+          {StringHelper.truncateMiddle(address, 24)}
+        </span>
+      </Tooltip>
+      <span className="hidden sm:inline break-all">{address}</span>
+    </dd>
+  )
+}
 
 type TProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
   recipientAddress: string
-  recipientPercentage?: BigNumber
+  allocations: TDestinationAllocation[]
+  onPaymentCompleted?: () => void
 }
 
 export const ReviewModal = ({
   open,
   onOpenChange,
   recipientAddress,
-  recipientPercentage,
+  allocations,
+  onPaymentCompleted,
 }: TProps) => {
   const { t } = useTranslation('components', { keyPrefix: 'reviewModal' })
   const navigate = useNavigate()
   const { payments, token, setPayments } = usePaymentsStore()
   const account = useEtherfuseStore(state => state.accounts[recipientAddress])
   const setAccount = useEtherfuseStore(state => state.setAccount)
+  const removeAccount = useEtherfuseStore(state => state.removeAccount)
   const onboardingMutation = useOnboardingMutation()
   const quoteMutation = useQuoteMutation()
   const orderMutation = useOrderMutation()
   const [order, setOrder] = useState<TOrderResult | null>(null)
+  const [feeTooltipOpen, setFeeTooltipOpen] = useState(false)
+  const [quoteReady, setQuoteReady] = useState(false)
+  const [quote, setQuote] = useState<TQuoteResult | null>(null)
+  const [isQuotePending, setIsQuotePending] = useState(false)
 
   const customerLookupQuery = useCustomerLookupQuery({
     publicKey: recipientAddress,
@@ -89,27 +125,16 @@ export const ReviewModal = ({
   const recipientAmount = useMemo(
     () =>
       StringHelper.formatAmount(
-        new BigNumber(totalAmount).times(recipientPercentage ?? RECIPIENT_PERCENTAGE)
+        new BigNumber(totalAmount).times(
+          allocations.reduce((sum, allocation) => sum + allocation.percentage, 0) / 100
+        )
       ),
-    [totalAmount, recipientPercentage]
+    [totalAmount, allocations]
   )
-
-  const quote: TQuoteResult | undefined = quoteMutation.data
-
-  const etherfuseFeeAmount = useMemo(
-    () => StringHelper.formatAmount(quote?.etherfuseFeeAmount || '0'),
-    [quote?.etherfuseFeeAmount]
-  )
-
-  const fractapayFeeAmount = useMemo(() => {
-    if (quote?.fractapayFeeAmount) return StringHelper.formatAmount(quote.fractapayFeeAmount)
-
-    return StringHelper.formatAmount(new BigNumber(recipientAmount).times(FEE_PERCENTAGE))
-  }, [recipientAmount, quote?.fractapayFeeAmount])
 
   const feeAmount = useMemo(
-    () => StringHelper.formatAmount(new BigNumber(etherfuseFeeAmount).plus(fractapayFeeAmount)),
-    [etherfuseFeeAmount, fractapayFeeAmount]
+    () => StringHelper.formatAmount(new BigNumber(quote?.feeAmount || '0')),
+    [quote?.feeAmount]
   )
 
   const totalToPay = useMemo(
@@ -117,52 +142,64 @@ export const ReviewModal = ({
     [recipientAmount, feeAmount]
   )
 
-  const quoteMutateRef = useRef(quoteMutation.mutate)
-  quoteMutateRef.current = quoteMutation.mutate
-
   const inFlightRef = useRef(false)
+  const quoteMutateAsyncRef = useRef(quoteMutation.mutateAsync)
+  const quoteResetRef = useRef(quoteMutation.reset)
+  quoteMutateAsyncRef.current = quoteMutation.mutateAsync
+  quoteResetRef.current = quoteMutation.reset
 
-  const fetchQuote = useCallback(() => {
+  const fetchQuote = useCallback(async () => {
     if (inFlightRef.current) return
     if (!account?.customerId) return
     if (new BigNumber(recipientAmount).isLessThanOrEqualTo(0)) return
 
+    setQuote(null)
+    setQuoteReady(false)
+    setIsQuotePending(true)
     inFlightRef.current = true
-    quoteMutateRef.current(
-      {
+
+    try {
+      const result = await quoteMutateAsyncRef.current({
         customerId: account.customerId,
         sourceAmount: recipientAmount,
         token,
         publicKey: recipientAddress,
-      },
-      {
-        onSettled: () => {
-          inFlightRef.current = false
-        },
-      }
-    )
-  }, [account?.customerId, recipientAddress, recipientAmount, token])
+      })
+      setQuote(result)
+      setQuoteReady(true)
+    } catch {
+      removeAccount(recipientAddress)
+      ToastHelper.error(t('orderError'))
+    } finally {
+      inFlightRef.current = false
+      setIsQuotePending(false)
+    }
+  }, [account?.customerId, recipientAmount, token, recipientAddress, removeAccount, t])
 
   const { remainingSeconds, isExpired } = useCountdown(quote?.expiresAt || null)
 
   const kycStatusForEffect = kycQuery.data?.status
-  const hasQuote = !!quoteMutation.data
+  const hasQuote = !!quote
+  const isQuoteError = quoteMutation.isError
 
   useEffect(() => {
     if (!open || !account?.customerId || kycStatusForEffect !== 'approved') return
     if (hasQuote && !isExpired) return
+    if (isQuoteError) return
 
-    fetchQuote()
-  }, [open, account?.customerId, kycStatusForEffect, hasQuote, isExpired, fetchQuote])
+    void fetchQuote()
+  }, [open, account?.customerId, kycStatusForEffect, hasQuote, isExpired, isQuoteError, fetchQuote])
 
-  const quoteResetRef = useRef(quoteMutation.reset)
   const orderResetRef = useRef(orderMutation.reset)
 
-  quoteResetRef.current = quoteMutation.reset
   orderResetRef.current = orderMutation.reset
 
   useEffect(() => {
     if (!open) {
+      inFlightRef.current = false
+      setQuote(null)
+      setQuoteReady(false)
+      setIsQuotePending(false)
       quoteResetRef.current()
       orderResetRef.current()
       setOrder(null)
@@ -228,7 +265,7 @@ export const ReviewModal = ({
       kycStatus,
     })
       .with({ isLookingUpCustomer: true }, () => (
-        <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-700 flex items-center gap-2">
+        <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-xs text-neutral-700 flex items-center gap-2">
           <span
             className="inline-block size-4 rounded-full border-2 border-neutral-300 border-t-primary animate-spin shrink-0"
             aria-hidden="true"
@@ -237,22 +274,17 @@ export const ReviewModal = ({
         </div>
       ))
       .with({ hasCustomer: false }, () => (
-        <div className="rounded-xl border border-warning-500/30 bg-warning-100 px-4 py-3 text-sm text-neutral-700">
+        <div className="rounded-xl border border-warning-500/30 bg-warning-100 px-4 py-3 text-xs text-neutral-700">
           {t('kycRequired')}
         </div>
       ))
-      .with({ kycStatus: 'not_started' }, () => (
-        <div className="rounded-xl border border-info-500/30 bg-info-100 px-4 py-3 text-sm text-neutral-700">
-          {t('kycPending')}
-        </div>
-      ))
-      .with({ kycStatus: 'pending' }, () => (
-        <div className="rounded-xl border border-info-500/30 bg-info-100 px-4 py-3 text-sm text-neutral-700">
+      .with({ kycStatus: 'not_started' }, { kycStatus: 'pending' }, () => (
+        <div className="rounded-xl border border-info-500/30 bg-info-100 px-4 py-3 text-xs text-neutral-700">
           {t('kycPending')}
         </div>
       ))
       .with({ kycStatus: 'rejected' }, () => (
-        <div className="rounded-xl border border-danger-500/30 bg-danger-100 px-4 py-3 text-sm text-neutral-700">
+        <div className="rounded-xl border border-danger-500/30 bg-danger-100 px-4 py-3 text-xs text-neutral-700">
           {t('kycRejected')}
         </div>
       ))
@@ -265,12 +297,14 @@ export const ReviewModal = ({
       title={t('title')}
       description={t('description')}
       closeLabel={t('close')}
+      preventClose
     >
       {order?.pix ? (
         <PixInstructions
           pix={order.pix}
           orderId={order.orderId}
           onSimulated={() => {
+            onPaymentCompleted?.()
             onOpenChange(false)
             setPayments([])
             void navigate({ to: '/payment/$orderId', params: { orderId: order.orderId } })
@@ -280,10 +314,8 @@ export const ReviewModal = ({
         <div className="space-y-4">
           {renderHeaderState()}
 
-          <div className="flex items-start gap-3 rounded-xl border-l-4 border-warning-500 bg-warning-100 px-4 py-3 text-sm text-neutral-700">
-            <span aria-hidden="true" className="shrink-0 text-base">
-              ⚠️
-            </span>
+          <div className="flex items-start gap-2 text-xs rounded-xl border border-info-500/30 bg-info-100 px-3 py-2 text-neutral-700">
+            <InfoIcon className="size-4 shrink-0 text-info-500 mt-0.5" aria-hidden="true" />
             <p>{t('reviewWarning')}</p>
           </div>
 
@@ -297,7 +329,7 @@ export const ReviewModal = ({
                 <thead className="bg-neutral-50">
                   <tr>
                     <th className="text-left px-4 py-2 text-xs font-medium text-neutral-500 uppercase">
-                      {t('address')}
+                      {t('recipient')}
                     </th>
                     <th className="text-right px-4 py-2 text-xs font-medium text-neutral-500 uppercase">
                       {t('percentage')}
@@ -307,76 +339,120 @@ export const ReviewModal = ({
                     </th>
                   </tr>
                 </thead>
-                <tbody>
-                  <tr>
-                    <td className="px-4 py-2 font-mono text-neutral-900">
-                      {StringHelper.truncateMiddle(recipientAddress, 20)}
-                    </td>
-                    <td className="px-4 py-2 text-right text-neutral-900">
-                      {(recipientPercentage ?? RECIPIENT_PERCENTAGE).times(100).toFixed(0)}%
-                    </td>
-                    <td className="px-4 py-2 text-right font-semibold text-neutral-900 whitespace-nowrap">
-                      {StringHelper.formatCurrencyAmount(recipientAmount, token)}
-                    </td>
-                  </tr>
+                <tbody className="text-xs">
+                  {allocations.map(allocation => {
+                    const allocationAmount = StringHelper.formatAmount(
+                      new BigNumber(totalAmount).times(allocation.percentage / 100)
+                    )
+
+                    return (
+                      <tr key={allocation.destination.id}>
+                        <td className="px-4 py-2 text-neutral-900">
+                          {allocation.destination.name}
+                        </td>
+                        <td className="px-4 py-2 text-right text-neutral-900">
+                          {allocation.percentage}%
+                        </td>
+                        <td className="px-4 py-2 text-right font-bold text-neutral-900 whitespace-nowrap">
+                          {StringHelper.formatCurrencyAmount(allocationAmount, token)}
+                        </td>
+                      </tr>
+                    )
+                  })}
                 </tbody>
               </table>
             </div>
           </section>
 
-          <Accordion
-            value="fees"
-            defaultOpen
-            trigger={
-              <span className="flex items-center gap-2">
-                <img
-                  src={tesouroIconUrl}
-                  alt=""
-                  aria-hidden="true"
-                  className="size-5 rounded-full object-cover"
-                />
-                <span>{t('feesTitle')}</span>
-              </span>
-            }
-          >
-            <dl className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <dt>{t('subtotal')}</dt>
-                <dd>{StringHelper.formatCurrencyAmount(recipientAmount, token)}</dd>
-              </div>
-              <div className="flex items-center justify-between">
-                <dt>{t('etherfuseFee')}</dt>
-                <dd>{StringHelper.formatCurrencyAmount(etherfuseFeeAmount, token)}</dd>
-              </div>
-              <div className="flex items-center justify-between">
-                <dt>{t('fractapayFee', { percentage: FEE_PERCENTAGE.times(100).toFixed(1) })}</dt>
-                <dd>{StringHelper.formatCurrencyAmount(fractapayFeeAmount, token)}</dd>
-              </div>
-              <div className="flex items-center justify-between border-t border-neutral-200 pt-2">
-                <dt className="font-semibold text-neutral-900">{t('total')}</dt>
-                <dd className="font-semibold text-neutral-900">
-                  {StringHelper.formatCurrencyAmount(totalToPay, token)}
+          <Accordion defaultOpen value="fees" trigger={<span>{t('feesTitle')}</span>}>
+            <dl className="text-xs text-neutral-700">
+              <div className="flex items-center justify-between pb-1.5 border-b border-neutral-100">
+                <dt className="text-neutral-500">{t('coinLabel')}</dt>
+                <dd className="flex items-center gap-1.5">
+                  {TOKEN_ICON_URL[token] && (
+                    <img
+                      src={TOKEN_ICON_URL[token]}
+                      alt={token}
+                      className="size-4 rounded-full object-cover"
+                    />
+                  )}
+                  <span>{token}</span>
                 </dd>
               </div>
-              {quote && (
-                <div className="flex items-center justify-between pt-2 text-xs text-neutral-500">
-                  <dt>{t('rate')}</dt>
+              {isReadyForQuote && (
+                <div className="flex items-center justify-between py-1.5 border-b border-neutral-100">
+                  <dt className="text-neutral-500">{t('rate')}</dt>
                   <dd>
-                    1 BRL ≈ {StringHelper.formatAmount(quote.exchangeRate)} {token}
+                    {!quoteReady ? (
+                      <Skeleton />
+                    ) : (
+                      t('rateValue', {
+                        fiat: t(`fiatByToken.${FIAT_BY_TOKEN[token]}`).toLowerCase(),
+                        rate: StringHelper.formatAmount(quote?.exchangeRate ?? '0'),
+                        token,
+                      })
+                    )}
                   </dd>
                 </div>
               )}
+              {recipientAddress && (
+                <div className="flex items-center justify-between py-1.5 border-b border-neutral-100">
+                  <dt className="text-neutral-500">{t('address')}</dt>
+                  <TruncatedAddress address={recipientAddress} />
+                </div>
+              )}
+              <div className="flex items-center justify-between py-1.5 border-b border-neutral-100">
+                <dt className="text-neutral-500">{t('subtotal')}</dt>
+                <dd>{StringHelper.formatCurrencyAmount(recipientAmount, token)}</dd>
+              </div>
+              <div className="flex items-center justify-between py-1.5 border-b border-neutral-100">
+                <dt className="flex items-center gap-1 text-neutral-500">
+                  {t('feeLabel')}
+                  <Tooltip
+                    content={t('feeTooltip', { fee: FEE_PERCENTAGE.times(100).toFixed(0) })}
+                    open={feeTooltipOpen}
+                    onOpenChange={setFeeTooltipOpen}
+                  >
+                    <span
+                      tabIndex={0}
+                      className="inline-flex cursor-pointer"
+                      aria-label={t('feeTooltip', { fee: FEE_PERCENTAGE.times(100).toFixed(0) })}
+                      onClick={() => setFeeTooltipOpen(previous => !previous)}
+                      onKeyDown={event =>
+                        event.key === 'Enter' && setFeeTooltipOpen(previous => !previous)
+                      }
+                    >
+                      <InfoIcon className="size-3 text-neutral-400" aria-hidden="true" />
+                    </span>
+                  </Tooltip>
+                </dt>
+                <dd>
+                  {!quoteReady ? <Skeleton /> : StringHelper.formatCurrencyAmount(feeAmount, token)}
+                </dd>
+              </div>
+              <div className="flex items-center justify-between pt-1.5">
+                <dt className="font-bold text-neutral-900">{t('total')}</dt>
+                <dd className="font-bold text-neutral-900">
+                  {!quoteReady ? (
+                    <Skeleton className="h-3 w-24" />
+                  ) : (
+                    StringHelper.formatCurrencyAmount(totalToPay, token)
+                  )}
+                </dd>
+              </div>
             </dl>
           </Accordion>
 
-          <div className="flex items-center justify-between flex-wrap gap-3">
+          <div className="flex flex-row-reverse sm:flex-row items-center justify-between flex-wrap gap-3">
             <CountdownRing
               expiresAt={quote?.expiresAt || null}
               remainingSeconds={remainingSeconds}
               totalSeconds={QUOTE_EXPIRY_SECONDS}
               isExpired={isExpired || !quote}
-              isRefreshing={quoteMutation.isPending}
-              onRefresh={fetchQuote}
+              isRefreshing={isQuotePending}
+              onRefresh={() => {
+                void fetchQuote()
+              }}
             />
 
             {match({
@@ -408,10 +484,11 @@ export const ReviewModal = ({
               ))
               .with({ isReadyForQuote: true }, () => (
                 <Button
+                  className="w-full sm:w-auto"
                   disabled={
                     !quote ||
                     isExpired ||
-                    quoteMutation.isPending ||
+                    isQuotePending ||
                     orderMutation.isPending ||
                     !account?.bankAccountId
                   }
