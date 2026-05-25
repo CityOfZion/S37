@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://fractapay.app/sitemap.xml
+Sitemap: https://cityofzion.github.io/S37/sitemap.xml
