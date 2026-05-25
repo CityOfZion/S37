@@ -1,4 +1,4 @@
-import { prisma, type User } from 'fractapay-db'
+import { prisma, type User } from './prisma-service'
 
 type TGoogleProfile = {
   sub: string

@@ -21,14 +21,13 @@ User provides a destination address + selects a token + uploads a payment file (
 
 ## Monorepo Structure
 
-Five packages, each with its own `node_modules` / `Cargo.lock` (no root `package.json`):
+Four packages, each with its own `node_modules` / `Cargo.lock` (no root `package.json`):
 
 ```
-server/     Node.js + Fastify + TypeScript  (port 3000) — upload, AI, rate fetch, conversion
+server/     Node.js + Fastify + TypeScript  (port 3000) — upload, AI, rate fetch, conversion, Prisma + MariaDB (port 3306)
 web/        React + Vite + TypeScript       (port 5173) — UI
 contracts/  Rust + Soroban SDK 26                       — on-chain batch_pay
 shared/     TypeScript types + constants + helpers      — imported by web and server as `fractapay-shared`
-db/         Prisma + MariaDB (port 3306)               — schema, migrations, typed client `fractapay-db`
 ```
 
 ---
@@ -38,13 +37,23 @@ db/         Prisma + MariaDB (port 3306)               — schema, migrations, t
 ### Server (`cd server`)
 
 ```bash
-npm install
-cp .env.example .env      # then set GEMINI_API_KEY
+npm install               # installs deps; postinstall runs `prisma generate`
+cp .env.example .env      # then set GEMINI_API_KEY and DATABASE_URL
 npm run dev               # tsx watch — hot reload
 npm run build             # tsc → dist/
 npm run lint              # ESLint and Prettier
 npm run typecheck         # tsc --noEmit
+npm run db:up             # docker compose up -d (MariaDB on :3306)
+npm run db:down           # docker compose down
+npm run db:migrate        # prisma migrate dev — create + apply a migration
+npm run db:deploy         # prisma migrate deploy — apply pending migrations (CI/prod)
+npm run db:generate       # prisma generate — regenerate client after schema edits
+npm run db:studio         # open Prisma Studio
+npm run db:seed           # tsx prisma/seed.ts
+npm run db:reset          # prisma migrate reset (DROPS the database)
 ```
+
+After editing `server/prisma/schema.prisma`, run `npm run db:generate` in `server/` (or `npm install` — `postinstall` triggers it) before `tsx watch` will see new model types.
 
 ### Web (`cd web`)
 
@@ -56,25 +65,6 @@ npm run build             # tsc + vite build
 npm run lint              # ESLint and Prettier
 npm run typecheck
 ```
-
-### DB (`cd db`)
-
-```bash
-npm install               # installs Prisma; postinstall runs `prisma generate`
-cp .env.example .env      # then set DATABASE_URL if not using the default
-npm run db:up             # docker compose up -d (MariaDB on :3306)
-npm run db:down           # docker compose down
-npm run db:migrate        # prisma migrate dev — create + apply a migration
-npm run db:deploy         # prisma migrate deploy — apply pending migrations (CI/prod)
-npm run db:generate       # prisma generate — regenerate client after schema edits
-npm run db:studio         # open Prisma Studio
-npm run db:seed           # tsx prisma/seed.ts
-npm run db:reset          # prisma migrate reset (DROPS the database)
-npm run lint              # ESLint and Prettier
-npm run typecheck         # tsc --noEmit
-```
-
-After editing `db/prisma/schema.prisma`, run `npm run db:generate` in `db/` (or `npm install` in any consumer — `postinstall` triggers it) before `tsx watch` will see new model types.
 
 ### Contracts (`cd contracts`)
 
@@ -156,13 +146,12 @@ web (ChatPage component)
 - **Constants** — `ALLOWED_EXTENSIONS`, `ALLOWED_MIME_TYPES`, `ALLOWED_INPUT_ACCEPT`, `SUPPORTED_TOKENS`, `STELLAR_DECIMALS = 7`, `FIAT_BY_TOKEN = { TESOURO: 'BRL' }`, `LANGUAGE_BY_TOKEN`, `SYMBOL_BY_TOKEN = { TESOURO: 'R$' }`, `RECIPIENT_PERCENTAGE = BigNumber('0.15')`, `FEE_PERCENTAGE = BigNumber('0.02')`, `QUOTE_EXPIRY_SECONDS = 60`.
 - **Helpers** — `StellarHelper.isValidAddress(value)` (wraps `StrKey.isValidEd25519PublicKey`). `StringHelper.truncateMiddle(value, max)`, `StringHelper.formatAmount(value)` (accepts `string | number | BigNumber`, Stellar 7-decimal cap with `ROUND_DOWN`), `StringHelper.formatCurrencyAmount(value, token)` (locale + symbol via `Intl.NumberFormat`, fixed at 2 decimals for display).
 
-### DB internals (`db/` — imported as `fractapay-db`)
+### Server DB layer
 
-- **Schema** — `db/prisma/schema.prisma` uses `provider = "mysql"` (Prisma's MariaDB-compatible driver). `DATABASE_URL` is read from `db/.env` for CLI commands and from the consumer's env (e.g. `server/.env`) at runtime. Note: `@db.Json` columns are stored as `LONGTEXT` on MariaDB.
+- **Schema** — `server/prisma/schema.prisma` uses `provider = "mysql"` (Prisma's MariaDB-compatible driver). `DATABASE_URL` is read from `server/.env` for both Prisma CLI and runtime. Note: `@db.Json` columns are stored as `LONGTEXT` on MariaDB.
 - **Auth models** — `User` (id cuid, unique email, optional `emailVerified` / `name` / `avatarUrl`); `OAuthAccount` (FK `userId`, `provider` + `providerAccountId` uniquely identifies the IdP identity — Google `sub` for now — plus the cached `accessToken` / `refreshToken` / `idToken` / `expiresAt`, all `@db.Text`); `Session` (cuid id is the opaque token in the signed cookie; `expiresAt` indexed; cascade-deletes with the user). `OAuthAccount` has `@@unique([provider, providerAccountId])` so the same Google account can't be attached to two users.
-- **Client** — `db/src/client.ts` exports a `PrismaClient` singleton cached on `globalThis` so `tsx watch` reloads don't open new connection pools. `db/src/index.ts` re-exports both the singleton (`prisma`) and everything from `@prisma/client` (`export * from '@prisma/client'`) so consumers can import model types (`User`, `Session`, `OAuthAccount`) and the `Prisma` namespace (for `Prisma.PrismaClientKnownRequestError` etc.) directly from `fractapay-db` — see `server/src/services/session-service.ts` for the `P2025` catch pattern.
-- **Local dev** — `docker compose up -d` in `db/` brings up `mariadb:11` on `:3306` (db `fractapay`, user/pass `fractapay`/`fractapay`). `npm run db:migrate` creates a timestamped migration; `npm run db:seed` runs `prisma/seed.ts`.
-- **Linking** — server consumes the package via `"fractapay-db": "file:../db"`; the `main`/`types` field points at `./src/index.ts`, so source changes are picked up live by `tsx`. `postinstall` runs `prisma generate`, so a fresh `npm install` always has a usable client.
+- **Client** — `server/src/services/prisma-service.ts` exports a `PrismaClient` singleton cached on `globalThis` so `tsx watch` reloads don't open new connection pools, and re-exports everything from `@prisma/client` (`export * from '@prisma/client'`) so consumers can import model types (`User`, `Session`, `OAuthAccount`) and the `Prisma` namespace (for `Prisma.PrismaClientKnownRequestError` etc.) from the same file — see `server/src/services/session-service.ts` for the `P2025` catch pattern.
+- **Local dev** — `docker compose up -d` in `server/` brings up `mariadb:11` on `:3306` (db `fractapay`, user/pass `fractapay`/`fractapay`). `npm run db:migrate` creates a timestamped migration; `npm run db:seed` runs `prisma/seed.ts`. `postinstall` runs `prisma generate`, so a fresh `npm install` always has a usable client.
 
 ### Contract internals (`contracts/src/lib.rs` → `FractaPayContract`, version `"0.4.0"`)
 
@@ -201,7 +190,7 @@ web (ChatPage component)
 | `server/.env` | `SESSION_SECRET` | Required, ≥32 chars. Used by `@fastify/cookie` to sign the session cookie |
 | `server/.env` | `SESSION_COOKIE_NAME` | Default `fractapay_session`. Name of the signed httpOnly cookie holding `Session.id` |
 | `server/.env` | `COOKIE_DOMAIN` | Optional. Cookie `Domain` attribute — leave blank for localhost dev |
-| `db/.env` | `DATABASE_URL` | Required — same connection string; consumed by Prisma CLI (`migrate`, `seed`, `studio`) |
+| `server/.env` | `DATABASE_URL` | Required — MariaDB connection string; consumed by both Prisma CLI (`migrate`, `seed`, `studio`) and the runtime PrismaClient |
 | `web/.env` | `VITE_API_URL` | Default `http://localhost:3000` |
 
 ---

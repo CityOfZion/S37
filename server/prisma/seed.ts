@@ -1,4 +1,4 @@
-import { prisma } from '../src/client'
+import { prisma } from '../src/services/prisma-service'
 
 const main = async (): Promise<void> => {
   const existing = await prisma.healthCheck.count()

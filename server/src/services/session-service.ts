@@ -1,6 +1,6 @@
-import { Prisma, prisma, type Session, type User } from 'fractapay-db'
-
 import type { TUser } from 'fractapay-shared'
+
+import { Prisma, prisma, type Session, type User } from './prisma-service'
 
 export const SESSION_MAX_AGE_SECONDS = 7 * 24 * 60 * 60
 
