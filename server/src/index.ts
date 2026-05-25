@@ -28,7 +28,7 @@ async function bootstrap(): Promise<void> {
   })
 
   await fastify.register(cors, {
-    origin: [EnvHelper.CORS_ORIGIN],
+    origin: EnvHelper.CORS_ORIGIN.split(',').map(origin => origin.trim()),
     methods: ['GET', 'POST', 'OPTIONS'],
     credentials: true,
   })
