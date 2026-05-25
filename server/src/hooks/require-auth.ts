@@ -17,11 +17,27 @@ const readSessionId = (
 ): { ok: true; sessionId: string } | { ok: false } => {
   const raw = request.cookies[EnvHelper.SESSION_COOKIE_NAME]
 
+  const cookieNames = Object.keys(request.cookies)
+  const origin = request.headers.origin
+  const cookieHeader = request.headers.cookie
+
+  request.log.info(
+    {
+      cookieNames,
+      hasSessionCookie: Boolean(raw),
+      origin,
+      cookieHeaderPresent: Boolean(cookieHeader),
+    },
+    '[Auth] requireAuth inspect'
+  )
+
   if (!raw) {
     return { ok: false }
   }
 
   const unsigned = request.unsignCookie(raw)
+
+  request.log.info({ unsigned }, '[Auth] unsigned cookie result')
 
   if (!unsigned.valid || !unsigned.value) {
     return { ok: false }
