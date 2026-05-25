@@ -10,7 +10,7 @@ primary_region = 'gru'
   dockerfile = 'Dockerfile'
 
 [deploy]
-  release_command = 'npx prisma migrate deploy'
+  release_command = 'node_modules/.bin/prisma migrate deploy'
 
 [http_service]
   internal_port = 3000
