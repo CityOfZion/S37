@@ -8,6 +8,7 @@ const envSchema = z.object({
   GEMINI_API_KEY: z.string().min(1, 'GEMINI_API_KEY is required'),
   ETHERFUSE_API_KEY: z.string().min(1, 'ETHERFUSE_API_KEY is required'),
   ETHERFUSE_BASE_URL: z.string().url().default('https://api.sand.etherfuse.com'),
+  CORS_ORIGIN: z.string().default('http://localhost:5173'),
 })
 
 const parsed = envSchema.safeParse(process.env)
@@ -24,4 +25,5 @@ export class EnvHelper {
   static readonly GEMINI_API_KEY = data.GEMINI_API_KEY
   static readonly ETHERFUSE_API_KEY = data.ETHERFUSE_API_KEY
   static readonly ETHERFUSE_BASE_URL = data.ETHERFUSE_BASE_URL
+  static readonly CORS_ORIGIN = data.CORS_ORIGIN
 }

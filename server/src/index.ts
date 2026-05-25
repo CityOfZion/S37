@@ -2,12 +2,11 @@ import cors from '@fastify/cors'
 import multipart from '@fastify/multipart'
 import Fastify from 'fastify'
 
+import { isProduction } from './constants'
 import { EnvHelper } from './helpers/EnvHelper'
 import { etherfuseRoute } from './routes/etherfuse-route'
 import { healthRoute } from './routes/health-route'
 import { uploadRoute } from './routes/upload-route'
-
-const isProduction = process.env.NODE_ENV === 'production'
 
 const fastify = Fastify({
   logger: isProduction
@@ -22,7 +21,7 @@ const fastify = Fastify({
 
 async function bootstrap(): Promise<void> {
   await fastify.register(cors, {
-    origin: true,
+    origin: [EnvHelper.CORS_ORIGIN],
     methods: ['GET', 'POST', 'OPTIONS'],
   })
 

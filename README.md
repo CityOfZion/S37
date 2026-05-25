@@ -143,6 +143,7 @@ make deploy-testnet  # Deploy to testnet
 | `GEMINI_API_KEY` | Yes | Google Gemini API key |
 | `ETHERFUSE_API_KEY` | Yes | Etherfuse Ramp API key (sandbox or production) |
 | `ETHERFUSE_BASE_URL` | No (default: `https://api.sand.etherfuse.com`) | Etherfuse base URL — `https://api.etherfuse.com` for production |
+| `CORS_ORIGIN` | No (default: `http://localhost:5173`) | Comma-separated list of allowed CORS origins |
 
 ### Web (`web/.env`)
 
