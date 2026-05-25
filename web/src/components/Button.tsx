@@ -2,8 +2,15 @@ import { type ButtonHTMLAttributes, forwardRef } from 'react'
 
 import { StyleHelper } from '../helpers/StyleHelper'
 
-type TButtonVariant = 'primary' | 'outline' | 'ghost'
-type TButtonSize = 'xs' | 'sm' | 'md'
+type TButtonVariant =
+  | 'primary'
+  | 'secondary'
+  | 'outline'
+  | 'tertiary'
+  | 'success'
+  | 'danger'
+  | 'ghost'
+type TButtonSize = 'xs' | 'sm' | 'md' | 'lg'
 
 type TProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: TButtonVariant
@@ -12,34 +19,40 @@ type TProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 
 const VARIANT_CLASSES: Record<TButtonVariant, string> = {
   primary:
-    'bg-primary hover:bg-primary-600 active:bg-primary-700 focus:ring-2 focus:ring-primary/50 text-white shadow-lg shadow-primary/20 font-semibold rounded-xl transition-colors',
+    'bg-primary hover:bg-primary-600 active:bg-primary-700 focus-visible:ring-2 focus-visible:ring-primary/50 text-white shadow-brand font-semibold rounded-xl transition-colors',
+  secondary:
+    'bg-white border border-primary-200 text-primary hover:bg-brand-50 active:bg-brand-100 focus-visible:ring-2 focus-visible:ring-primary/30 font-semibold rounded-xl transition-colors',
   outline:
-    'border border-white/10 text-gray-400 hover:text-white hover:border-white/20 active:border-white/30 active:text-white focus:ring-2 focus:ring-white/20 font-medium rounded-xl transition-colors',
+    'bg-white border border-neutral-200 text-neutral-700 hover:text-neutral-900 hover:border-neutral-300 hover:bg-neutral-50 focus-visible:ring-2 focus-visible:ring-neutral-300 font-medium rounded-xl transition-colors',
+  tertiary:
+    'bg-transparent text-primary hover:text-primary-600 active:text-primary-700 focus-visible:ring-2 focus-visible:ring-primary/30 font-medium rounded-xl transition-colors',
+  success:
+    'bg-accent-500 hover:bg-accent-600 active:bg-accent-600 focus-visible:ring-2 focus-visible:ring-accent-500/50 text-white font-semibold rounded-xl transition-colors',
+  danger:
+    'bg-danger-500 hover:bg-red-600 active:bg-red-700 focus-visible:ring-2 focus-visible:ring-danger-500/50 text-white font-semibold rounded-xl transition-colors',
   ghost:
-    'text-gray-500 hover:text-primary active:text-primary/70 focus:ring-2 focus:ring-primary/30 rounded transition-colors',
+    'bg-transparent text-neutral-700 hover:text-primary hover:bg-brand-50 active:bg-brand-100 focus-visible:ring-2 focus-visible:ring-primary/30 rounded-xl transition-colors',
 }
 
 const SIZE_CLASSES: Record<TButtonSize, string> = {
-  xs: 'text-xs px-3 py-1.5',
-  sm: 'text-sm px-6 py-2.5',
-  md: 'text-base px-6 py-3',
+  xs: 'text-xs px-3 py-1.5 min-h-8',
+  sm: 'text-sm px-5 py-2 min-h-[44px]',
+  md: 'text-sm px-6 py-3 min-h-[44px]',
+  lg: 'text-base px-8 py-3.5 min-h-[52px]',
 }
 
 export const Button = forwardRef<HTMLButtonElement, TProps>(
   ({ variant = 'primary', size = 'md', className, children, ...props }, ref) => {
-    const isGhostVariant = variant === 'ghost'
+    const isGhostOrTertiary = variant === 'ghost' || variant === 'tertiary'
 
     return (
       <button
         ref={ref}
         className={StyleHelper.merge(
-          'flex items-center justify-center gap-2',
-          'disabled:opacity-50 disabled:select-none disabled:pointer-events-none disabled:shadow-none',
-          {
-            'disabled:bg-gray-600 disabled:text-gray-300': !isGhostVariant,
-          },
+          'inline-flex items-center justify-center gap-2',
+          'disabled:opacity-40 disabled:select-none disabled:pointer-events-none disabled:shadow-none',
           VARIANT_CLASSES[variant],
-          !isGhostVariant && SIZE_CLASSES[size],
+          !isGhostOrTertiary && SIZE_CLASSES[size],
           className
         )}
         type="button"

@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { match } from 'ts-pattern'
 
 import { Button } from './Button'
+import { Tooltip } from './Tooltip'
 
 import RefreshIcon from '../assets/icons/refresh-icon.svg?react'
 
@@ -77,8 +78,8 @@ export const CountdownRing = ({
     .otherwise(() => t('expiresIn', { seconds: remainingSeconds }))
 
   return (
-    <div className="flex items-center gap-3">
-      <span aria-live="polite" className="text-xs text-gray-400 tabular-nums whitespace-nowrap">
+    <div className="flex items-center gap-2">
+      <span aria-live="polite" className="text-xs text-neutral-500 tabular-nums whitespace-nowrap">
         {label}
       </span>
 
@@ -88,7 +89,7 @@ export const CountdownRing = ({
             cx={SIZE / 2}
             cy={SIZE / 2}
             r={RADIUS}
-            stroke="rgba(255,255,255,0.1)"
+            stroke="rgba(26,24,50,0.1)"
             strokeWidth={STROKE}
             fill="none"
           />
@@ -98,7 +99,7 @@ export const CountdownRing = ({
             cy={SIZE / 2}
             r={RADIUS}
             stroke="currentColor"
-            className={showExpired ? 'text-red-400' : 'text-primary'}
+            className={showExpired ? 'text-danger-500' : 'text-primary'}
             strokeWidth={STROKE}
             fill="none"
             strokeDasharray={CIRCUMFERENCE}
@@ -109,12 +110,26 @@ export const CountdownRing = ({
         </svg>
       </div>
 
+      <Tooltip content={t('refresh')}>
+        <Button
+          aria-label={t('refresh')}
+          variant="outline"
+          size="xs"
+          disabled={isRefreshing}
+          onClick={onRefresh}
+          className="sm:hidden"
+        >
+          <RefreshIcon className="size-4" aria-hidden="true" />
+        </Button>
+      </Tooltip>
+
       <Button
         aria-label={t('refresh')}
         variant="outline"
         size="xs"
         disabled={isRefreshing}
         onClick={onRefresh}
+        className="hidden sm:inline-flex"
       >
         <RefreshIcon className="size-4" aria-hidden="true" />
         {t('refresh')}

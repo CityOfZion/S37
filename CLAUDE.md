@@ -24,7 +24,7 @@ User provides a destination address + selects a token + uploads a payment file (
 Four packages, each with its own `node_modules` / `Cargo.lock` (no root `package.json`):
 
 ```
-server/     Node.js + Fastify + TypeScript  (port 3000) — upload, AI, rate fetch, conversion
+server/     Node.js + Fastify + TypeScript  (port 3000) — upload, AI, rate fetch, conversion, Prisma + MariaDB (port 3306)
 web/        React + Vite + TypeScript       (port 5173) — UI
 contracts/  Rust + Soroban SDK 26                       — on-chain batch_pay
 shared/     TypeScript types + constants + helpers      — imported by web and server as `fractapay-shared`
@@ -37,13 +37,23 @@ shared/     TypeScript types + constants + helpers      — imported by web and 
 ### Server (`cd server`)
 
 ```bash
-npm install
-cp .env.example .env      # then set GEMINI_API_KEY
+npm install               # installs deps; postinstall runs `prisma generate`
+cp .env.example .env      # then set GEMINI_API_KEY and DATABASE_URL
 npm run dev               # tsx watch — hot reload
 npm run build             # tsc → dist/
 npm run lint              # ESLint and Prettier
 npm run typecheck         # tsc --noEmit
+npm run db:up             # docker compose up -d (MariaDB on :3306)
+npm run db:down           # docker compose down
+npm run db:migrate        # prisma migrate dev — create + apply a migration
+npm run db:deploy         # prisma migrate deploy — apply pending migrations (CI/prod)
+npm run db:generate       # prisma generate — regenerate client after schema edits
+npm run db:studio         # open Prisma Studio
+npm run db:seed           # tsx prisma/seed.ts
+npm run db:reset          # prisma migrate reset (DROPS the database)
 ```
+
+After editing `server/prisma/schema.prisma`, run `npm run db:generate` in `server/` (or `npm install` — `postinstall` triggers it) before `tsx watch` will see new model types.
 
 ### Web (`cd web`)
 
@@ -79,20 +89,23 @@ WASM output: `contracts/target/wasm32v1-none/release/fractapay.wasm`. The `wasm3
 ### Request flow
 
 ```
-web (FileUpload component)
-  → user provides address + selects token + picks file
-  → POST multipart/form-data to server /upload (fields: address, token, file — in that order, file LAST)
-    → upload-route.ts validates: file present, token in SUPPORTED_TOKENS, address is a valid Stellar address (else ErrorCode.INVALID_ADDRESS)
-    → FileHelper.ts parses buffer by type (csv-parse / xlsx / pdf-parse)
-    → ai-service.ts sends extracted text to Gemini (extracts ONLY { amount, description } per row — no addresses, no currency conversion) and computes `price` (`fetchTesouroPerUsdcPrice() × fetchUsdPerBrlPrice()` via prices-service.ts)
-    → Gemini returns { payments: [{ amount in BRL, description }] } (or [] if file currency ≠ BRL)
-    → server returns { payments: [{ id, amount, description }], price } where `amount` is the BRL value from the file and `price` is the TESOURO-per-BRL conversion factor. Both `amount` and `price` are transported as 7-decimal strings (`STELLAR_DECIMALS`).
-  → web stores token, price, address, and payments in usePaymentsStore (zustand). PaymentsList shows the subtotal (file total), the recipient amount (`subtotal × 15%`) and the total to pay (`recipient × 1.02`).
-  → user clicks Review and confirm → ReviewModal opens:
-    → If no Etherfuse customer yet → "Start KYC" button → POST /etherfuse/onboarding → store customerId/bankAccountId/presignedUrl/publicKey in useEtherfuseStore (persisted to localStorage) → navigate to /kyc (TanStack Router) which renders the Etherfuse onboarding URL in an iframe and polls GET /etherfuse/kyc/:customerId/:publicKey every 5s.
-    → Once KYC status === 'approved', user goes back to "/" and reopens the modal → POST /etherfuse/quote with sourceAmount = recipientAmount (BRL) → modal renders the quote with the countdown ring (QUOTE_EXPIRY_SECONDS = 60) and a Refresh button.
-    → Confirm → POST /etherfuse/order → response includes the PIX `{ pixCode, pixKey, amount }` → modal swaps to PixInstructions (QR code + copy-and-paste textarea).
-    → /payment/:orderId is the dedicated status page (polls GET /etherfuse/order/:orderId until status is terminal: completed/failed/refunded/canceled).
+web (ChatPage component)
+  → user interacts via AI chat: types payment amounts or uploads a file (CSV/XLS/XLSX/PDF/TXT)
+    → file upload: POST multipart/form-data to server /chat (same multipart fields as /upload)
+      → chat-route.ts parses file, calls FileHelper + analyze() to extract payments + price
+      → chat-service.ts calls Gemini with full conversation history + current state context
+      → Gemini returns structured JSON { message, action, payments?, allocations?, summary? }
+      → action "add_payments": client merges new payments into useChatStore
+      → action "set_allocations": client updates destination allocations in useChatStore
+      → action "request_confirmation": client renders summary table in chat bubble
+      → action "execute": client starts sequential ReviewModal flow per allocation
+    → text message: POST /chat with messages history + context (destinations, payments, allocations)
+  → user registers destinations (DestinationsPage) with name, token, Stellar address, PIX key
+    → stored in useDestinationsStore (Zustand persist → localStorage, key: fractapay.destinations)
+  → after AI confirms, ReviewModal opens per allocation (one per destination):
+    → same KYC/quote/order/PIX flow as before
+    → after all allocations executed, conversation resets
+  → /payment/:orderId is the dedicated status page (polls GET /etherfuse/order/:orderId until terminal)
 ```
 
 ### Server internals
@@ -103,16 +116,22 @@ web (FileUpload component)
   - Extract ONLY `{ amount, description }` per row — never addresses (the destination is provided separately and is global to the upload).
   - NEVER convert currencies — return amounts in the file's FIAT as-is. If file currency doesn't match expected FIAT (BRL for TESOURO, USD for USDC), return `{ payments: [] }`.
   - Treat bare numbers (e.g. `42,90` or `58.22`) as already-denominated in the expected FIAT for the selected token.
+- **`src/services/chat-service.ts`** — Conversational AI agent. `processChat(input)` takes the full message history, available destinations, current payments, and allocations. Builds a context block injected into the Gemini system prompt each call. If `filePayments` are passed (from `/chat` route's file processing), they override AI-parsed payments. Returns `TChatResponse` with `action` field driving client state transitions.
+- **`src/routes/chat-route.ts`** — `POST /chat` accepts multipart with `messages` (JSON string), `context` (JSON string with destinations/payments/allocations/language), and an optional `file`. If a file is present and valid, processes it through `FileHelper` + `analyze()` first, then passes results to `chat-service`. Returns `TChatResponse`.
 - **`src/services/prices-service.ts`** — Pure I/O. `fetchUsdPerBrlPrice()` calls AwesomeAPI (`https://economia.awesomeapi.com.br/json/last/USD-BRL`); `fetchTesouroPerUsdcPrice()` queries Stellar Horizon orderbook. Both return `BigNumber` and throw typed `ErrorCode` (`RATE_FETCH_FAILED` / `ORDERBOOK_FETCH_FAILED`) on any failure — never falls back to 1:1. Called by `ai-service.ts` during `analyze` (TESOURO only) to compute the upload-time `price`.
-- **`src/routes/upload-route.ts`** — Validates token + address (both required; address must be a valid Stellar G-address). File validation uses both MIME type AND extension (browsers sometimes send wrong MIME for `.xls`). 10 MB file-size limit is set in `@fastify/multipart` registration. Multipart fields must come BEFORE the file in the FormData stream (`token` and `address` first, `file` last) — `@fastify/multipart` only populates `data.fields` from parts that arrive before the file.
+- **`src/routes/upload-route.ts`** — Validates token (required); `address` is optional and no longer required in the upload flow (destination address is selected separately via DestinationsPage). File validation uses both MIME type AND extension (browsers sometimes send wrong MIME for `.xls`). 10 MB file-size limit is set in `@fastify/multipart` registration. Multipart fields must come BEFORE the file in the FormData stream (`token` first, `file` last) — `@fastify/multipart` only populates `data.fields` from parts that arrive before the file.
 - **`src/services/etherfuse-service.ts`** — Thin wrapper around the Etherfuse Ramp REST API built on a pre-configured `axios` instance (same version `1.7.2` as the web client). Auth header is the raw key (no `Bearer` prefix), set on the axios instance once at module load. Generates partner-side UUIDs for `customerId` / `bankAccountId` / `quoteId` / `orderId`. Exposes `createOnboarding`, `getKycStatus`, `registerBankAccount`, `createQuote`, `createOrder`, `getOrder`, `simulateFiatReceived`. Network/HTTP errors are normalised to `ErrorCode.ETHERFUSE_REQUEST_FAILED`; 404 on order paths maps to `ErrorCode.ORDER_NOT_FOUND`. Quote `sourceAsset` is always `BRL`; `targetAsset` is `TESOURO:GCRYUGD5...`.
 - **`src/services/etherfuse-webhook-store.ts`** — In-memory cache (`Map`) of the most recent webhook event per `${event}:${id}` key (e.g. `order_updated:abc-123`). Records the event status, the full data payload and the originating timestamp. Used by the webhook receiver and available for future short-circuiting of polling.
 - **`src/routes/etherfuse-route.ts`** — Proxies the Etherfuse flow so the API key never reaches the browser. Endpoints: `POST /etherfuse/onboarding`, `GET /etherfuse/kyc/:customerId/:publicKey`, `POST /etherfuse/bank-account`, `POST /etherfuse/quote`, `POST /etherfuse/order`, `GET /etherfuse/order/:orderId`, `POST /etherfuse/order/:orderId/simulate` (sandbox only), `POST /etherfuse/webhook` (receives Etherfuse webhook events — `order_updated` / `kyc_updated` / etc. — validates the payload, logs through Fastify and stores in `etherfuse-webhook-store`). All routes validate the public key with `StellarHelper.isValidAddress` where applicable and return `{ success: false, error: ErrorCode }` shapes for failures.
+- **`src/hooks/require-auth.ts`** — Fastify `preHandler` factories. `requireAuth` reads the signed session cookie (`EnvHelper.SESSION_COOKIE_NAME`), unsigns it via `request.unsignCookie(raw)` (registered by `@fastify/cookie` with `EnvHelper.SESSION_SECRET`), calls `getSessionWithUser`, and replies `401 UNAUTHORIZED` / `401 SESSION_EXPIRED` on failure. On success, decorates `request.user` (TUser) and `request.session` (TSession) via a `fastify` module augmentation. `optionalAuth` does the same but never replies — useful for endpoints that personalize when logged in but don't require it.
+- **`src/routes/auth-route.ts`** — `GET /auth/google` is registered automatically by `@fastify/oauth2` (as `startRedirectPath`) and kicks off the authorization-code + PKCE flow. `GET /auth/google/callback` exchanges the code for tokens, fetches the userinfo, upserts the user, creates a `Session`, sets the signed httpOnly `fractapay_session` cookie, then redirects to `WEB_LOGIN_SUCCESS_URL` (or `WEB_LOGIN_FAILURE_URL` on any error). `POST /auth/logout` deletes the session row and clears the cookie. `GET /auth/me` requires `requireAuth` and returns `{ user: TUser }`.
 
 ### Web internals
 
-- **Routing** — TanStack Router (`src/router/index.tsx`) wires three routes mounted under `<App />`: `/` (HomePage — FileUpload + PaymentsList), `/kyc` (KycPage — Etherfuse onboarding iframe + status polling, requires `customerId`/`publicKey`/`presignedUrl` search params or it redirects home), `/payment/$orderId` (PaymentPage — order status + PIX instructions). Header and Footer live outside the `<RouterProvider>` so they render on every route.
-- **State** — `src/hooks/use-payments-store.ts` (Zustand) holds `payments: TPayment[]`, `token: TToken`, `price: string`, `address: string`, `hasPayments`, plus actions `setPayments` / `mergePayments` / `addPayment` / `updatePayment` / `deletePayment` / `setToken` / `setPrice` / `setAddress`. Payments are deduplicated by `id` on every mutation. **`TPayment` is `{ id, amount, description? }`** where `amount` is the **BRL** value — no per-row address or token; the destination address and token are global to the upload. `address` is populated by `FileUpload` after a successful upload so `PaymentsList`/`ReviewModal` can read it.
+- **Routing** — TanStack Router (`src/router/index.tsx`) defines the root route with `<Sidebar />` layout and three child routes: `/` (ChatPage — AI payment chat), `/destinations` (DestinationsPage — recipients CRUD), `/payment/$orderId` (PaymentPage — order status polling). The root route component wraps all pages with the sidebar layout.
+- **State** — `src/hooks/use-payments-store.ts` (Zustand) holds `payments: TPayment[]`, `token: TToken`, `price: string`, `address: string`, `hasPayments`, plus actions `setPayments` / `mergePayments` / `addPayment` / `updatePayment` / `deletePayment` / `setToken` / `setPrice` / `setAddress`. Payments are deduplicated by `id` on every mutation. **`TPayment` is `{ id, amount, description? }`** where `amount` is the **BRL** value — no per-row address or token; the destination address and token are global to the upload. `address` is populated after a successful upload so `ReviewModal` can read it. See also `TDestination` for the named destination model.
+- **Destinations state** — `src/hooks/use-destinations-store.ts` (Zustand + `persist` middleware, key `fractapay.destinations`) holds `destinations: TDestination[]` with actions `addDestination` / `updateDestination` / `deleteDestination`. Persisted to localStorage. Each destination has `id`, `name` (max 200 chars), `token`, `pixKey`, `pixKeyType`.
+- **Chat state** — `src/hooks/use-chat-store.ts` (Zustand, not persisted — in-memory only; `draftMessage: string` persists across route changes but is not saved to localStorage) holds the active conversation: `messages: TChatMessage[]`, `payments: TPayment[]`, `price: string`, `allocations: TDestinationAllocation[]`, `summary: TPaymentSummaryItem[]`. Actions include `addMessage`, `updateMessage(id, patch)` (patches single message fields without replacing), `mergePayments` (deduplicates by id). The `update_payments` action uses a `delta` approach — each item carries an `add | remove` field so the store can merge incrementally rather than replace the full list. Resets when execution completes. `useChatMutation` (TanStack Query mutation) posts to `POST /chat` with full conversation history + context.
 - **Etherfuse state** — `src/hooks/use-etherfuse-store.ts` (Zustand + `persist` middleware, key `fractapay.etherfuse`) holds `customerId`, `bankAccountId`, `presignedUrl`, `publicKey`. Persistence is intentional: after the user finishes KYC and returns to the app, the customer/bank-account IDs survive a page reload so we don't restart onboarding.
 - **Data fetching** — `src/hooks/use-upload-mutation.ts` wraps a TanStack Query `useMutation`. Posts `multipart/form-data` to `/upload` with fields appended in this exact order: `address`, `token`, `file` (file LAST — `@fastify/multipart` requires non-file fields to arrive before the file). Etherfuse hooks live alongside it: `use-onboarding-mutation.ts`, `use-kyc-status-query.ts` (polls every 5s until `approved` or `rejected`), `use-quote-mutation.ts`, `use-order-mutation.ts`, `use-order-query.ts` (polls every 5s until the order reaches a terminal status).
 - **Form validation** — Zod schemas in `src/schemas/`. `fileUploadSchema` requires a valid Stellar address via `StellarHelper.isValidAddress`. `paymentEditSchema` has `amount` (BigNumber > 0) and `description` (max 200).
@@ -123,9 +142,100 @@ web (FileUpload component)
 
 ### Shared internals (`shared/` — imported as `fractapay-shared`)
 
-- **Types** — `TToken = 'TESOURO'`; `TLanguage = 'en-US' | 'pt-BR'`; `TFiatCurrency = 'BRL'`; `TPixKeyType = 'evp' | 'cpf' | 'cnpj' | 'email' | 'phone'`; `TPayment = { id, amount, description? }`; `TPaymentResponse = { payments, price }`; `TUploadPayload = { file, token, address }` (address REQUIRED); `TUploadResult = { success, payments, price, error? }`; `TRecipientShare = { address, percentage }`. **Etherfuse types**: `TKycStatus`, `TOnboardingPayload`/`TOnboardingResult`, `TKycStatusResult`, `TBankAccountPayload`/`TBankAccountResult`, `TQuotePayload`/`TQuoteResult`, `TOrderPayload`/`TOrderResult` (with `pix?: TPixInstructions`), `TPixInstructions`, `TOrderStatus = 'created' | 'funded' | 'completed' | 'failed' | 'refunded' | 'canceled'`. `ErrorCode` enum adds: `INVALID_PAYLOAD`, `ETHERFUSE_REQUEST_FAILED`, `KYC_NOT_APPROVED`, `QUOTE_EXPIRED`, `ORDER_NOT_FOUND`.
+- **Types** — `TToken = 'TESOURO'`; `TLanguage = 'en-US' | 'pt-BR'`; `TFiatCurrency = 'BRL'`; `TPixKeyType = 'evp' | 'cpf' | 'cnpj' | 'email' | 'phone'`; `TPayment = { id, amount, description? }`; `TPaymentResponse = { payments, price }`; `TUploadPayload = { file, token, address? }` (address optional — destination is selected separately); `TUploadResult = { success, payments, price, error? }`; `TRecipientShare = { address, percentage }`; `TDestination = { id, name, token, pixKey, pixKeyType }` (no `stellarAddress` — the global address comes from `usePaymentsStore`); `TDestinationAllocation = { destination: TDestination, percentage: number }`; `TChatMessage`, `TChatRequest`, `TChatResponse`, `TChatHistoryMessage`, `TChatAction` (includes `update_payments` with delta `add | remove` per item), `TPaymentSummaryItem = { destinationName, token, amount, percentage, feeAmount?, totalAmount? }` (server computes `feeAmount` and `totalAmount` from `FEE_PERCENTAGE`; `token` derived from `allocation.destination.token`). **Etherfuse types**: `TKycStatus`, `TOnboardingPayload`/`TOnboardingResult`, `TKycStatusResult`, `TBankAccountPayload`/`TBankAccountResult`, `TQuotePayload`/`TQuoteResult`, `TOrderPayload`/`TOrderResult` (with `pix?: TPixInstructions`), `TPixInstructions`, `TOrderStatus = 'created' | 'funded' | 'completed' | 'failed' | 'refunded' | 'canceled'`. `ErrorCode` enum adds: `INVALID_PAYLOAD`, `ETHERFUSE_REQUEST_FAILED`, `KYC_NOT_APPROVED`, `QUOTE_EXPIRED`, `ORDER_NOT_FOUND`.
 - **Constants** — `ALLOWED_EXTENSIONS`, `ALLOWED_MIME_TYPES`, `ALLOWED_INPUT_ACCEPT`, `SUPPORTED_TOKENS`, `STELLAR_DECIMALS = 7`, `FIAT_BY_TOKEN = { TESOURO: 'BRL' }`, `LANGUAGE_BY_TOKEN`, `SYMBOL_BY_TOKEN = { TESOURO: 'R$' }`, `RECIPIENT_PERCENTAGE = BigNumber('0.15')`, `FEE_PERCENTAGE = BigNumber('0.02')`, `QUOTE_EXPIRY_SECONDS = 60`.
 - **Helpers** — `StellarHelper.isValidAddress(value)` (wraps `StrKey.isValidEd25519PublicKey`). `StringHelper.truncateMiddle(value, max)`, `StringHelper.formatAmount(value)` (accepts `string | number | BigNumber`, Stellar 7-decimal cap with `ROUND_DOWN`), `StringHelper.formatCurrencyAmount(value, token)` (locale + symbol via `Intl.NumberFormat`, fixed at 2 decimals for display).
+
+### Server DB layer
+
+- **Schema** — `server/prisma/schema.prisma` uses `provider = "mysql"` (Prisma's MariaDB-compatible driver). `DATABASE_URL` is read from `server/.env` for both Prisma CLI and runtime. Note: `@db.Json` columns are stored as `LONGTEXT` on MariaDB.
+- **Auth models** — `User` (id cuid, unique email, optional `emailVerified` / `name` / `avatarUrl`); `OAuthAccount` (FK `userId`, `provider` + `providerAccountId` uniquely identifies the IdP identity — Google `sub` for now — plus the cached `accessToken` / `refreshToken` / `idToken` / `expiresAt`, all `@db.Text`); `Session` (cuid id is the opaque token in the signed cookie; `expiresAt` indexed; cascade-deletes with the user). `OAuthAccount` has `@@unique([provider, providerAccountId])` so the same Google account can't be attached to two users.
+- **Client** — `server/src/services/prisma-service.ts` exports a `PrismaClient` singleton cached on `globalThis` so `tsx watch` reloads don't open new connection pools, and re-exports everything from `@prisma/client` (`export * from '@prisma/client'`) so consumers can import model types (`User`, `Session`, `OAuthAccount`) and the `Prisma` namespace (for `Prisma.PrismaClientKnownRequestError` etc.) from the same file — see `server/src/services/session-service.ts` for the `P2025` catch pattern.
+- **Local dev** — `docker compose up -d` in `server/` brings up `mariadb:11` on `:3306` (db `fractapay`, user/pass `fractapay`/`fractapay`). `npm run db:migrate` creates a timestamped migration; `npm run db:seed` runs `prisma/seed.ts`. `postinstall` runs `prisma generate`, so a fresh `npm install` always has a usable client.
+- **Production (Fly.io)** — see the dedicated section below.
+
+### Production deployment (Fly.io)
+
+Two Fly apps in the same org, region `gru`:
+
+- **`fractapay-server`** — Node/Fastify app. Root `fly.toml`, root `Dockerfile`. Connects to the DB at `fractapay-mariadb.internal:3306` over Fly's private 6PN network.
+- **`fractapay-mariadb`** — `mariadb:11`. Config in `infra/mariadb/` (`Dockerfile`, `fly.toml`, `my.cnf`). No `[http_service]` — private only. A `mariadb_data` volume mounts `/var/lib/mysql`. `my.cnf` sets `bind-address = ::` so the daemon accepts the IPv6 connections that arrive over 6PN.
+
+**Production image extras (server).** `Dockerfile` runtime stage installs `openssl` (`apk add --no-cache openssl`) for Prisma's query engine on Alpine, and `COPY`s `server/prisma/` into the image so the schema and migrations ship with the build. `prisma` lives in `dependencies` (not devDeps) so `npm prune --omit=dev` doesn't drop the CLI.
+
+**Migrations.** Root `fly.toml` defines `[deploy] release_command = 'npx prisma migrate deploy'`. Fly runs the release command in a one-off machine built from the same image, **before** rolling new server machines. A failed migration aborts the deploy.
+
+#### First-time provisioning
+
+Run from the repo root. `fly auth whoami` should already show you logged in.
+
+```bash
+# 1. DB app + persistent volume.
+fly apps create fractapay-mariadb
+fly volumes create mariadb_data --region gru --size 3 -a fractapay-mariadb
+
+# 2. Generate passwords and set them BEFORE the first deploy.
+#    The mariadb:11 image only creates MARIADB_USER on first boot when
+#    /var/lib/mysql is empty — set secrets late and the user is never created.
+ROOT_PW=$(openssl rand -hex 24)
+APP_PW=$(openssl rand -hex 24)
+fly secrets set MARIADB_ROOT_PASSWORD="$ROOT_PW" MARIADB_PASSWORD="$APP_PW" -a fractapay-mariadb
+
+# 3. Deploy MariaDB. Build context must be infra/mariadb/ — `fly deploy` uses cwd,
+#    so cd in (or pass the path positional). `-c path/fly.toml` alone leaves the
+#    build context at repo root and the `COPY my.cnf` step fails.
+cd infra/mariadb && fly deploy && cd -
+# Equivalent: fly deploy infra/mariadb
+
+# 4. Wire the server to the DB.
+fly apps create fractapay-server   # skip if it already exists
+fly secrets set \
+  DATABASE_URL="mysql://fractapay:$APP_PW@fractapay-mariadb.internal:3306/fractapay" \
+  -a fractapay-server
+# Set the other server secrets too (GEMINI_API_KEY, ETHERFUSE_API_KEY,
+# SESSION_SECRET, GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET, etc.).
+
+# 5. Deploy the server. release_command applies pending migrations first.
+fly deploy
+```
+
+#### Routine deploys
+
+```bash
+fly deploy                  # server. Migrations run automatically.
+fly deploy infra/mariadb    # DB image / config changes only.
+```
+
+#### Running Prisma manually against the Fly DB (no server deploy needed)
+
+Open a WireGuard tunnel and run Prisma locally. Works without the server app even existing.
+
+```bash
+# Terminal 1 — keep open. Tunnels localhost:3306 to fractapay-mariadb.internal:3306.
+fly proxy 3306 -a fractapay-mariadb
+
+# Terminal 2 — from server/. Inline DATABASE_URL beats the local .env shadow.
+cd server
+DATABASE_URL="mysql://fractapay:$APP_PW@127.0.0.1:3306/fractapay" \
+  npx prisma migrate deploy        # or: npm run db:seed, db:studio, migrate status
+```
+
+Local `:3306` collision? Use `fly proxy 3307:3306 -a fractapay-mariadb` and switch the URL host to `127.0.0.1:3307`.
+
+#### Health checks
+
+```bash
+fly status -a fractapay-mariadb                 # machine started, volume attached
+fly logs -a fractapay-mariadb | tail -50        # expect "ready for connections"
+fly ssh console -a fractapay-mariadb \
+  -C "healthcheck.sh --connect --innodb_initialized"   # exit 0 = healthy
+```
+
+#### Troubleshooting
+
+- **`P1000: Authentication failed`** — usually one of: (a) literal `<APP_PW>` placeholder still in the URL; (b) `.env` shadowed your shell var (use inline `DATABASE_URL=… npx prisma …`, not a separate `export`); (c) volume was created before the DB secrets, so MariaDB initialized without the app user. Test root login through the proxy; if root works but `fractapay` doesn't, `ALTER USER 'fractapay'@'%' IDENTIFIED BY '<APP_PW>'; FLUSH PRIVILEGES;`. If even root fails, the volume was init'd empty — destroy the machine, destroy the volume, recreate the volume, confirm `fly secrets list` shows the passwords, redeploy.
+- **`failed to calculate checksum of ref … "/my.cnf"`** — you ran `fly deploy -c infra/mariadb/fly.toml` from the repo root. Build context = cwd. Fix: `cd infra/mariadb && fly deploy` (or `fly deploy infra/mariadb`).
+- **Prisma engine error about `libssl`** — the runtime image is missing `openssl`. Should already be installed by `apk add --no-cache openssl` in `Dockerfile`; check the layer didn't get skipped.
 
 ### Contract internals (`contracts/src/lib.rs` → `FractaPayContract`, version `"0.4.0"`)
 
@@ -156,6 +266,15 @@ web (FileUpload component)
 | `server/.env` | `ETHERFUSE_BASE_URL` | Default `https://api.sand.etherfuse.com` (sandbox). Use `https://api.etherfuse.com` for production |
 | `server/.env` | `PORT` | Default 3000 |
 | `server/.env` | `CORS_ORIGIN` | Default `http://localhost:5173`. Comma-separated list of allowed origins for CORS |
+| `server/.env` | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Required — Google OAuth credentials registered with `@fastify/oauth2` |
+| `server/.env` | `OAUTH_CALLBACK_URL` | Default `http://localhost:3000/auth/google/callback`. Must match the redirect URI registered in Google Cloud Console |
+| `server/.env` | `WEB_BASE_URL` | Default `http://localhost:5173`. Base of the web app; default for the login redirect URLs below |
+| `server/.env` | `WEB_LOGIN_SUCCESS_URL` | Default `${WEB_BASE_URL}`. Where `/auth/google/callback` redirects after a successful login |
+| `server/.env` | `WEB_LOGIN_FAILURE_URL` | Default `${WEB_BASE_URL}/?login=failed`. Redirect target on OAuth callback failure |
+| `server/.env` | `SESSION_SECRET` | Required, ≥32 chars. Used by `@fastify/cookie` to sign the session cookie |
+| `server/.env` | `SESSION_COOKIE_NAME` | Default `fractapay_session`. Name of the signed httpOnly cookie holding `Session.id` |
+| `server/.env` | `COOKIE_DOMAIN` | Optional. Cookie `Domain` attribute — leave blank for localhost dev |
+| `server/.env` | `DATABASE_URL` | Required — MariaDB connection string; consumed by both Prisma CLI (`migrate`, `seed`, `studio`) and the runtime PrismaClient |
 | `web/.env` | `VITE_API_URL` | Default `http://localhost:3000` |
 
 ---

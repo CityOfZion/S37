@@ -8,14 +8,14 @@
   <p>
     <img src="https://img.shields.io/badge/React-Vite-61DAFB?style=flat-square&logo=react" alt="React" />
     <img src="https://img.shields.io/badge/Node.js-Fastify-green?style=flat-square&logo=node.js" alt="Node.js" />
-    <img src="https://img.shields.io/badge/Stellar-Soroban-blue?style=flat-square&logo=stellar" alt="Stellar" />
+    <img src="https://img.shields.io/badge/Stellar-Horizon-blue?style=flat-square&logo=stellar" alt="Stellar" />
     <img src="https://img.shields.io/badge/Rust-Soroban-B7410E?style=flat-square&logo=rust" alt="Rust" />
     <img src="https://img.shields.io/badge/Gemini-AI-4285F4?style=flat-square&logo=google" alt="Gemini AI" />
     <img src="https://img.shields.io/badge/Hackathon-Stellar%20×%20NearX-1F75FE?style=flat-square" alt="Hackathon" />
   </p>
 
   <p>
-    Provide an address, pick a coin, upload a payment file. AI extracts the payments. One click sends the batch on Stellar.
+    Chat with AI to set up batch payments. Register destinations, upload a payment file or type amounts. One confirm sends the batch on Stellar via PIX.
   </p>
 </div>
 
@@ -23,17 +23,15 @@
 
 ## What is FractaPay?
 
-FractaPay eliminates the pain of manual batch payments on Stellar.
+FractaPay eliminates the pain of manual batch payments on Stellar. It uses an AI chat interface so you can set up and confirm payments conversationally.
 
-1. Enter a destination Stellar address. The whole batch goes to that address.
-2. Pick a coin — **Real**, backed by **TESOURO** (Etherfuse's Brazilian-Treasury-pegged token, with yield).
-3. Upload a payment file (CSV, XLS, XLSX, PDF or TXT) listing the payments in BRL.
-4. AI reads the file and extracts each payment's amount and a short description. Wallet addresses inside the file are ignored — the destination is the one you provided up front.
-5. Review the payments in a table, edit or delete rows, add new ones.
-6. Click **Review and confirm**. A modal shows the recipient breakdown (currently `15%` of the total to a single address) and the `2%` Etherfuse + FractaPay fee, with a live quote and a countdown until it expires.
-7. Confirm to generate a **PIX onramp** with Etherfuse. The modal renders a QR code and the copy-and-paste PIX code. Once the payment is detected, the Etherfuse order completes and TESOURO is delivered on Stellar.
+1. Register your destinations (authors, agencies, recipients) on the **Destinations** page — each with a name, Stellar address, and PIX key.
+2. Open the **Chat** and interact with the AI: type payment amounts, describe who gets what, or upload a payment file (CSV, XLS, XLSX, PDF or TXT) with amounts in BRL.
+3. AI reads the conversation and file, extracts each payment's amount and description, and proposes allocations across your registered destinations.
+4. When you confirm, FractaPay opens a **Review** modal per destination showing the `15%` recipient share and the `2%` Etherfuse + FractaPay fee, with a live quote and a countdown until it expires.
+5. Confirm each allocation to generate a **PIX onramp** with Etherfuse. The modal renders a QR code and the copy-and-paste PIX code. Once the payment is detected, the Etherfuse order completes and TESOURO is delivered on Stellar to that destination's address.
 
-KYC is mandatory before the first payment. The first time you confirm, FractaPay launches an embedded Etherfuse onboarding/KYC flow at `/kyc`. The order will only generate after the KYC status returns as `approved`.
+KYC is mandatory before the first payment. The first time you confirm, FractaPay launches an embedded Etherfuse onboarding/KYC flow. The order will only generate after the KYC status returns as `approved`.
 
 ---
 
@@ -41,7 +39,7 @@ KYC is mandatory before the first payment. The first time you confirm, FractaPay
 
 ```
 root/
-├── server/       # Node.js + Fastify + TypeScript      →  upload, AI extraction, live prices
+├── server/       # Node.js + Fastify + TypeScript      →  chat, AI extraction, live prices
 ├── web/          # React + Vite + TailwindCSS          →  user interface
 ├── contracts/    # Rust + Soroban                      →  Stellar smart contract
 └── shared/       # TypeScript types and helpers        →  shared between server and web
@@ -115,15 +113,17 @@ make deploy-testnet  # Deploy to testnet
 ┌────────────────────────────────────────────────────────────────┐
 │                          User Flow                             │
 │                                                                │
-│  [Enter address + select coin + upload file]                   │
+│  [Register destinations: name + Stellar address + PIX key]     │
 │        ↓                                                       │
-│  [Server parses file and AI extracts amounts + descriptions]   │
+│  [Chat with AI: type amounts or upload a payment file]         │
 │        ↓                                                       │
-│  [Payments shown in a table, ready to review]                  │
+│  [AI extracts payments + proposes allocations per destination] │
 │        ↓                                                       │
-│  [Review modal: 15% recipient share + 2% fee + live quote]     │
+│  [AI requests confirmation → summary table in chat]            │
 │        ↓                                                       │
-│  [First time only: Etherfuse KYC at /kyc]                      │
+│  [Review modal per allocation: 15% share + 2% fee + quote]     │
+│        ↓                                                       │
+│  [First time only: Etherfuse KYC embedded flow]                │
 │        ↓                                                       │
 │  [Confirm → Etherfuse onramp order → PIX QR + copy-paste]      │
 │        ↓                                                       │

@@ -1,56 +1,169 @@
 @import 'tailwindcss';
 
 @theme {
-  --color-primary: #1f75fe;
-  --color-primary-50: #ebf2ff;
-  --color-primary-100: #d6e6ff;
-  --color-primary-200: #adccff;
-  --color-primary-300: #85b3ff;
-  --color-primary-400: #5c99ff;
-  --color-primary-500: #1f75fe;
-  --color-primary-600: #0a5fe8;
-  --color-primary-700: #084bc4;
-  --color-primary-800: #063799;
-  --color-primary-900: #04236e;
+  /* Brand — violet */
+  --color-brand-50: #f3efff;
+  --color-brand-100: #e4daff;
+  --color-brand-200: #c9b5ff;
+  --color-brand-300: #a988ff;
+  --color-brand-400: #8a60ff;
+  --color-brand-500: #7b61ff;
+  --color-brand-600: #6244e0;
+  --color-brand-700: #4d33b5;
+  --color-brand-800: #3a2587;
+  --color-brand-900: #1f1153;
 
-  --font-sans: 'Inter';
+  /* Accent — mint */
+  --color-accent-50: #e6fbf5;
+  --color-accent-100: #c0f3e2;
+  --color-accent-400: #2ad9a8;
+  --color-accent-500: #00c9a7;
+  --color-accent-600: #00a085;
+  --color-accent-900: #003d33;
+
+  /* Neutral — cool gray with violet hint */
+  --color-neutral-0: #ffffff;
+  --color-neutral-50: #f8f7fb;
+  --color-neutral-100: #efedf5;
+  --color-neutral-200: #e0dcec;
+  --color-neutral-300: #c4bfd4;
+  --color-neutral-400: #9690ae;
+  --color-neutral-500: #6e6884;
+  --color-neutral-700: #3f3954;
+  --color-neutral-900: #1a1832;
+  --color-neutral-1000: #0e0c20;
+
+  /* Semantic */
+  --color-warning-100: #fff1d6;
+  --color-warning-500: #ffb020;
+  --color-danger-100: #ffe3e3;
+  --color-danger-500: #ff4d4f;
+  --color-info-100: #ddf0ff;
+  --color-info-500: #3ca7ff;
+
+  /* Map primary → brand-500 (keeps all existing `primary` utilities working) */
+  --color-primary: #7b61ff;
+  --color-primary-50: #f3efff;
+  --color-primary-100: #e4daff;
+  --color-primary-200: #c9b5ff;
+  --color-primary-300: #a988ff;
+  --color-primary-400: #8a60ff;
+  --color-primary-500: #7b61ff;
+  --color-primary-600: #6244e0;
+  --color-primary-700: #4d33b5;
+  --color-primary-800: #3a2587;
+  --color-primary-900: #1f1153;
+
+  /* Typography */
+  --font-sans: 'Manrope';
+  --font-mono: 'JetBrains Mono';
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px color-mix(in srgb, var(--color-neutral-900) 6%, transparent);
+  --shadow-md: 0 4px 12px color-mix(in srgb, var(--color-neutral-900) 8%, transparent);
+  --shadow-lg: 0 12px 28px color-mix(in srgb, var(--color-neutral-900) 12%, transparent);
+  --shadow-brand: 0 8px 24px color-mix(in srgb, var(--color-brand-500) 28%, transparent);
+}
+
+@keyframes overlay-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes overlay-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    scale: 0.96;
+    margin-top: 12px;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+    margin-top: 0;
+  }
+}
+
+@keyframes modal-out {
+  from {
+    opacity: 1;
+    scale: 1;
+    margin-top: 0;
+  }
+  to {
+    opacity: 0;
+    scale: 0.96;
+    margin-top: 8px;
+  }
+}
+
+.modal-overlay[data-state='open'] {
+  animation: overlay-in 0.2s ease-out;
+}
+.modal-overlay[data-state='closed'] {
+  animation: overlay-out 0.15s ease-in forwards;
+}
+.modal-content[data-state='open'] {
+  animation: modal-in 0.2s ease-out;
+}
+.modal-content[data-state='closed'] {
+  animation: modal-out 0.15s ease-in forwards;
 }
 
 @layer base {
   * {
-    box-sizing: border-box;
+    @apply box-border;
   }
 
   body {
-    @apply bg-gray-950 text-white antialiased;
+    @apply bg-neutral-50 text-neutral-900 antialiased font-sans;
+  }
 
-    font-family: var(--font-sans), sans-serif;
+  img {
+    @apply select-none pointer-events-none;
   }
 
   button {
-    cursor: pointer;
+    @apply cursor-pointer;
   }
 
   button:disabled {
-    cursor: default;
+    @apply cursor-default;
+  }
+
+  :focus-visible {
+    @apply outline-none ring-2 ring-brand-500;
   }
 
   ::-webkit-scrollbar {
-    --size: 6px;
-
-    width: var(--size);
-    height: var(--size);
+    @apply size-1.5;
   }
 
   ::-webkit-scrollbar-track {
-    @apply bg-gray-900;
+    @apply bg-neutral-100;
   }
 
   ::-webkit-scrollbar-thumb {
-    @apply bg-gray-700 rounded-full;
+    @apply bg-neutral-300 rounded-full;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-gray-600;
+    @apply bg-neutral-400;
+  }
+
+  ::selection {
+    @apply bg-brand-500/72 text-white;
   }
 }

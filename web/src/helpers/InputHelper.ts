@@ -1,66 +1,101 @@
-import { ChangeEvent } from 'react'
-
-type TSanitizeAmountEventChar = { char: string; position: number }
+import type { TPixKeyType } from 'fractapay-shared'
 
 export class InputHelper {
-  static sanitizeAddress(value: string): string {
-    return value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase()
-  }
+  static applyPixKeyMask(value: string, type: TPixKeyType): string {
+    const digits = value.replace(/\D/g, '')
 
-  static sanitizeAddressEvent(event: ChangeEvent<HTMLInputElement>): string {
-    const input = event.target
-    const { value } = input
+    switch (type) {
+      case 'cpf': {
+        const digitsOnly = digits.slice(0, 11)
 
-    const newPosition = value
-      .slice(0, input.selectionStart || 0)
-      .replace(/[^a-zA-Z0-9]/g, '').length
-
-    const sanitized = this.sanitizeAddress(value)
-
-    requestAnimationFrame(() => {
-      input.setSelectionRange(newPosition, newPosition)
-    })
-
-    return sanitized
-  }
-
-  static sanitizeAmountEvent(event: ChangeEvent<HTMLInputElement>): string {
-    const input = event.target
-    const { value } = input
-    const cursorPosition = input.selectionStart || 0
-    const normalized = value.replace(/,/g, '.')
-    const validChars: TSanitizeAmountEventChar[] = []
-
-    for (let index = 0; index < normalized.length; index++) {
-      if (/[0-9.]/.test(normalized[index])) {
-        validChars.push({ char: normalized[index], position: index })
+        return digitsOnly
+          .replace(/(\d{3})(\d)/, '$1.$2')
+          .replace(/(\d{3})(\d)/, '$1.$2')
+          .replace(/(\d{3})(\d{1,2})$/, '$1-$2')
       }
+      case 'cnpj': {
+        const digitsOnly = digits.slice(0, 14)
+
+        return digitsOnly
+          .replace(/(\d{2})(\d)/, '$1.$2')
+          .replace(/(\d{3})(\d)/, '$1.$2')
+          .replace(/(\d{3})(\d)/, '$1/$2')
+          .replace(/(\d{4})(\d{1,2})$/, '$1-$2')
+      }
+      case 'phone': {
+        const digitsOnly = digits.slice(0, 13)
+
+        if (digitsOnly.length === 0) return ''
+        if (digitsOnly.length <= 2) return `+${digitsOnly}`
+        if (digitsOnly.length <= 4) return `+${digitsOnly.slice(0, 2)} (${digitsOnly.slice(2)}`
+        if (digitsOnly.length <= 9)
+          return `+${digitsOnly.slice(0, 2)} (${digitsOnly.slice(2, 4)}) ${digitsOnly.slice(4)}`
+
+        return `+${digitsOnly.slice(0, 2)} (${digitsOnly.slice(2, 4)}) ${digitsOnly.slice(4, 9)}-${digitsOnly.slice(9)}`
+      }
+      case 'evp':
+      case 'email':
+      default:
+        return value
     }
+  }
 
-    const dotChars = validChars.filter(({ char }) => char === '.')
-    let filteredChars = validChars
-
-    if (dotChars.length > 1) {
-      const keepDotPosition = dotChars.reduce((best, { position }) => {
-        const distance = Math.abs(position - (cursorPosition - 1))
-        const bestDistance = Math.abs(best - (cursorPosition - 1))
-
-        return distance < bestDistance ? position : best
-      }, dotChars[0].position)
-
-      filteredChars = validChars.filter(
-        ({ char, position }) => char !== '.' || position === keepDotPosition
-      )
+  static normalizePixKeyForStorage(value: string, type: TPixKeyType): string {
+    switch (type) {
+      case 'cpf':
+      case 'cnpj':
+      case 'phone':
+        return value.replace(/\D/g, '')
+      default:
+        return value
     }
+  }
 
-    const newCursorPosition = filteredChars.filter(
-      ({ position }) => position < cursorPosition
-    ).length
+  static maskPixKeyDisplay(value: string, type: TPixKeyType): string {
+    if (!value) return ''
 
-    requestAnimationFrame(() => {
-      input.setSelectionRange(newCursorPosition, newCursorPosition)
-    })
+    switch (type) {
+      case 'cpf': {
+        const digitsOnly = value.replace(/\D/g, '')
 
-    return filteredChars.map(({ char }) => char).join('')
+        if (digitsOnly.length < 11) return value
+
+        return `**${digitsOnly.slice(2, 3)}.${digitsOnly.slice(3, 6)}.${digitsOnly.slice(6, 9)}-**`
+      }
+      case 'cnpj': {
+        const digitsOnly = value.replace(/\D/g, '')
+
+        if (digitsOnly.length < 14) return value
+
+        return `**.${digitsOnly.slice(2, 5)}.${digitsOnly.slice(5, 8)}/${digitsOnly.slice(8, 12)}-**`
+      }
+      case 'phone': {
+        const digitsOnly = value.replace(/\D/g, '')
+
+        if (digitsOnly.length < 10) return value
+
+        const country = digitsOnly.slice(0, 2)
+        const area = digitsOnly.slice(2, 4)
+        const suffix = digitsOnly.slice(-4)
+
+        return `+${country} (${area}) *****-${suffix}`
+      }
+      case 'email': {
+        const [local, domain] = value.split('@')
+
+        if (!domain) return value
+
+        return `${local.slice(0, 2)}****@${domain}`
+      }
+      case 'evp': {
+        const parts = value.split('-')
+
+        if (parts.length !== 5) return value
+
+        return `${parts[0]}-****-****-****-${parts[4]}`
+      }
+      default:
+        return value
+    }
   }
 }

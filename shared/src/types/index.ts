@@ -21,8 +21,29 @@ export enum ErrorCode {
   PENDING_ORDER_EXISTS = 'PENDING_ORDER_EXISTS',
   CUSTOMER_ALREADY_EXISTS = 'CUSTOMER_ALREADY_EXISTS',
   CUSTOMER_NOT_FOUND = 'CUSTOMER_NOT_FOUND',
+  FILE_PARSE_FAILED = 'FILE_PARSE_FAILED',
+  NO_PAYMENTS_FOUND = 'NO_PAYMENTS_FOUND',
+  UNAUTHORIZED = 'UNAUTHORIZED',
+  SESSION_EXPIRED = 'SESSION_EXPIRED',
+  OAUTH_FAILED = 'OAUTH_FAILED',
+  NOT_IMPLEMENTED = 'NOT_IMPLEMENTED',
   UNKNOWN = 'UNKNOWN',
 }
+
+export type TUser = {
+  id: string
+  email: string
+  name: string | null
+  picture: string | null
+}
+
+export type TSession = {
+  id: string
+  userId: string
+  expiresAt: string
+}
+
+export type TAuthMeResult = { success: true; user: TUser } | { success: false; error: ErrorCode }
 
 export type TPayment = {
   id: string
@@ -33,24 +54,6 @@ export type TPayment = {
 export type TPaymentResponse = {
   payments: TPayment[]
   price: string
-}
-
-export type TUploadPayload = {
-  file: File
-  token: TToken
-  address: string
-}
-
-export type TUploadResult = {
-  success: boolean
-  payments: TPayment[]
-  price: string
-  error?: ErrorCode
-}
-
-export type TRecipientShare = {
-  address: string
-  percentage: number
 }
 
 export type TFiatCurrency = 'BRL'
@@ -131,4 +134,60 @@ export type TOrderResult = {
   confirmedTxSignature?: string
   amountInFiat?: string
   amountInTokens?: string
+}
+
+export type TDestination = {
+  id: string
+  name: string
+  token: TToken
+  pixKey: string
+  pixKeyType: TPixKeyType
+}
+
+export type TDestinationAllocation = {
+  destination: TDestination
+  percentage: number
+}
+
+export type TPaymentSummaryItem = {
+  destinationName: string
+  token: TToken
+  amount: string
+  percentage: number
+  feeAmount?: string
+  totalAmount?: string
+}
+
+export type TChatRole = 'user' | 'assistant'
+
+export type TChatHistoryMessage = { role: TChatRole; content: string }
+
+export type TChatMessage = {
+  id: string
+  role: TChatRole
+  content: string
+  type: 'text' | 'file-import' | 'summary'
+  payments?: TPayment[]
+  summary?: TPaymentSummaryItem[]
+  timestamp: string
+}
+
+export type TChatAction =
+  | 'none'
+  | 'add_payments'
+  | 'update_payments'
+  | 'set_allocations'
+  | 'request_confirmation'
+  | 'execute'
+  | 'clear'
+
+export type TChatResponse = {
+  message: string
+  action: TChatAction
+  payments?: TPayment[]
+  price?: string
+  allocations?: TDestinationAllocation[]
+  summary?: TPaymentSummaryItem[]
+  errorCode?: ErrorCode
+  filename?: string
 }

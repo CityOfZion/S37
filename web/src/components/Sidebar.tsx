@@ -1,0 +1,255 @@
+import { type ComponentType, type SVGProps, useEffect, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
+
+import { Link, useNavigate, useRouterState } from '@tanstack/react-router'
+
+import type { TLanguage, TUser } from 'fractapay-shared'
+import { DEFAULT_LANGUAGE } from 'fractapay-shared'
+import { StringHelper } from 'fractapay-shared'
+
+import logoUrl from '../assets/logos/logo.svg'
+import { APP_NAME, LANGUAGE_NAMES } from '../constants'
+import { StyleHelper } from '../helpers/StyleHelper'
+import { useLanguageStore } from '../hooks/use-language-store'
+import { useLogoutMutation } from '../hooks/use-logout-mutation'
+import { useSidebarStore } from '../hooks/use-sidebar-store'
+import { useUserQuery } from '../hooks/use-user-query'
+import { Button } from './Button'
+import { Tooltip } from './Tooltip'
+
+import BrazilFlagIcon from '../assets/icons/brazil-flag-icon.svg?react'
+import ChatIcon from '../assets/icons/chat-icon.svg?react'
+import CloseIcon from '../assets/icons/close-icon.svg?react'
+import DestinationsIcon from '../assets/icons/destinations-icon.svg?react'
+import LogoutIcon from '../assets/icons/logout-icon.svg?react'
+import UsaFlagIcon from '../assets/icons/usa-flag-icon.svg?react'
+
+type TNavItem = {
+  path: string
+  labelKey: string
+  Icon: ComponentType<SVGProps<SVGSVGElement>>
+}
+
+const BOTTOM_BUTTON_CLASS =
+  'flex items-center gap-3 px-3 py-2.5 w-full justify-start text-sm font-medium'
+
+const NAV_ITEMS: TNavItem[] = [
+  { path: '/payments', labelKey: 'chat', Icon: ChatIcon },
+  { path: '/destinations', labelKey: 'destinations', Icon: DestinationsIcon },
+]
+
+type TNavContentProps = {
+  onClose: () => void
+  isActive: (path: string) => boolean
+  toggleLanguage: () => void
+  handleLogout: () => void
+  user: TUser | null | undefined
+  isLoggingOut: boolean
+}
+
+const NavContent = ({
+  onClose,
+  isActive,
+  toggleLanguage,
+  handleLogout,
+  user,
+  isLoggingOut,
+}: TNavContentProps) => {
+  const { t } = useTranslation('components', { keyPrefix: 'sidebar' })
+  const { language } = useLanguageStore()
+
+  return (
+    <nav className="flex flex-col h-full" aria-label={t('label')}>
+      <div className="flex items-center gap-2 px-4 py-5 border-b border-white/10">
+        <img src={logoUrl} alt={APP_NAME} className="size-8 shrink-0" />
+        <span className="font-extrabold text-white text-xl tracking-tight truncate select-none">
+          {APP_NAME}
+        </span>
+      </div>
+
+      <div className="flex-1 overflow-y-auto px-2 py-3">
+        <p className="text-[10px] font-bold tracking-widest uppercase text-neutral-500 px-3 mb-2 select-none">
+          {t('menuSection')}
+        </p>
+        <ul className="space-y-0.5">
+          {NAV_ITEMS.map(item => (
+            <li key={item.path}>
+              <Link
+                to={item.path}
+                onClick={onClose}
+                className={StyleHelper.merge(
+                  'group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors w-full',
+                  isActive(item.path)
+                    ? 'bg-primary text-white'
+                    : 'text-brand-200 hover:text-white hover:bg-white/5'
+                )}
+                aria-current={isActive(item.path) ? 'page' : undefined}
+              >
+                <item.Icon
+                  className={StyleHelper.merge(
+                    'size-5 shrink-0 transition-colors',
+                    isActive(item.path) ? 'text-white' : 'text-neutral-400 group-hover:text-white'
+                  )}
+                  aria-hidden="true"
+                />
+                <span>{t(item.labelKey as 'chat' | 'destinations')}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div className="px-2 py-4 border-t border-white/10 space-y-0.5">
+        {user && (
+          <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm">
+            {user.picture ? (
+              <img
+                src={user.picture}
+                alt=""
+                className="size-8 rounded-full shrink-0 object-cover"
+                referrerPolicy="no-referrer"
+              />
+            ) : (
+              <span
+                className="size-8 rounded-full bg-primary/20 text-white font-semibold flex items-center justify-center shrink-0"
+                aria-hidden="true"
+              >
+                {(user.name ?? user.email).charAt(0).toUpperCase()}
+              </span>
+            )}
+            <span className="text-white font-medium truncate">
+              {StringHelper.truncateMiddle(user.name ?? user.email, 22)}
+            </span>
+          </div>
+        )}
+
+        <Button
+          variant="ghost"
+          onClick={toggleLanguage}
+          className={StyleHelper.merge(
+            BOTTOM_BUTTON_CLASS,
+            'text-neutral-400 hover:text-white hover:bg-white/5 active:bg-white/10'
+          )}
+          aria-label={t('switchLanguage')}
+        >
+          {language === DEFAULT_LANGUAGE ? (
+            <UsaFlagIcon className="size-5 shrink-0 rounded-sm" aria-hidden="true" />
+          ) : (
+            <BrazilFlagIcon className="size-5 shrink-0 rounded-sm" aria-hidden="true" />
+          )}
+          <span>{LANGUAGE_NAMES[language]}</span>
+        </Button>
+
+        <Button
+          variant="ghost"
+          onClick={handleLogout}
+          disabled={isLoggingOut}
+          className={StyleHelper.merge(
+            BOTTOM_BUTTON_CLASS,
+            'text-neutral-400 hover:text-red-400 hover:bg-red-400/5 active:bg-red-400/10'
+          )}
+          aria-label={t('logout')}
+        >
+          <LogoutIcon className="size-5 shrink-0" aria-hidden="true" />
+          <span>{t('logout')}</span>
+        </Button>
+      </div>
+    </nav>
+  )
+}
+
+export const Sidebar = () => {
+  const { t } = useTranslation('components', { keyPrefix: 'sidebar' })
+  const navigate = useNavigate()
+  const currentPath = useRouterState({ select: state => state.location.pathname })
+  const { language, setLanguage } = useLanguageStore()
+  const { mobileOpen, setMobileOpen } = useSidebarStore()
+  const { data: user } = useUserQuery()
+  const logoutMutation = useLogoutMutation()
+
+  const asideRef = useRef<HTMLElement>(null)
+
+  useEffect(() => {
+    const aside = asideRef.current
+    if (!aside) return
+
+    const update = () => {
+      const isDesktop = window.matchMedia('(min-width: 1024px)').matches
+
+      if (!isDesktop && !mobileOpen) {
+        aside.setAttribute('inert', '')
+      } else {
+        aside.removeAttribute('inert')
+      }
+    }
+
+    update()
+
+    const media = window.matchMedia('(min-width: 1024px)')
+
+    media.addEventListener('change', update)
+
+    return () => media.removeEventListener('change', update)
+  }, [mobileOpen])
+
+  const isActive = (path: string) => currentPath.startsWith(path)
+
+  const toggleLanguage = () => {
+    const next: TLanguage = language === 'en-US' ? 'pt-BR' : 'en-US'
+
+    setLanguage(next)
+  }
+
+  const handleLogout = async () => {
+    setMobileOpen(false)
+
+    try {
+      await logoutMutation.mutateAsync()
+    } finally {
+      void navigate({ to: '/login' })
+    }
+  }
+
+  return (
+    <>
+      {mobileOpen && (
+        <div
+          className="lg:hidden fixed inset-0 z-40 bg-neutral-900/60 backdrop-blur-xs"
+          onClick={() => setMobileOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      <aside
+        ref={asideRef}
+        className={StyleHelper.merge(
+          'fixed top-0 left-0 z-50 h-full w-60 bg-neutral-900 border-r border-white/20 transition-transform duration-300',
+          'lg:sticky lg:top-0 lg:h-screen lg:z-auto lg:translate-x-0 lg:shrink-0',
+          mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+        )}
+        aria-label={t('label')}
+      >
+        <div className="absolute top-4 right-4 lg:hidden">
+          <Tooltip content={t('closeMenu')}>
+            <Button
+              variant="ghost"
+              onClick={() => setMobileOpen(false)}
+              className="p-1.5 rounded-lg text-neutral-400 hover:text-white"
+              aria-label={t('closeMenu')}
+            >
+              <CloseIcon className="size-5" aria-hidden="true" />
+            </Button>
+          </Tooltip>
+        </div>
+        <NavContent
+          onClose={() => setMobileOpen(false)}
+          isActive={isActive}
+          toggleLanguage={toggleLanguage}
+          handleLogout={handleLogout}
+          user={user}
+          isLoggingOut={logoutMutation.isPending}
+        />
+      </aside>
+    </>
+  )
+}

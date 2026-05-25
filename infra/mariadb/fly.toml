@@ -1,0 +1,21 @@
+app = 'fractapay-mariadb'
+primary_region = 'gru'
+
+[build]
+  dockerfile = 'Dockerfile'
+
+[env]
+  MARIADB_DATABASE = 'fractapay'
+  MARIADB_USER = 'fractapay'
+
+# No [http_service] — DB is private to the org over 6PN.
+
+[mounts]
+  source = 'mariadb_data'
+  destination = '/var/lib/mysql'
+
+[[vm]]
+  memory = '1gb'
+  cpu_kind = 'shared'
+  cpus = 1
+  memory_mb = 1024

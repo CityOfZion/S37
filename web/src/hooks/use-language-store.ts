@@ -26,6 +26,13 @@ export const useLanguageStore = create<TLanguageStore>()(
         set({ language })
       },
     }),
-    { name: 'fractapay.language' }
+    {
+      name: 'fractapay.language',
+      onRehydrateStorage: () => state => {
+        if (!localStorage.getItem('fractapay.language')) {
+          state?.setLanguage(detectBrowserLanguage())
+        }
+      },
+    }
   )
 )

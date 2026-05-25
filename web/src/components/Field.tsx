@@ -12,7 +12,7 @@ type TLabelProps = LabelHTMLAttributes<HTMLLabelElement> & {
 type TSubProps = HTMLAttributes<HTMLParagraphElement>
 
 export const Field = ({ className, children, ...props }: TProps) => (
-  <div className={StyleHelper.merge('flex flex-col gap-1', className)} {...props}>
+  <div className={StyleHelper.merge('flex flex-col gap-1.5', className)} {...props}>
     {children}
   </div>
 )
@@ -20,8 +20,8 @@ export const Field = ({ className, children, ...props }: TProps) => (
 Field.Label = ({ required, className, children, ...props }: TLabelProps) => (
   <label
     className={StyleHelper.merge(
-      'text-sm font-medium text-gray-300 flex items-center gap-1',
-      { "after:content-['*'] after:-ml-0.5 after:text-red-400": !!required },
+      'text-sm font-semibold text-neutral-700 flex items-center gap-1',
+      { "after:content-['*'] after:-ml-0.5 after:text-danger-500": !!required },
       className
     )}
     {...props}
@@ -31,13 +31,13 @@ Field.Label = ({ required, className, children, ...props }: TLabelProps) => (
 )
 
 Field.Hint = ({ className, children, ...props }: TSubProps) => (
-  <p className={StyleHelper.merge('text-sm text-gray-500', className)} {...props}>
+  <p className={StyleHelper.merge('text-xs text-neutral-400', className)} {...props}>
     {children}
   </p>
 )
 
 Field.Error = ({ className, children, ...props }: TSubProps) => (
-  <p className={StyleHelper.merge('text-sm text-red-400', className)} {...props}>
+  <p className={StyleHelper.merge('text-xs text-danger-500', className)} {...props}>
     {children}
   </p>
 )

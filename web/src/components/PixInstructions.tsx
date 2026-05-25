@@ -7,6 +7,7 @@ import { StringHelper } from 'fractapay-shared'
 import { ToastHelper } from '../helpers/ToastHelper'
 import { useSimulateFiatMutation } from '../hooks/use-simulate-fiat-mutation'
 import { Button } from './Button'
+import { Tooltip } from './Tooltip'
 
 import ClipboardIcon from '../assets/icons/clipboard-icon.svg?react'
 
@@ -42,51 +43,50 @@ export const PixInstructions = ({ pix, orderId, onSimulated }: TProps) => {
   }
 
   return (
-    <div className="space-y-4 rounded-2xl border border-white/10 bg-white/5 p-4">
+    <div className="space-y-4 mt-8">
       <div className="flex flex-col items-center gap-3">
         <div className="rounded-xl bg-white p-3">
           <QRCode value={pix.pixCode} size={180} level="M" aria-label={t('qrLabel')} />
         </div>
 
-        <p className="text-sm text-gray-300 text-center">
+        <p className="text-lg text-neutral-500 text-center">
           {t('amount')}:{' '}
-          <strong className="text-white">
+          <strong className="text-neutral-900">
             {StringHelper.formatCurrencyAmount(pix.amount, 'TESOURO')}
           </strong>
         </p>
       </div>
 
       <div className="space-y-2">
-        <label htmlFor="pix-code" className="text-xs font-medium text-gray-400 uppercase">
+        <label
+          htmlFor="pix-code"
+          className="text-xs font-semibold text-neutral-500 uppercase tracking-wider"
+        >
           {t('code')}
         </label>
 
         <div className="flex items-stretch gap-2">
-          <textarea
+          <div
             id="pix-code"
-            readOnly
-            value={pix.pixCode}
-            rows={3}
-            className="w-full rounded-xl border border-white/10 bg-gray-950 p-3 text-xs font-mono text-white outline-none resize-none break-all"
-          />
+            className="w-full rounded-xl border border-neutral-200 bg-white p-3 text-xs font-mono text-neutral-900 resize-none break-all"
+          >
+            {pix.pixCode}
+          </div>
 
-          <Button aria-label={t('copy')} variant="outline" size="sm" onClick={copyCode}>
-            <ClipboardIcon className="size-4" aria-hidden="true" />
-          </Button>
+          <Tooltip content={t('copy')}>
+            <Button aria-label={t('copy')} variant="outline" size="sm" onClick={copyCode}>
+              <ClipboardIcon className="size-5" aria-hidden="true" />
+            </Button>
+          </Tooltip>
         </div>
       </div>
-
-      {pix.beneficiary && (
-        <p className="text-xs text-gray-400">
-          {t('beneficiary')}: <span className="text-white">{pix.beneficiary}</span>
-        </p>
-      )}
 
       {orderId && (
         <div className="flex justify-end">
           <Button
             variant="outline"
             size="sm"
+            className="max-sm:w-full"
             disabled={simulateMutation.isPending}
             onClick={simulate}
           >

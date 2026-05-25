@@ -19,7 +19,7 @@ export const Info = ({ content, icon }: TProps) => {
       <span
         tabIndex={0}
         aria-label={t('label')}
-        className="text-gray-500 hover:text-gray-300 focus:text-gray-300 transition-colors cursor-default"
+        className="text-neutral-400 hover:text-neutral-600 focus:text-neutral-600 transition-colors cursor-default"
         onClick={(event: MouseEvent) => {
           event.preventDefault()
           event.stopPropagation()
