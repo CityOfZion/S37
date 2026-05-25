@@ -35,7 +35,7 @@ const rootRoute = createRootRoute({
   component: () => <Outlet />,
 })
 
-const authRoute = createRootRoute({
+const authRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: 'auth',
   component: RootLayout,
