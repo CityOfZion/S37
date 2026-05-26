@@ -9,22 +9,17 @@ import {
 import type { TAuthMeResult, TUser } from 'fractapay-shared'
 
 import { RootLayout } from '../components/RootLayout'
-import { EnvHelper } from '../helpers/EnvHelper'
+import { BASE_PATH } from '../constants'
 import { ChatPage } from '../pages/ChatPage'
 import { DestinationsPage } from '../pages/DestinationsPage'
 import { LoginPage } from '../pages/LoginPage'
 import { OnboardingPage } from '../pages/OnboardingPage'
 import { PaymentPage } from '../pages/PaymentPage'
+import { server } from '../services/server'
 
 const fetchCurrentUser = async (): Promise<TUser | null> => {
   try {
-    const response = await fetch(`${EnvHelper.API_URL}/auth/me`, {
-      credentials: 'include',
-    })
-
-    if (!response.ok) return null
-
-    const data = (await response.json()) as TAuthMeResult
+    const { data } = await server.get<TAuthMeResult>('/auth/me')
 
     return data.success ? data.user : null
   } catch {
@@ -126,7 +121,7 @@ const routeTree = rootRoute.addChildren([
 
 export const router = createRouter({
   routeTree,
-  basepath: import.meta.env.PROD ? '/S37' : undefined,
+  basepath: BASE_PATH,
 })
 
 declare module '@tanstack/react-router' {

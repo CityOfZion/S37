@@ -10,18 +10,13 @@ declare module 'fastify' {
   }
 }
 
-import { isProduction } from '../constants'
 import { EnvHelper } from '../helpers/EnvHelper'
 import { optionalAuth, requireAuth } from '../hooks/require-auth'
-import {
-  createSession,
-  deleteSession,
-  mapUserToTUser,
-  SESSION_MAX_AGE_SECONDS,
-} from '../services/session-service'
-import { markOnboardingCompleted, upsertGoogleUser } from '../services/user-service'
+import { mapUserToTUser, markOnboardingCompleted, upsertGoogleUser } from '../services/user-service'
 
 const GOOGLE_USERINFO_URL = 'https://www.googleapis.com/oauth2/v3/userinfo'
+
+const JWT_EXPIRES_IN = '7d'
 
 type TGoogleUserInfo = {
   sub: string
@@ -43,44 +38,27 @@ export const authRoute = async (fastify: FastifyInstance): Promise<void> => {
         timeout: 10_000,
       })
 
-      const token = tokenResponse.token as typeof tokenResponse.token & {
-        id_token?: string
-        scope?: string
-      }
+      const user = await upsertGoogleUser({ profile: data })
 
-      const user = await upsertGoogleUser({
-        profile: data,
-        tokenSet: {
-          access_token: token.access_token,
-          refresh_token: token.refresh_token,
-          id_token: token.id_token,
-          token_type: token.token_type,
-          scope: token.scope,
-          expires_at: token.expires_at,
-        },
-      })
-
-      const session = await createSession({
-        userId: user.id,
-        userAgent: request.headers['user-agent'] ?? null,
-        ip: request.ip,
-      })
-
-      reply.setCookie(EnvHelper.SESSION_COOKIE_NAME, session.id, {
-        signed: true,
-        httpOnly: true,
-        secure: isProduction,
-        sameSite: isProduction ? 'none' : 'lax',
-        path: '/',
-        maxAge: SESSION_MAX_AGE_SECONDS,
-        domain: EnvHelper.COOKIE_DOMAIN,
-      })
+      const jwtToken = await reply.jwtSign(
+        { sub: user.id, email: user.email },
+        { expiresIn: JWT_EXPIRES_IN }
+      )
 
       request.log.info({ userId: user.id, email: user.email }, '[Auth] login')
 
-      return reply.redirect(EnvHelper.WEB_LOGIN_SUCCESS_URL)
+      const successUrl = new URL(EnvHelper.WEB_LOGIN_SUCCESS_URL)
+      successUrl.hash = `token=${jwtToken}`
+
+      reply.header('Cache-Control', 'no-store, no-cache, must-revalidate')
+      reply.header('Pragma', 'no-cache')
+
+      return reply.redirect(successUrl.toString())
     } catch (error) {
       request.log.error({ error }, '[Auth] OAuth callback failed')
+
+      reply.header('Cache-Control', 'no-store, no-cache, must-revalidate')
+      reply.header('Pragma', 'no-cache')
 
       return reply.redirect(EnvHelper.WEB_LOGIN_FAILURE_URL)
     }
@@ -98,15 +76,6 @@ export const authRoute = async (fastify: FastifyInstance): Promise<void> => {
     '/auth/logout',
     { preHandler: optionalAuth },
     async (request, reply) => {
-      if (request.session) {
-        await deleteSession(request.session.id)
-      }
-
-      reply.clearCookie(EnvHelper.SESSION_COOKIE_NAME, {
-        path: '/',
-        domain: EnvHelper.COOKIE_DOMAIN,
-      })
-
       request.log.info({ userId: request.user?.id }, '[Auth] logout')
 
       return reply.status(200).send({ success: true })

@@ -1,87 +1,61 @@
 import type { preHandlerHookHandler } from 'fastify'
 
-import { ErrorCode, type TSession, type TUser } from 'fractapay-shared'
+import { ErrorCode, type TUser } from 'fractapay-shared'
 
-import { EnvHelper } from '../helpers/EnvHelper'
-import { getSessionWithUser, mapUserToTUser } from '../services/session-service'
+import { findUserById, mapUserToTUser } from '../services/user-service'
 
-declare module 'fastify' {
-  interface FastifyRequest {
-    user?: TUser
-    session?: TSession
+type TJwtPayload = {
+  sub: string
+  email: string
+}
+
+declare module '@fastify/jwt' {
+  interface FastifyJWT {
+    payload: TJwtPayload
+    user: TUser
   }
 }
 
-const readSessionId = (
+const verifyToken = async (
   request: Parameters<preHandlerHookHandler>[0]
-): { ok: true; sessionId: string } | { ok: false } => {
-  const raw = request.cookies[EnvHelper.SESSION_COOKIE_NAME]
+): Promise<TJwtPayload | null> => {
+  try {
+    return await request.jwtVerify<TJwtPayload>()
+  } catch (error) {
+    request.log.info({ error: (error as Error).message }, '[Auth] jwtVerify failed')
 
-  const cookieNames = Object.keys(request.cookies)
-  const origin = request.headers.origin
-  const cookieHeader = request.headers.cookie
-
-  request.log.info(
-    {
-      cookieNames,
-      hasSessionCookie: Boolean(raw),
-      origin,
-      cookieHeaderPresent: Boolean(cookieHeader),
-    },
-    '[Auth] requireAuth inspect'
-  )
-
-  if (!raw) {
-    return { ok: false }
+    return null
   }
-
-  const unsigned = request.unsignCookie(raw)
-
-  request.log.info({ unsigned }, '[Auth] unsigned cookie result')
-
-  if (!unsigned.valid || !unsigned.value) {
-    return { ok: false }
-  }
-
-  return { ok: true, sessionId: unsigned.value }
 }
-
-const toTSession = (session: { id: string; userId: string; expiresAt: Date }): TSession => ({
-  id: session.id,
-  userId: session.userId,
-  expiresAt: session.expiresAt.toISOString(),
-})
 
 export const requireAuth: preHandlerHookHandler = async (request, reply) => {
-  const cookie = readSessionId(request)
+  const payload = await verifyToken(request)
 
-  if (!cookie.ok) {
+  if (!payload) {
     return reply.status(401).send({ success: false, error: ErrorCode.UNAUTHORIZED })
   }
 
-  const result = await getSessionWithUser(cookie.sessionId)
+  const user = await findUserById(payload.sub)
 
-  if (!result) {
+  if (!user) {
     return reply.status(401).send({ success: false, error: ErrorCode.SESSION_EXPIRED })
   }
 
-  request.user = mapUserToTUser(result.user)
-  request.session = toTSession(result.session)
+  request.user = mapUserToTUser(user)
 }
 
 export const optionalAuth: preHandlerHookHandler = async request => {
-  const cookie = readSessionId(request)
+  const payload = await verifyToken(request)
 
-  if (!cookie.ok) {
+  if (!payload) {
     return
   }
 
-  const result = await getSessionWithUser(cookie.sessionId)
+  const user = await findUserById(payload.sub)
 
-  if (!result) {
+  if (!user) {
     return
   }
 
-  request.user = mapUserToTUser(result.user)
-  request.session = toTSession(result.session)
+  request.user = mapUserToTUser(user)
 }

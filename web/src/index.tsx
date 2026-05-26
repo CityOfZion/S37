@@ -4,9 +4,12 @@ import ReactDOM from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 import { App } from './components/App'
+import { captureTokenFromHash } from './helpers/auth-token'
 
 import './i18next'
 import './assets/css/styles.css'
+
+captureTokenFromHash()
 
 const queryClient = new QueryClient({
   defaultOptions: {

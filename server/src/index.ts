@@ -1,5 +1,6 @@
 import cookie from '@fastify/cookie'
 import cors from '@fastify/cors'
+import jwt from '@fastify/jwt'
 import multipart from '@fastify/multipart'
 import oauth2 from '@fastify/oauth2'
 import Fastify from 'fastify'
@@ -27,10 +28,25 @@ async function bootstrap(): Promise<void> {
     secret: EnvHelper.SESSION_SECRET,
   })
 
+  const iss = 'fractapay-server'
+
+  await fastify.register(jwt, {
+    secret: EnvHelper.SESSION_SECRET,
+    sign: {
+      algorithm: 'HS256',
+      iss,
+    },
+    verify: {
+      algorithms: ['HS256'],
+      allowedIss: iss,
+      clockTolerance: 30,
+    },
+  })
+
   await fastify.register(cors, {
     origin: EnvHelper.CORS_ORIGIN.split(',').map(origin => origin.trim()),
     methods: ['GET', 'POST', 'OPTIONS'],
-    credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept-Language'],
   })
 
   await fastify.register(oauth2, {
