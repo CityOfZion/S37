@@ -13,6 +13,7 @@ import { EnvHelper } from '../helpers/EnvHelper'
 import { ChatPage } from '../pages/ChatPage'
 import { DestinationsPage } from '../pages/DestinationsPage'
 import { LoginPage } from '../pages/LoginPage'
+import { OnboardingPage } from '../pages/OnboardingPage'
 import { PaymentPage } from '../pages/PaymentPage'
 
 const fetchCurrentUser = async (): Promise<TUser | null> => {
@@ -44,6 +45,10 @@ const authRoute = createRoute({
 
     if (!user) {
       throw redirect({ to: '/login' })
+    }
+
+    if (!user.onboardingCompletedAt) {
+      throw redirect({ to: '/onboarding' })
     }
   },
 })
@@ -80,11 +85,28 @@ const loginRoute = createRoute({
   beforeLoad: async () => {
     const user = await fetchCurrentUser()
 
-    if (user) {
+    if (user?.onboardingCompletedAt) {
       throw redirect({ to: '/payments' })
     }
   },
   component: LoginPage,
+})
+
+const onboardingRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/onboarding',
+  beforeLoad: async () => {
+    const user = await fetchCurrentUser()
+
+    if (!user) {
+      throw redirect({ to: '/login' })
+    }
+
+    if (user.onboardingCompletedAt) {
+      throw redirect({ to: '/payments' })
+    }
+  },
+  component: OnboardingPage,
 })
 
 const catchAllRoute = createRoute({
@@ -98,6 +120,7 @@ const catchAllRoute = createRoute({
 const routeTree = rootRoute.addChildren([
   authRoute.addChildren([indexRoute, chatRoute, destinationsRoute, paymentRoute]),
   loginRoute,
+  onboardingRoute,
   catchAllRoute,
 ])
 

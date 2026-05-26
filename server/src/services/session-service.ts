@@ -65,4 +65,5 @@ export const mapUserToTUser = (user: User): TUser => ({
   email: user.email,
   name: user.name,
   picture: user.avatarUrl,
+  onboardingCompletedAt: user.onboardingCompletedAt?.toISOString() ?? null,
 })

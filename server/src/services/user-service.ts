@@ -71,3 +71,13 @@ export const upsertGoogleUser = async ({
     return user
   })
 }
+
+export const markOnboardingCompleted = async (
+  userId: string,
+  companyName: string
+): Promise<User> => {
+  return prisma.user.update({
+    where: { id: userId },
+    data: { companyName, onboardingCompletedAt: new Date() },
+  })
+}

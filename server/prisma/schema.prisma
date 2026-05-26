@@ -16,13 +16,15 @@ model HealthCheck {
 }
 
 model User {
-  id            String         @id @default(cuid())
-  email         String         @unique
-  emailVerified DateTime?
-  name          String?
-  avatarUrl     String?        @db.Text
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  id                    String         @id @default(cuid())
+  email                 String         @unique
+  emailVerified         DateTime?
+  name                  String?
+  avatarUrl             String?        @db.Text
+  companyName           String?
+  onboardingCompletedAt DateTime?
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
 
   accounts OAuthAccount[]
   sessions Session[]
