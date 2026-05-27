@@ -5,6 +5,7 @@ import { Button } from '../components/Button'
 import { SignInButton } from '../components/SignInButton'
 import { APP_NAME } from '../constants'
 import { ToastHelper } from '../helpers/ToastHelper'
+import { usePageTitle } from '../hooks/use-page-title'
 import { useSignupMutation } from '../hooks/use-signup-mutation'
 
 type TFeatureKey = 'ai' | 'pix' | 'audit'
@@ -12,7 +13,7 @@ type TFeatureKey = 'ai' | 'pix' | 'audit'
 const FEATURE_KEYS: TFeatureKey[] = ['ai', 'pix', 'audit']
 
 const HeroPanel = () => {
-  const { t } = useTranslation('components', { keyPrefix: 'auth' })
+  const { t } = useTranslation('pages', { keyPrefix: 'auth' })
 
   return (
     <section
@@ -70,7 +71,7 @@ const HeroPanel = () => {
 }
 
 const SignInCard = () => {
-  const { t } = useTranslation('components', { keyPrefix: 'auth' })
+  const { t } = useTranslation('pages', { keyPrefix: 'auth' })
   const signupMutation = useSignupMutation()
 
   const handleSignup = () => {
@@ -125,6 +126,9 @@ const SignInCard = () => {
 }
 
 export const LoginPage = () => {
+  const { t } = useTranslation('pages', { keyPrefix: 'auth' })
+  usePageTitle(t('signInTitle'))
+
   return (
     <main className="min-h-screen w-full lg:flex bg-neutral-50">
       <HeroPanel />

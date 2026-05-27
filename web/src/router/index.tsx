@@ -6,26 +6,17 @@ import {
   redirect,
 } from '@tanstack/react-router'
 
-import type { TAuthMeResult, TUser } from 'fractapay-shared'
-
 import { RootLayout } from '../components/RootLayout'
+import { userQueryOptions } from '../hooks/use-user-query'
 import { BASE_PATH } from '../constants'
 import { ChatPage } from '../pages/ChatPage'
 import { DestinationsPage } from '../pages/DestinationsPage'
 import { LoginPage } from '../pages/LoginPage'
 import { OnboardingPage } from '../pages/OnboardingPage'
 import { PaymentPage } from '../pages/PaymentPage'
-import { server } from '../services/server'
-
-const fetchCurrentUser = async (): Promise<TUser | null> => {
-  try {
-    const { data } = await server.get<TAuthMeResult>('/auth/me')
-
-    return data.success ? data.user : null
-  } catch {
-    return null
-  }
-}
+import { PaymentsPage } from '../pages/PaymentsPage'
+import { ProfilePage } from '../pages/ProfilePage'
+import { queryClient } from '../services/query-client'
 
 const rootRoute = createRootRoute({
   component: () => <Outlet />,
@@ -36,7 +27,7 @@ const authRoute = createRoute({
   id: 'auth',
   component: RootLayout,
   beforeLoad: async () => {
-    const user = await fetchCurrentUser()
+    const user = await queryClient.ensureQueryData(userQueryOptions)
 
     if (!user) {
       throw redirect({ to: '/login' })
@@ -52,20 +43,32 @@ const indexRoute = createRoute({
   getParentRoute: () => authRoute,
   path: '/',
   beforeLoad: () => {
-    throw redirect({ to: '/payments' })
+    throw redirect({ to: '/chat' })
   },
 })
 
 const chatRoute = createRoute({
   getParentRoute: () => authRoute,
-  path: '/payments',
+  path: '/chat',
   component: ChatPage,
+})
+
+const paymentsRoute = createRoute({
+  getParentRoute: () => authRoute,
+  path: '/payments',
+  component: PaymentsPage,
 })
 
 const destinationsRoute = createRoute({
   getParentRoute: () => authRoute,
   path: '/destinations',
   component: DestinationsPage,
+})
+
+const profileRoute = createRoute({
+  getParentRoute: () => authRoute,
+  path: '/profile',
+  component: ProfilePage,
 })
 
 const paymentRoute = createRoute({
@@ -78,10 +81,10 @@ const loginRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/login',
   beforeLoad: async () => {
-    const user = await fetchCurrentUser()
+    const user = await queryClient.ensureQueryData(userQueryOptions)
 
     if (user?.onboardingCompletedAt) {
-      throw redirect({ to: '/payments' })
+      throw redirect({ to: '/chat' })
     }
   },
   component: LoginPage,
@@ -91,14 +94,14 @@ const onboardingRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/onboarding',
   beforeLoad: async () => {
-    const user = await fetchCurrentUser()
+    const user = await queryClient.ensureQueryData(userQueryOptions)
 
     if (!user) {
       throw redirect({ to: '/login' })
     }
 
     if (user.onboardingCompletedAt) {
-      throw redirect({ to: '/payments' })
+      throw redirect({ to: '/chat' })
     }
   },
   component: OnboardingPage,
@@ -108,12 +111,19 @@ const catchAllRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '$',
   beforeLoad: () => {
-    throw redirect({ to: '/payments' })
+    throw redirect({ to: '/chat' })
   },
 })
 
 const routeTree = rootRoute.addChildren([
-  authRoute.addChildren([indexRoute, chatRoute, destinationsRoute, paymentRoute]),
+  authRoute.addChildren([
+    indexRoute,
+    chatRoute,
+    paymentsRoute,
+    destinationsRoute,
+    profileRoute,
+    paymentRoute,
+  ]),
   loginRoute,
   onboardingRoute,
   catchAllRoute,

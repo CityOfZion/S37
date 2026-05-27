@@ -7,13 +7,13 @@ import * as uuid from 'uuid'
 
 import type { TDestination } from 'fractapay-shared'
 
+import { Button } from '../components/Button'
+import { Input } from '../components/Input'
+import { Modal } from '../components/Modal'
+import { Select } from '../components/Select'
 import { InputHelper } from '../helpers/InputHelper'
 import { useDestinationsStore } from '../hooks/use-destinations-store'
 import { destinationSchema, type TDestinationFormValues } from '../schemas/destination-schema'
-import { Button } from './Button'
-import { Input } from './Input'
-import { Modal } from './Modal'
-import { Select } from './Select'
 
 import BrazilFlagIcon from '../assets/icons/brazil-flag-icon.svg?react'
 
@@ -33,7 +33,7 @@ const TOKEN_OPTIONS = [
 ]
 
 export const DestinationModal = ({ open, onOpenChange, destination, onSave }: TProps) => {
-  const { t } = useTranslation('components', { keyPrefix: 'destinationModal' })
+  const { t } = useTranslation('modals', { keyPrefix: 'destination' })
 
   const PIX_KEY_TYPE_OPTIONS = [
     { value: 'evp', label: t('pixKeyTypeEvp') },

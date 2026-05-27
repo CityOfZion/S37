@@ -26,9 +26,9 @@
 FractaPay eliminates the pain of manual batch payments on Stellar. It uses an AI chat interface so you can set up and confirm payments conversationally.
 
 1. Register your destinations (authors, agencies, recipients) on the **Destinations** page — each with a name, Stellar address, and PIX key.
-2. Open the **Chat** and interact with the AI: type payment amounts, describe who gets what, or upload a payment file (CSV, XLS, XLSX, PDF or TXT) with amounts in BRL.
+2. Open the **Chat** (`/chat`) and interact with the AI: type payment amounts, describe who gets what, or upload a payment file (CSV, XLS, XLSX, PDF or TXT) with amounts in BRL. The sidebar shows recent conversations; click **+ New conversation** to start fresh.
 3. AI reads the conversation and file, extracts each payment's amount and description, and proposes allocations across your registered destinations.
-4. When you confirm, FractaPay opens a **Review** modal per destination showing the `15%` recipient share and the `2%` Etherfuse + FractaPay fee, with a live quote and a countdown until it expires.
+4. When you confirm, FractaPay opens a **Review** modal showing all allocations in a single table. The modal fetches a live Etherfuse quote for the combined amount (sum of all allocation percentages × file total) and displays a countdown to expiry.
 5. Confirm each allocation to generate a **PIX onramp** with Etherfuse. The modal renders a QR code and the copy-and-paste PIX code. Once the payment is detected, the Etherfuse order completes and TESOURO is delivered on Stellar to that destination's address.
 
 KYC is mandatory before the first payment. The first time you confirm, FractaPay launches an embedded Etherfuse onboarding/KYC flow. The order will only generate after the KYC status returns as `approved`.
@@ -39,10 +39,11 @@ KYC is mandatory before the first payment. The first time you confirm, FractaPay
 
 ```
 root/
-├── server/       # Node.js + Fastify + TypeScript      →  chat, AI extraction, live prices
-├── web/          # React + Vite + TailwindCSS          →  user interface
-├── contracts/    # Rust + Soroban                      →  Stellar smart contract
-└── shared/       # TypeScript types and helpers        →  shared between server and web
+├── server/       # Node.js + Fastify + TypeScript + Prisma  →  chat, AI, prices, auth, DB
+├── web/          # React + Vite + TailwindCSS                →  user interface
+├── contracts/    # Rust + Soroban                            →  Stellar smart contract
+├── shared/       # TypeScript types and helpers              →  shared between server and web
+└── db/           # Prisma schema + migrations                →  MariaDB via Docker or Fly.io
 ```
 
 ---
@@ -113,21 +114,25 @@ make deploy-testnet  # Deploy to testnet
 ┌────────────────────────────────────────────────────────────────┐
 │                          User Flow                             │
 │                                                                │
-│  [Register destinations: name + Stellar address + PIX key]     │
+│  [Sign in with Google → session cookie]                        │
 │        ↓                                                       │
-│  [Chat with AI: type amounts or upload a payment file]         │
+│  [Register destinations: name + PIX key (DestinationsPage)]    │
+│        ↓                                                       │
+│  [Chat with AI at /chat: type amounts or upload a payment file]│
 │        ↓                                                       │
 │  [AI extracts payments + proposes allocations per destination] │
 │        ↓                                                       │
-│  [AI requests confirmation → summary table in chat]            │
+│  [AI requests confirmation → summary table in chat bubble]     │
 │        ↓                                                       │
-│  [Review modal per allocation: 15% share + 2% fee + quote]     │
+│  [Review modal for all allocations: combined quote + 2% fee]   │
 │        ↓                                                       │
 │  [First time only: Etherfuse KYC embedded flow]                │
 │        ↓                                                       │
 │  [Confirm → Etherfuse onramp order → PIX QR + copy-paste]      │
 │        ↓                                                       │
 │  [User pays PIX → TESOURO delivered to address on Stellar]     │
+│        ↓                                                       │
+│  [Conversation saved with title → visible in /payments history]│
 └────────────────────────────────────────────────────────────────┘
 ```
 
@@ -144,6 +149,16 @@ make deploy-testnet  # Deploy to testnet
 | `ETHERFUSE_API_KEY` | Yes | Etherfuse Ramp API key (sandbox or production) |
 | `ETHERFUSE_BASE_URL` | No (default: `https://api.sand.etherfuse.com`) | Etherfuse base URL — `https://api.etherfuse.com` for production |
 | `CORS_ORIGIN` | No (default: `http://localhost:5173`) | Comma-separated list of allowed CORS origins |
+| `DATABASE_URL` | Yes | MariaDB connection string (e.g. `mysql://fractapay:fractapay@127.0.0.1:3306/fractapay`) |
+| `GOOGLE_CLIENT_ID` | Yes | Google OAuth client ID |
+| `GOOGLE_CLIENT_SECRET` | Yes | Google OAuth client secret |
+| `OAUTH_CALLBACK_URL` | No (default: `http://localhost:3000/auth/google/callback`) | Must match the redirect URI in Google Cloud Console |
+| `SESSION_SECRET` | Yes (≥32 chars) | Signs the `fractapay_session` httpOnly cookie |
+| `SESSION_COOKIE_NAME` | No (default: `fractapay_session`) | Name of the session cookie |
+| `WEB_BASE_URL` | No (default: `http://localhost:5173`) | Base URL of the web app; used as fallback for login redirect URLs |
+| `WEB_LOGIN_SUCCESS_URL` | No (default: `WEB_BASE_URL`) | Redirect target after successful Google login |
+| `WEB_LOGIN_FAILURE_URL` | No (default: `WEB_BASE_URL/?login=failed`) | Redirect target on OAuth callback failure |
+| `COOKIE_DOMAIN` | No | Cookie `Domain` attribute — leave blank for localhost dev |
 
 ### Web (`web/.env`)
 

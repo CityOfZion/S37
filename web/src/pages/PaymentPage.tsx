@@ -1,41 +1,130 @@
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { useNavigate, useParams } from '@tanstack/react-router'
-import { match } from 'ts-pattern'
+
+import { StringHelper } from 'fractapay-shared'
 
 import { Button } from '../components/Button'
+import { Skeleton } from '../components/Skeleton'
+import { ORDER_STATUS_CLASSES } from '../constants/order-status'
+import { StyleHelper } from '../helpers/StyleHelper'
+import { useLanguageStore } from '../hooks/use-language-store'
 import { useOrderQuery } from '../hooks/use-order-query'
+import { usePageTitle } from '../hooks/use-page-title'
 
 export const PaymentPage = () => {
-  const { t } = useTranslation('components', { keyPrefix: 'payment' })
+  const { t } = useTranslation('pages', { keyPrefix: 'payment' })
+  usePageTitle(t('title'))
   const navigate = useNavigate()
+  const { language } = useLanguageStore()
   const { orderId } = useParams({ from: '/auth/payment/$orderId' })
   const { data, isLoading, isError } = useOrderQuery(orderId)
+  const [copiedTx, setCopiedTx] = useState(false)
+
+  const copyTx = async (hash: string) => {
+    try {
+      await navigator.clipboard.writeText(hash)
+      setCopiedTx(true)
+      setTimeout(() => setCopiedTx(false), 2000)
+    } catch {
+      // ignore
+    }
+  }
+
+  const statusKey = data?.status ?? 'created'
+  const badgeClass = ORDER_STATUS_CLASSES[statusKey] ?? ORDER_STATUS_CLASSES.created
 
   return (
-    <main className="max-w-2xl mx-auto px-4 py-8 space-y-6">
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <h2 className="text-neutral-900 font-bold text-2xl">{t('title')}</h2>
-        <Button variant="outline" onClick={() => void navigate({ to: '/' })}>
+    <main className="max-w-5xl mx-auto px-4 py-8 space-y-6">
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <h1 className="text-2xl font-bold text-neutral-900">{t('title')}</h1>
+        <Button variant="outline" onClick={() => void navigate({ to: '/payments' })}>
           {t('back')}
         </Button>
       </div>
 
-      {match({ isLoading, isError, data })
-        .with({ isLoading: true }, () => <p className="text-neutral-500">{t('loading')}</p>)
-        .with({ isError: true }, () => <p className="text-danger-500">{t('error')}</p>)
-        .when(
-          ({ data: orderData }) => !!orderData,
-          ({ data: orderData }) =>
-            orderData && (
-              <div className="space-y-4">
-                <div className="rounded-xl border border-neutral-200 bg-white px-4 py-4 text-sm text-neutral-700 shadow-sm">
-                  {t('status')}: <strong>{t(`statuses.${orderData.status}`)}</strong>
+      {isLoading && (
+        <div className="rounded-2xl border border-neutral-200 bg-white shadow-sm p-6 space-y-4">
+          <Skeleton className="h-5 w-32" />
+          <Skeleton className="h-4 w-64" />
+          <Skeleton className="h-4 w-48" />
+        </div>
+      )}
+
+      {isError && (
+        <div className="rounded-2xl border border-danger-200 bg-danger-50 p-6 text-danger-600 text-sm">
+          {t('error')}
+        </div>
+      )}
+
+      {data && !isLoading && (
+        <div className="space-y-4">
+          <div className="rounded-2xl border border-neutral-200 bg-white shadow-sm p-6 space-y-4">
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <span className="text-sm font-medium text-neutral-500">{t('status')}</span>
+              <span
+                className={StyleHelper.merge(
+                  'px-3 py-1 rounded-full text-sm font-semibold',
+                  badgeClass
+                )}
+              >
+                {t(`statuses.${statusKey}`)}
+              </span>
+            </div>
+
+            {data.amountInFiat && (
+              <div className="flex items-center justify-between border-t border-neutral-100 pt-4">
+                <span className="text-sm text-neutral-500">{t('amount')}</span>
+                <span className="font-bold text-neutral-900 text-lg">
+                  {StringHelper.formatCurrencyAmount(data.amountInFiat, 'TESOURO')}
+                </span>
+              </div>
+            )}
+
+            {data.amountInTokens && (
+              <div className="flex items-center justify-between border-t border-neutral-100 pt-4">
+                <span className="text-sm text-neutral-500">{t('amountInTokens')}</span>
+                <span className="font-semibold text-neutral-900">
+                  {StringHelper.formatAmount(data.amountInTokens)} TESOURO
+                </span>
+              </div>
+            )}
+          </div>
+
+          <div className="rounded-2xl border border-neutral-200 bg-white shadow-sm p-6 space-y-3">
+            <div className="flex items-start justify-between gap-4">
+              <span className="text-sm text-neutral-500 shrink-0">{t('orderId')}</span>
+              <span className="font-mono text-xs text-neutral-700 text-right break-all">
+                {data.orderId}
+              </span>
+            </div>
+
+            {data.confirmedTxSignature && (
+              <div className="flex items-start justify-between gap-4 border-t border-neutral-100 pt-3">
+                <span className="text-sm text-neutral-500 shrink-0">{t('txHash')}</span>
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="font-mono text-xs text-neutral-700 truncate">
+                    {StringHelper.truncateMiddle(data.confirmedTxSignature, 24)}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="xs"
+                    className="px-0 text-primary shrink-0"
+                    onClick={() => void copyTx(data.confirmedTxSignature!)}
+                  >
+                    {copiedTx ? t('copiedTx') : t('copyTx')}
+                  </Button>
                 </div>
               </div>
-            )
-        )
-        .otherwise(() => null)}
+            )}
+          </div>
+
+          <p className="text-xs text-neutral-400 text-center select-none">
+            {new Date().toLocaleDateString(language, { dateStyle: 'long' })}
+          </p>
+        </div>
+      )}
     </main>
   )
 }

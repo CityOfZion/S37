@@ -4,12 +4,13 @@ import { useTranslation } from 'react-i18next'
 import type { TDestination } from 'fractapay-shared'
 
 import { Button } from '../components/Button'
-import { DestinationModal } from '../components/DestinationModal'
 import { Modal } from '../components/Modal'
 import { Tooltip } from '../components/Tooltip'
 import { InputHelper } from '../helpers/InputHelper'
 import { ToastHelper } from '../helpers/ToastHelper'
 import { useDestinationsStore } from '../hooks/use-destinations-store'
+import { usePageTitle } from '../hooks/use-page-title'
+import { DestinationModal } from '../modals/DestinationModal'
 
 import AddIcon from '../assets/icons/add-icon.svg?react'
 import BrazilFlagIcon from '../assets/icons/brazil-flag-icon.svg?react'
@@ -18,7 +19,8 @@ import EditIcon from '../assets/icons/edit-icon.svg?react'
 import EmptyStateIcon from '../assets/icons/empty-state-icon.svg?react'
 
 export const DestinationsPage = () => {
-  const { t } = useTranslation('components', { keyPrefix: 'destinations' })
+  const { t } = useTranslation('pages', { keyPrefix: 'destinations' })
+  usePageTitle(t('title'))
   const { destinations, addDestination, updateDestination, deleteDestination } =
     useDestinationsStore()
   const [modalOpen, setModalOpen] = useState(false)
@@ -85,7 +87,7 @@ export const DestinationsPage = () => {
             <p className="text-neutral-500 font-medium">{t('empty')}</p>
             <p className="text-neutral-400 text-sm mt-1">{t('emptyHint')}</p>
           </div>
-          <Button size="sm" variant="outline" onClick={handleAdd}>
+          <Button size="sm" variant="tertiary" onClick={handleAdd}>
             <AddIcon className="size-4" aria-hidden="true" />
             {t('add')}
           </Button>
