@@ -1,28 +1,32 @@
 import { type ComponentType, type SVGProps, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { Link, useNavigate, useRouterState } from '@tanstack/react-router'
+import { useNavigate, useRouterState } from '@tanstack/react-router'
 
 import type { TLanguage, TUser } from 'fractapay-shared'
 import { DEFAULT_LANGUAGE } from 'fractapay-shared'
-import { StringHelper } from 'fractapay-shared'
 
 import logoUrl from '../assets/logos/logo.svg'
 import { APP_NAME, LANGUAGE_NAMES } from '../constants'
 import { StyleHelper } from '../helpers/StyleHelper'
+import { useConversationStore } from '../hooks/use-conversation-store'
 import { useLanguageStore } from '../hooks/use-language-store'
 import { useLogoutMutation } from '../hooks/use-logout-mutation'
 import { useSidebarStore } from '../hooks/use-sidebar-store'
 import { useUserQuery } from '../hooks/use-user-query'
 import { Button } from './Button'
+import { NavLink } from './NavLink'
 import { Tooltip } from './Tooltip'
+import { UserAvatar } from './UserAvatar'
 
 import BrazilFlagIcon from '../assets/icons/brazil-flag-icon.svg?react'
 import ChatIcon from '../assets/icons/chat-icon.svg?react'
 import CloseIcon from '../assets/icons/close-icon.svg?react'
 import DestinationsIcon from '../assets/icons/destinations-icon.svg?react'
 import LogoutIcon from '../assets/icons/logout-icon.svg?react'
+import PaymentsIcon from '../assets/icons/payments-icon.svg?react'
 import UsaFlagIcon from '../assets/icons/usa-flag-icon.svg?react'
+import UserIcon from '../assets/icons/user-icon.svg?react'
 
 type TNavItem = {
   path: string
@@ -34,7 +38,8 @@ const BOTTOM_BUTTON_CLASS =
   'flex items-center gap-3 px-3 py-2.5 w-full justify-start text-sm font-medium'
 
 const NAV_ITEMS: TNavItem[] = [
-  { path: '/payments', labelKey: 'chat', Icon: ChatIcon },
+  { path: '/chat', labelKey: 'chat', Icon: ChatIcon },
+  { path: '/payments', labelKey: 'payments', Icon: PaymentsIcon },
   { path: '/destinations', labelKey: 'destinations', Icon: DestinationsIcon },
 ]
 
@@ -57,6 +62,10 @@ const NavContent = ({
 }: TNavContentProps) => {
   const { t } = useTranslation('components', { keyPrefix: 'sidebar' })
   const { language } = useLanguageStore()
+  const navigate = useNavigate()
+  const { conversations, setActiveConversation } = useConversationStore()
+
+  const recentConversations = conversations.slice(0, 6)
 
   return (
     <nav className="flex flex-col h-full" aria-label={t('label')}>
@@ -67,60 +76,84 @@ const NavContent = ({
         </span>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-2 py-3">
-        <p className="text-[10px] font-bold tracking-widest uppercase text-neutral-500 px-3 mb-2 select-none">
-          {t('menuSection')}
-        </p>
-        <ul className="space-y-0.5">
-          {NAV_ITEMS.map(item => (
-            <li key={item.path}>
-              <Link
-                to={item.path}
-                onClick={onClose}
-                className={StyleHelper.merge(
-                  'group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors w-full',
-                  isActive(item.path)
-                    ? 'bg-primary text-white'
-                    : 'text-brand-200 hover:text-white hover:bg-white/5'
-                )}
-                aria-current={isActive(item.path) ? 'page' : undefined}
-              >
-                <item.Icon
+      <div className="flex-1 overflow-y-auto px-2 py-3 space-y-4">
+        <div>
+          <p className="text-[10px] font-bold tracking-widest uppercase text-neutral-500 px-3 mb-2 select-none">
+            {t('menuSection')}
+          </p>
+          <ul className="space-y-1">
+            {NAV_ITEMS.map(item => (
+              <li key={item.path}>
+                <NavLink
+                  to={item.path}
+                  onClick={onClose}
                   className={StyleHelper.merge(
-                    'size-5 shrink-0 transition-colors',
-                    isActive(item.path) ? 'text-white' : 'text-neutral-400 group-hover:text-white'
+                    'group flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors w-full font-bold',
+                    isActive(item.path)
+                      ? 'bg-white/10 text-white'
+                      : 'text-brand-200 hover:text-white hover:bg-white/5'
                   )}
-                  aria-hidden="true"
-                />
-                <span>{t(item.labelKey as 'chat' | 'destinations')}</span>
-              </Link>
-            </li>
-          ))}
-        </ul>
+                  aria-current={isActive(item.path) ? 'page' : undefined}
+                >
+                  <item.Icon
+                    className={StyleHelper.merge(
+                      'size-5 shrink-0 transition-colors',
+                      isActive(item.path) ? 'text-white' : 'text-neutral-400 group-hover:text-white'
+                    )}
+                    aria-hidden="true"
+                  />
+                  <span>{t(item.labelKey as 'chat' | 'payments' | 'destinations')}</span>
+                </NavLink>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {recentConversations.length > 0 && (
+          <div>
+            <p className="text-[10px] font-bold tracking-widest uppercase text-neutral-500 px-3 mb-2 select-none">
+              {t('recentConversations')}
+            </p>
+            <ul className="space-y-0.5">
+              {recentConversations.map(conversation => (
+                <li key={conversation.id}>
+                  <Button
+                    variant="ghost"
+                    size="xs"
+                    className="w-full justify-start px-3 py-2 text-xs text-neutral-400 hover:text-white hover:bg-white/5 truncate"
+                    title={conversation.title}
+                    onClick={() => {
+                      setActiveConversation(conversation.id)
+                      void navigate({ to: '/chat' })
+                      onClose()
+                    }}
+                  >
+                    {conversation.title}
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
 
-      <div className="px-2 py-4 border-t border-white/10 space-y-0.5">
+      <div className="px-2 py-4 border-t border-white/10 space-y-1">
         {user && (
-          <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm">
-            {user.picture ? (
-              <img
-                src={user.picture}
-                alt=""
-                className="size-8 rounded-full shrink-0 object-cover"
-                referrerPolicy="no-referrer"
-              />
-            ) : (
-              <span
-                className="size-8 rounded-full bg-primary/20 text-white font-semibold flex items-center justify-center shrink-0"
-                aria-hidden="true"
-              >
-                {(user.name ?? user.email).charAt(0).toUpperCase()}
-              </span>
-            )}
-            <span className="text-white font-medium truncate">
-              {StringHelper.truncateMiddle(user.name ?? user.email, 22)}
-            </span>
-          </div>
+          <NavLink
+            to="/profile"
+            onClick={onClose}
+            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm hover:bg-white/5 transition-colors group"
+          >
+            <UserAvatar name={user.name ?? user.email} picture={user.picture} />
+            <div className="min-w-0 flex-1">
+              <p className="text-white font-bold truncate text-sm">{user.name ?? user.email}</p>
+              <p className="text-neutral-500 text-xs truncate select-none">{t('viewProfile')}</p>
+            </div>
+            <UserIcon
+              className="size-5 shrink-0 text-neutral-500 group-hover:text-white transition-colors"
+              aria-hidden="true"
+            />
+          </NavLink>
         )}
 
         <Button
@@ -192,6 +225,18 @@ export const Sidebar = () => {
     return () => media.removeEventListener('change', update)
   }, [mobileOpen])
 
+  useEffect(() => {
+    if (!mobileOpen) return
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMobileOpen(false)
+    }
+
+    document.addEventListener('keydown', handleEscape)
+
+    return () => document.removeEventListener('keydown', handleEscape)
+  }, [mobileOpen, setMobileOpen])
+
   const isActive = (path: string) => currentPath.startsWith(path)
 
   const toggleLanguage = () => {
@@ -227,6 +272,7 @@ export const Sidebar = () => {
           'lg:sticky lg:top-0 lg:h-screen lg:z-auto lg:translate-x-0 lg:shrink-0',
           mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         )}
+        data-nav-sidebar
         aria-label={t('label')}
       >
         <div className="absolute top-4 right-4 lg:hidden">

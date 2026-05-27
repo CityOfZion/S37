@@ -16,6 +16,7 @@ type TProps = {
   description?: string
   className?: string
   closeLabel?: string
+  isCloseDisabled?: boolean
   preventClose?: boolean
   children: ReactNode
 }
@@ -27,6 +28,7 @@ export const Modal = ({
   description,
   className,
   closeLabel,
+  isCloseDisabled,
   preventClose,
   children,
 }: TProps) => {
@@ -62,8 +64,8 @@ export const Modal = ({
             </div>
 
             <Tooltip content={resolvedCloseLabel}>
-              <Dialog.Close asChild>
-                <Button aria-label={resolvedCloseLabel} variant="ghost">
+              <Dialog.Close asChild disabled={isCloseDisabled}>
+                <Button aria-label={resolvedCloseLabel} disabled={isCloseDisabled} variant="ghost">
                   <CloseIcon className="size-5" aria-hidden="true" />
                 </Button>
               </Dialog.Close>

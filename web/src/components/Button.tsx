@@ -23,11 +23,11 @@ const VARIANT_CLASSES: Record<TButtonVariant, string> = {
   secondary:
     'bg-white border border-primary-200 text-primary hover:bg-brand-50 active:bg-brand-100 focus-visible:ring-2 focus-visible:ring-primary/30 font-semibold rounded-xl transition-colors',
   outline:
-    'bg-white border border-neutral-200 text-neutral-700 hover:text-neutral-900 hover:border-neutral-300 hover:bg-neutral-50 focus-visible:ring-2 focus-visible:ring-neutral-300 font-medium rounded-xl transition-colors',
+    'bg-white border border-neutral-200 text-neutral-700 hover:text-neutral-900 hover:border-neutral-300 hover:bg-neutral-50 active:bg-neutral-100 focus-visible:ring-2 focus-visible:ring-neutral-300 font-medium rounded-xl transition-colors',
   tertiary:
-    'bg-transparent text-primary hover:text-primary-600 active:text-primary-700 focus-visible:ring-2 focus-visible:ring-primary/30 font-medium rounded-xl transition-colors',
+    'bg-transparent text-primary hover:text-primary-600 active:opacity-70 focus-visible:ring-2 focus-visible:ring-primary/30 font-medium rounded-xl transition-colors',
   success:
-    'bg-accent-500 hover:bg-accent-600 active:bg-accent-600 focus-visible:ring-2 focus-visible:ring-accent-500/50 text-white font-semibold rounded-xl transition-colors',
+    'bg-accent-500 hover:bg-accent-600 active:bg-accent-700 focus-visible:ring-2 focus-visible:ring-accent-500/50 text-white font-semibold rounded-xl transition-colors',
   danger:
     'bg-danger-500 hover:bg-red-600 active:bg-red-700 focus-visible:ring-2 focus-visible:ring-danger-500/50 text-white font-semibold rounded-xl transition-colors',
   ghost:

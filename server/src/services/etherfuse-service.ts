@@ -380,7 +380,7 @@ export const createOrder = async (payload: TOrderPayload): Promise<TOrderResult>
     if ((error as Error).message !== ErrorCode.PENDING_ORDER_EXISTS) throw error
 
     const existing = await findPendingOrder(payload.customerId, payload.bankAccountId)
-    if (existing) return existing
+    if (existing) return { ...existing, isRecovered: true }
 
     throw error
   }

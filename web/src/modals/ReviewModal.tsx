@@ -20,6 +20,14 @@ const TOKEN_ICON_URL: Partial<Record<string, string>> = {
   TESOURO: tesouroIconUrl,
 }
 
+import { Accordion } from '../components/Accordion'
+import { Button } from '../components/Button'
+import { CountdownRing } from '../components/CountdownRing'
+import { Modal } from '../components/Modal'
+import { PixInstructions } from '../components/PixInstructions'
+import { Skeleton } from '../components/Skeleton'
+import { Tooltip } from '../components/Tooltip'
+import { APP_NAME } from '../constants'
 import { useCountdown } from '../hooks/use-countdown'
 import { useCustomerLookupQuery } from '../hooks/use-customer-lookup-query'
 import { useEtherfuseStore } from '../hooks/use-etherfuse-store'
@@ -28,13 +36,6 @@ import { useOnboardingMutation } from '../hooks/use-onboarding-mutation'
 import { useOrderMutation } from '../hooks/use-order-mutation'
 import { usePaymentsStore } from '../hooks/use-payments-store'
 import { useQuoteMutation } from '../hooks/use-quote-mutation'
-import { Accordion } from './Accordion'
-import { Button } from './Button'
-import { CountdownRing } from './CountdownRing'
-import { Modal } from './Modal'
-import { PixInstructions } from './PixInstructions'
-import { Skeleton } from './Skeleton'
-import { Tooltip } from './Tooltip'
 
 import InfoIcon from '../assets/icons/info-icon.svg?react'
 
@@ -73,7 +74,7 @@ export const ReviewModal = ({
   allocations,
   onPaymentCompleted,
 }: TProps) => {
-  const { t } = useTranslation('components', { keyPrefix: 'reviewModal' })
+  const { t } = useTranslation('modals', { keyPrefix: 'review' })
   const navigate = useNavigate()
   const { payments, token, setPayments } = usePaymentsStore()
   const account = useEtherfuseStore(state => state.accounts[recipientAddress])
@@ -241,7 +242,7 @@ export const ReviewModal = ({
         customerId: account.customerId,
         bankAccountId: account.bankAccountId,
         publicKey: recipientAddress,
-        memo: `FractaPay batch ${new Date().toISOString()}`,
+        memo: `${APP_NAME} batch ${new Date().toISOString()}`,
       },
       {
         onSuccess: result => {
@@ -297,12 +298,14 @@ export const ReviewModal = ({
       title={t('title')}
       description={t('description')}
       closeLabel={t('close')}
+      isCloseDisabled={orderMutation.isPending}
       preventClose
     >
       {order?.pix ? (
         <PixInstructions
           pix={order.pix}
           orderId={order.orderId}
+          isPendingOrder={order.isRecovered}
           onSimulated={() => {
             onPaymentCompleted?.()
             onOpenChange(false)

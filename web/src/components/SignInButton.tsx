@@ -17,7 +17,7 @@ const SOLID_WHITE_CLASSES =
   'bg-white text-neutral-900 hover:bg-neutral-100 active:bg-neutral-200 focus-visible:ring-2 focus-visible:ring-white/50 font-semibold rounded-xl shadow-lg shadow-neutral-900/10 transition-colors'
 
 export const SignInButton = ({ variant = 'outline', className }: TProps) => {
-  const { t } = useTranslation('components', { keyPrefix: 'auth' })
+  const { t } = useTranslation('pages', { keyPrefix: 'auth' })
 
   const handleClick = () => {
     window.location.href = `${EnvHelper.API_URL}/auth/google`

@@ -134,6 +134,7 @@ export type TOrderResult = {
   confirmedTxSignature?: string
   amountInFiat?: string
   amountInTokens?: string
+  isRecovered?: boolean
 }
 
 export type TDestination = {

@@ -10,14 +10,16 @@ import { Button } from './Button'
 import { Tooltip } from './Tooltip'
 
 import ClipboardIcon from '../assets/icons/clipboard-icon.svg?react'
+import WarningIcon from '../assets/icons/warning-icon.svg?react'
 
 type TProps = {
   pix: TPixInstructions
   orderId?: string
+  isPendingOrder?: boolean
   onSimulated?: () => void
 }
 
-export const PixInstructions = ({ pix, orderId, onSimulated }: TProps) => {
+export const PixInstructions = ({ pix, orderId, isPendingOrder, onSimulated }: TProps) => {
   const { t } = useTranslation('components', { keyPrefix: 'pix' })
   const simulateMutation = useSimulateFiatMutation()
 
@@ -44,6 +46,13 @@ export const PixInstructions = ({ pix, orderId, onSimulated }: TProps) => {
 
   return (
     <div className="space-y-4 mt-8">
+      {isPendingOrder && (
+        <div className="flex items-start gap-2 text-xs rounded-xl border border-warning-500/30 bg-warning-100 px-3 py-2 text-neutral-700">
+          <WarningIcon className="size-4 shrink-0 text-warning-500 mt-0.5" aria-hidden="true" />
+          <p>{t('pendingOrder')}</p>
+        </div>
+      )}
+
       <div className="flex flex-col items-center gap-3">
         <div className="rounded-xl bg-white p-3">
           <QRCode value={pix.pixCode} size={180} level="M" aria-label={t('qrLabel')} />
