@@ -35,6 +35,7 @@ export type TUser = {
   email: string
   name: string | null
   picture: string | null
+  onboardingCompletedAt: string | null
 }
 
 export type TSession = {
@@ -44,6 +45,10 @@ export type TSession = {
 }
 
 export type TAuthMeResult = { success: true; user: TUser } | { success: false; error: ErrorCode }
+
+export type TCompleteOnboardingPayload = {
+  companyName: string
+}
 
 export type TPayment = {
   id: string

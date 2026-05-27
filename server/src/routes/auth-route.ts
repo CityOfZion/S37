@@ -2,7 +2,7 @@ import type { OAuth2Namespace } from '@fastify/oauth2'
 import axios from 'axios'
 import type { FastifyInstance } from 'fastify'
 
-import { ErrorCode, type TAuthMeResult } from 'fractapay-shared'
+import { ErrorCode, type TAuthMeResult, type TCompleteOnboardingPayload } from 'fractapay-shared'
 
 declare module 'fastify' {
   interface FastifyInstance {
@@ -13,8 +13,13 @@ declare module 'fastify' {
 import { isProduction } from '../constants'
 import { EnvHelper } from '../helpers/EnvHelper'
 import { optionalAuth, requireAuth } from '../hooks/require-auth'
-import { createSession, deleteSession, SESSION_MAX_AGE_SECONDS } from '../services/session-service'
-import { upsertGoogleUser } from '../services/user-service'
+import {
+  createSession,
+  deleteSession,
+  mapUserToTUser,
+  SESSION_MAX_AGE_SECONDS,
+} from '../services/session-service'
+import { markOnboardingCompleted, upsertGoogleUser } from '../services/user-service'
 
 const GOOGLE_USERINFO_URL = 'https://www.googleapis.com/oauth2/v3/userinfo'
 
@@ -114,6 +119,25 @@ export const authRoute = async (fastify: FastifyInstance): Promise<void> => {
       request.log.info('[Auth] signup endpoint hit — not yet implemented')
 
       return reply.status(501).send({ success: false, error: ErrorCode.NOT_IMPLEMENTED })
+    }
+  )
+
+  fastify.post<{ Body: TCompleteOnboardingPayload; Reply: TAuthMeResult }>(
+    '/auth/onboarding',
+    { preHandler: requireAuth },
+    async (request, reply) => {
+      const companyName = request.body?.companyName?.trim()
+
+      if (!companyName) {
+        return reply.status(400).send({ success: false, error: ErrorCode.INVALID_PAYLOAD })
+      }
+
+      // TODO: persist missing necessary data when columns land
+      const updated = await markOnboardingCompleted(request.user!.id, companyName)
+
+      request.log.info({ userId: updated.id }, '[Auth] onboarding completed')
+
+      return reply.status(200).send({ success: true, user: mapUserToTUser(updated) })
     }
   )
 }

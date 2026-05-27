@@ -17,6 +17,22 @@
     "signupError": "Couldn't reach the sign-up service. Try again.",
     "switchLanguage": "Switch language"
   },
+  "onboarding": {
+    "title": "About your company",
+    "subtitle": "This helps us personalize the payment models that will save you time.",
+    "heroHeadline": "Let's personalize.",
+    "heroSubtitle": "A few details about your business so we can shape the experience.",
+    "companyNameLabel": "Company name",
+    "companyNamePlaceholder": "Example Corp",
+    "companyNameRequired": "Enter the company name",
+    "cnpjLabel": "CNPJ (optional)",
+    "cnpjPlaceholder": "00.000.000/0001-00",
+    "continue": "Continue",
+    "saving": "Saving…",
+    "successHeadline": "All set!",
+    "successMessage": "Redirecting…",
+    "homeAria": "Back to the home screen"
+  },
   "sidebar": {
     "label": "Main menu",
     "menuSection": "Main menu",

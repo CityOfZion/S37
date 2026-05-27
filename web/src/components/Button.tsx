@@ -1,4 +1,4 @@
-import { type ButtonHTMLAttributes, forwardRef } from 'react'
+import { type ButtonHTMLAttributes, forwardRef, type ReactNode } from 'react'
 
 import { StyleHelper } from '../helpers/StyleHelper'
 
@@ -11,10 +11,13 @@ type TButtonVariant =
   | 'danger'
   | 'ghost'
 type TButtonSize = 'xs' | 'sm' | 'md' | 'lg'
+type TIconPosition = 'start' | 'end'
 
 type TProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: TButtonVariant
   size?: TButtonSize
+  icon?: ReactNode
+  iconPosition?: TIconPosition
 }
 
 const VARIANT_CLASSES: Record<TButtonVariant, string> = {
@@ -42,7 +45,10 @@ const SIZE_CLASSES: Record<TButtonSize, string> = {
 }
 
 export const Button = forwardRef<HTMLButtonElement, TProps>(
-  ({ variant = 'primary', size = 'md', className, children, ...props }, ref) => {
+  (
+    { variant = 'primary', size = 'md', icon, iconPosition = 'end', className, children, ...props },
+    ref
+  ) => {
     const isGhostOrTertiary = variant === 'ghost' || variant === 'tertiary'
 
     return (
@@ -58,7 +64,9 @@ export const Button = forwardRef<HTMLButtonElement, TProps>(
         type="button"
         {...props}
       >
+        {icon && iconPosition === 'start' && icon}
         {children}
+        {icon && iconPosition === 'end' && icon}
       </button>
     )
   }
