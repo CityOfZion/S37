@@ -70,18 +70,30 @@ RESPONSE FORMAT — always return exactly this JSON structure:
   "message": "string — message to display in the chat bubble",
   "action": "none" | "add_payments" | "update_payments" | "set_allocations" | "request_confirmation" | "execute",
   "payments": [],
-  "delta": { "add": [], "remove": [] },
+  "delta": { "add": [], "remove": [], "edit": [] },
   "allocations": [],
   "summary": []
 }
 
 ACTION MEANINGS:
 - "none": conversation message, no state change
-- "add_payments": include payments[] array with { amount, description } items extracted from user text or file
-- "update_payments": use ONLY for changes to the raw payment rows (amounts from the file or user input) — removals, edits, OR restoring. NEVER use this for recipient/destination changes (use set_allocations instead). Use the "delta" field (NOT "payments") to describe ONLY what changed:
+- "add_payments": include payments[] array with ONLY the NEW { amount, description } items being added — do NOT re-include payments already in the CURRENT STATE list. If the user is just confirming existing payments (not adding new ones), use "none" instead. Use "add_payments" only when genuinely new values appear (from text, file, or a user-requested duplicate).
+- "update_payments": use ONLY for changes to the raw payment rows (amounts from the file or user input) — removals, edits, OR restoring. NEVER use this for recipient/destination changes (use set_allocations instead). Use the "delta" field (NOT "payments") to describe ONLY what changed. The payments list is 1-indexed — use the number shown in the CURRENT STATE context.
+  TO EDIT a payment in-place (add/change description or fix amount) — ALWAYS use delta.edit. NEVER use remove+add for edits:
   {
     "delta": {
-      "remove": [{ "amount": 10.00, "description": "..." }],
+      "edit": [{ "index": 3, "description": "new description" }]
+    }
+  }
+  TO REMOVE a payment, use delta.remove (identify by amount + description if present):
+  {
+    "delta": {
+      "remove": [{ "amount": 10.00, "description": "..." }]
+    }
+  }
+  TO ADD new payments, use delta.add:
+  {
+    "delta": {
       "add": [{ "amount": 10.00, "description": "..." }]
     }
   }
@@ -91,7 +103,7 @@ ACTION MEANINGS:
   CLEAR ALL: only when user explicitly confirms clearing everything, use delta with no remove/add keys and include "payments": [] to signal full clear.
 - "set_allocations": include allocations[] array with { destinationId, destinationName, percentage }. Use this to ADD, CHANGE or REMOVE recipients/destinations. REMOVING a recipient = return set_allocations with that recipient excluded from the array. If removing the only recipient, return allocations: []. NEVER use update_payments to remove a recipient — recipients are NOT payments.
 - "request_confirmation": MUST include the complete allocations[] array with ALL current destination allocations — the UI uses this to render the summary table. Missing allocations = blank table.
-- "execute": user explicitly confirmed — trigger payment execution. Your message MUST be short and neutral, e.g. "Revise os pagamentos e siga as instruções no modal." / "Review your payments and follow the instructions in the modal." NEVER mention amounts, percentages, recipient names, processing time, or delivery estimates in this message.
+- "execute": user explicitly confirmed — trigger payment execution. Your message MUST be short and neutral, e.g. "Revise os pagamentos." / "Review your payments." NEVER mention amounts, percentages, recipient names, processing time, or delivery estimates in this message.
 
 CONFIRMATION SUMMARY FORMAT:
 When action is "request_confirmation", the UI renders the summary table automatically from the summary[] array.
@@ -123,9 +135,16 @@ type TRawPayment = {
   description?: string
 }
 
+type TRawEditPayment = {
+  index: number
+  amount?: number | string
+  description?: string
+}
+
 type TRawDelta = {
   add?: TRawPayment[]
   remove?: TRawPayment[]
+  edit?: TRawEditPayment[]
 }
 
 type TRawResponse = {
@@ -181,8 +200,8 @@ const buildContextBlock = (
     payments.length > 0
       ? payments
           .map(
-            payment =>
-              `  - R$ ${payment.amount}${payment.description ? ` — ${payment.description}` : ''}`
+            (payment, index) =>
+              `  ${index + 1}. R$ ${payment.amount}${payment.description ? ` — ${payment.description}` : ''}`
           )
           .join('\n')
       : '  (none yet)'
@@ -324,13 +343,21 @@ ${contextBlock}`
 
     resolvedPayments = [...input.filePayments, ...extras]
   } else if (parsed.action === 'add_payments' && parsed.payments) {
-    resolvedPayments = mapPayments(parsed.payments)
+    resolvedPayments = mapPayments(parsed.payments).filter(
+      candidate =>
+        !input.payments.some(
+          existing =>
+            existing.amount === candidate.amount &&
+            normalize(existing.description ?? '') === normalize(candidate.description ?? '')
+        )
+    )
   } else if (parsed.action === 'update_payments') {
     const isClearAll =
       Array.isArray(parsed.payments) &&
       parsed.payments.length === 0 &&
       !parsed.delta?.remove?.length &&
-      !parsed.delta?.add?.length
+      !parsed.delta?.add?.length &&
+      !parsed.delta?.edit?.length
 
     if (isClearAll) {
       resolvedPayments = []
@@ -348,6 +375,24 @@ ${contextBlock}`
           )
 
           if (foundIndex !== -1) updated.splice(foundIndex, 1)
+        }
+      }
+
+      if (parsed.delta.edit && parsed.delta.edit.length > 0) {
+        for (const editItem of parsed.delta.edit) {
+          const targetIndex = editItem.index - 1
+
+          if (targetIndex >= 0 && targetIndex < updated.length) {
+            const existing = updated[targetIndex]
+
+            updated[targetIndex] = {
+              ...existing,
+              ...(editItem.description !== undefined && { description: editItem.description }),
+              ...(editItem.amount !== undefined && {
+                amount: StringHelper.formatAmount(String(editItem.amount)),
+              }),
+            }
+          }
         }
       }
 

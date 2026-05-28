@@ -21,7 +21,7 @@ const GRADIENT_CTA_CLASS =
   'w-full bg-linear-to-br from-primary to-accent-500 text-white font-semibold rounded-xl shadow-lg shadow-primary/20 transition-[filter] hover:brightness-110 active:brightness-95'
 
 const HeroPanel = () => {
-  const { t } = useTranslation('components', { keyPrefix: 'onboarding' })
+  const { t } = useTranslation('pages', { keyPrefix: 'onboarding' })
 
   return (
     <section
@@ -84,7 +84,7 @@ const HeroPanel = () => {
 }
 
 const MobileLogoBlock = () => {
-  const { t } = useTranslation('components', { keyPrefix: 'onboarding' })
+  const { t } = useTranslation('pages', { keyPrefix: 'onboarding' })
 
   return (
     <div className="lg:hidden flex flex-col items-center gap-3 pt-10 pb-6 px-6">
@@ -100,7 +100,7 @@ const MobileLogoBlock = () => {
 }
 
 export const OnboardingPage = () => {
-  const { t } = useTranslation('components', { keyPrefix: 'onboarding' })
+  const { t } = useTranslation('pages', { keyPrefix: 'onboarding' })
   const navigate = useNavigate()
   const completeMutation = useCompleteOnboardingMutation()
   const [isCelebrating, setIsCelebrating] = useState(false)
@@ -122,7 +122,7 @@ export const OnboardingPage = () => {
     await completeMutation.mutateAsync({ companyName: values.companyName })
     setIsCelebrating(true)
     window.setTimeout(() => {
-      void navigate({ to: '/payments' })
+      void navigate({ to: '/chat' })
     }, SUCCESS_TRANSITION_MS)
   }
 

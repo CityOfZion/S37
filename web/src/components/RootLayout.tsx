@@ -7,8 +7,9 @@ import { MobileHeader } from './MobileHeader'
 import { Sidebar } from './Sidebar'
 
 export const RootLayout = () => {
-  const { mobileOpen } = useSidebarStore()
+  const { mobileOpen, chatSidebarOpen } = useSidebarStore()
   const nonSidebarRef = useRef<HTMLDivElement>(null)
+  const mobileHeaderRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const element = nonSidebarRef.current
@@ -21,11 +22,24 @@ export const RootLayout = () => {
     }
   }, [mobileOpen])
 
+  useEffect(() => {
+    const element = mobileHeaderRef.current
+    if (!element) return
+
+    if (chatSidebarOpen) {
+      element.setAttribute('inert', '')
+    } else {
+      element.removeAttribute('inert')
+    }
+  }, [chatSidebarOpen])
+
   return (
     <div className="bg-neutral-50 text-neutral-900 min-h-screen lg:flex">
       <Sidebar />
       <div ref={nonSidebarRef} className="flex-1 min-w-0 flex flex-col">
-        <MobileHeader />
+        <div ref={mobileHeaderRef} data-mobile-header>
+          <MobileHeader />
+        </div>
         <main className="flex-1">
           <Outlet />
         </main>

@@ -16,6 +16,7 @@ type TChatStore = {
   isProcessing: boolean
   draftMessage: string
   addMessage: (message: TChatMessage) => void
+  setMessages: (messages: TChatMessage[]) => void
   updateMessage: (id: string, patch: Partial<TChatMessage>) => void
   setPayments: (payments: TPayment[]) => void
   mergePayments: (payments: TPayment[]) => void
@@ -40,6 +41,7 @@ const INITIAL_STATE = {
 export const useChatStore = create<TChatStore>(set => ({
   ...INITIAL_STATE,
   addMessage: message => set(state => ({ messages: [...state.messages, message] })),
+  setMessages: messages => set({ messages }),
   updateMessage: (id, patch) =>
     set(state => ({
       messages: state.messages.map(message =>

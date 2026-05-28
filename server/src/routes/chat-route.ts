@@ -15,6 +15,7 @@ import {
   DEFAULT_LANGUAGE,
   ErrorCode,
   SUPPORTED_LANGUAGES,
+  TOKEN,
 } from 'fractapay-shared'
 
 import { FileHelper } from '../helpers/FileHelper'
@@ -104,7 +105,7 @@ export const chatRoute = async (fastify: FastifyInstance): Promise<void> => {
 
         try {
           const result = await analyze(parsedFileContent, {
-            token: 'TESOURO',
+            token: TOKEN.TESOURO,
             language: detectedLanguage,
           })
 

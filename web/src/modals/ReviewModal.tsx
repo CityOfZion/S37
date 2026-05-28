@@ -13,13 +13,16 @@ import type {
 } from 'fractapay-shared'
 import { FEE_PERCENTAGE, FIAT_BY_TOKEN, QUOTE_EXPIRY_SECONDS, StringHelper } from 'fractapay-shared'
 
-import tesouroIconUrl from '../assets/icons/tesouro-icon.webp'
+import { Accordion } from '../components/Accordion'
+import { Button } from '../components/Button'
+import { CountdownRing } from '../components/CountdownRing'
+import { Modal } from '../components/Modal'
+import { PixInstructions } from '../components/PixInstructions'
+import { Skeleton } from '../components/Skeleton'
+import { Tooltip } from '../components/Tooltip'
+import { APP_NAME } from '../constants'
+import { TOKEN_ICON_URL } from '../constants/token-icons'
 import { ToastHelper } from '../helpers/ToastHelper'
-
-const TOKEN_ICON_URL: Partial<Record<string, string>> = {
-  TESOURO: tesouroIconUrl,
-}
-
 import { useCountdown } from '../hooks/use-countdown'
 import { useCustomerLookupQuery } from '../hooks/use-customer-lookup-query'
 import { useEtherfuseStore } from '../hooks/use-etherfuse-store'
@@ -28,13 +31,6 @@ import { useOnboardingMutation } from '../hooks/use-onboarding-mutation'
 import { useOrderMutation } from '../hooks/use-order-mutation'
 import { usePaymentsStore } from '../hooks/use-payments-store'
 import { useQuoteMutation } from '../hooks/use-quote-mutation'
-import { Accordion } from './Accordion'
-import { Button } from './Button'
-import { CountdownRing } from './CountdownRing'
-import { Modal } from './Modal'
-import { PixInstructions } from './PixInstructions'
-import { Skeleton } from './Skeleton'
-import { Tooltip } from './Tooltip'
 
 import InfoIcon from '../assets/icons/info-icon.svg?react'
 
@@ -63,7 +59,7 @@ type TProps = {
   onOpenChange: (open: boolean) => void
   recipientAddress: string
   allocations: TDestinationAllocation[]
-  onPaymentCompleted?: () => void
+  onPaymentCompleted?: (orderId?: string) => void
 }
 
 export const ReviewModal = ({
@@ -73,7 +69,8 @@ export const ReviewModal = ({
   allocations,
   onPaymentCompleted,
 }: TProps) => {
-  const { t } = useTranslation('components', { keyPrefix: 'reviewModal' })
+  const { t } = useTranslation('modals', { keyPrefix: 'review' })
+  const { t: tCommon } = useTranslation('common')
   const navigate = useNavigate()
   const { payments, token, setPayments } = usePaymentsStore()
   const account = useEtherfuseStore(state => state.accounts[recipientAddress])
@@ -87,6 +84,14 @@ export const ReviewModal = ({
   const [quoteReady, setQuoteReady] = useState(false)
   const [quote, setQuote] = useState<TQuoteResult | null>(null)
   const [isQuotePending, setIsQuotePending] = useState(false)
+
+  const handlePaymentDone = () => {
+    if (!order) return
+
+    onOpenChange(false)
+    setPayments([])
+    void navigate({ to: '/payments/$orderId', params: { orderId: order.orderId } })
+  }
 
   const customerLookupQuery = useCustomerLookupQuery({
     publicKey: recipientAddress,
@@ -195,6 +200,12 @@ export const ReviewModal = ({
   orderResetRef.current = orderMutation.reset
 
   useEffect(() => {
+    if (order?.pix) {
+      onPaymentCompleted?.(order.orderId)
+    }
+  }, [order?.pix]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
     if (!open) {
       inFlightRef.current = false
       setQuote(null)
@@ -241,7 +252,7 @@ export const ReviewModal = ({
         customerId: account.customerId,
         bankAccountId: account.bankAccountId,
         publicKey: recipientAddress,
-        memo: `FractaPay batch ${new Date().toISOString()}`,
+        memo: `${APP_NAME} batch ${new Date().toISOString()}`,
       },
       {
         onSuccess: result => {
@@ -297,18 +308,15 @@ export const ReviewModal = ({
       title={t('title')}
       description={t('description')}
       closeLabel={t('close')}
+      isCloseDisabled={orderMutation.isPending}
       preventClose
     >
       {order?.pix ? (
         <PixInstructions
           pix={order.pix}
           orderId={order.orderId}
-          onSimulated={() => {
-            onPaymentCompleted?.()
-            onOpenChange(false)
-            setPayments([])
-            void navigate({ to: '/payment/$orderId', params: { orderId: order.orderId } })
-          }}
+          isPendingOrder={order.isRecovered}
+          onPaid={handlePaymentDone}
         />
       ) : (
         <div className="space-y-4">
@@ -372,7 +380,8 @@ export const ReviewModal = ({
                   {TOKEN_ICON_URL[token] && (
                     <img
                       src={TOKEN_ICON_URL[token]}
-                      alt={token}
+                      alt=""
+                      aria-hidden="true"
                       className="size-4 rounded-full object-cover"
                     />
                   )}
@@ -387,7 +396,7 @@ export const ReviewModal = ({
                       <Skeleton />
                     ) : (
                       t('rateValue', {
-                        fiat: t(`fiatByToken.${FIAT_BY_TOKEN[token]}`).toLowerCase(),
+                        fiat: tCommon(`fiatBySymbol.${FIAT_BY_TOKEN[token]}`).toLowerCase(),
                         rate: StringHelper.formatAmount(quote?.exchangeRate ?? '0'),
                         token,
                       })

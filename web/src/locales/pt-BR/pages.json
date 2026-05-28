@@ -1,0 +1,117 @@
+{
+  "auth": {
+    "headline": "Pagamentos sem complicação.",
+    "subtitle": "Distribua royalties, folha e comissões automaticamente. Você descreve. A gente faz.",
+    "features": {
+      "ai": "✨ IA entende seus arquivos",
+      "pix": "⚡ PIX em até 10 min",
+      "audit": "🔒 Comprovante público auditável"
+    },
+    "signInTitle": "Entrar",
+    "signInSubtitle": "Use sua conta Google para continuar.",
+    "signInWithGoogle": "Entrar com Google",
+    "signInError": "Falha ao entrar. Tente novamente.",
+    "newHere": "Primeira vez aqui?",
+    "signUp": "Criar conta",
+    "signupComingSoon": "Cadastro chegando em breve. Por enquanto, use o Google.",
+    "signupError": "Não foi possível conectar ao cadastro. Tente novamente.",
+    "switchLanguage": "Mudar idioma"
+  },
+  "onboarding": {
+    "title": "Sobre sua empresa",
+    "subtitle": "Isso ajuda a gente a personalizar os modelos de pagamento que vão te economizar tempo.",
+    "heroHeadline": "Vamos personalizar.",
+    "heroSubtitle": "Algumas informações sobre seu negócio para a gente moldar a experiência.",
+    "companyNameLabel": "Nome da empresa",
+    "companyNamePlaceholder": "Empresa Exemplo",
+    "companyNameRequired": "Informe o nome da empresa",
+    "cnpjLabel": "CNPJ (opcional)",
+    "cnpjPlaceholder": "00.000.000/0001-00",
+    "continue": "Continuar",
+    "saving": "Salvando…",
+    "successHeadline": "Tudo certo!",
+    "successMessage": "Redirecionando…",
+    "homeAria": "Voltar para a tela inicial"
+  },
+  "payments": {
+    "title": "Pagamentos",
+    "subtitle": "Histórico de todos os pagamentos realizados pelo FractaPay.",
+    "empty": "Nenhum pagamento ainda. Inicie uma conversa."
+  },
+  "profile": {
+    "title": "Perfil",
+    "subtitle": "Gerencie as informações da sua conta.",
+    "nameLabel": "Nome",
+    "namePlaceholder": "Seu nome",
+    "save": "Salvar",
+    "saving": "Salvando…",
+    "saveSuccess": "Perfil atualizado",
+    "saveError": "Não foi possível salvar. Tente novamente.",
+    "nameRequired": "Nome é obrigatório"
+  },
+  "chat": {
+    "title": "Chat",
+    "greeting": "Olá! Sou o assistente de pagamentos da FractaPay. Você descreve o que precisa ou anexa um arquivo, eu identifico os valores e proponho a distribuição. Você revisa, confirma e paga. Como posso ajudar?",
+    "dropFile": "Solte o arquivo aqui",
+    "error": "Erro ao processar mensagem. Tente novamente.",
+    "total": "Total",
+    "fileParseError": "Não consegui processar o arquivo \"{{filename}}\". Verifique se está no formato correto (CSV, XLS, XLSX, PDF ou TXT) e tente novamente.",
+    "noPaymentsFound": "Nenhum pagamento encontrado em \"{{filename}}\". Verifique se o arquivo contém valores em BRL e tente novamente.",
+    "unsupportedFile": "Formato não suportado. Use CSV, XLS, XLSX, PDF ou TXT.",
+    "navigatingWhileLoading": "Aguarde o assistente terminar antes de navegar.",
+    "suggestion1": "Distribuir royalties a partir de um arquivo",
+    "suggestion2": "Pagar comissões para destinatários",
+    "suggestion3": "Enviar folha de pagamento",
+    "pendingPaymentError": "Você tem um pagamento em andamento. Acesse Pagamentos para concluí-lo antes de iniciar um novo.",
+    "paymentsTitle": "Pagamentos",
+    "allocationsTitle": "Destinatários",
+    "goToPayment": "Ir para o pagamento",
+    "conversationTitle": "{{date}} | {{amount}} | {{recipients}} destinatário",
+    "conversationTitle_other": "{{date}} | {{amount}} | {{recipients}} destinatários",
+    "conversationTitleEmpty": "{{date}}"
+  },
+  "destinations": {
+    "title": "Destinatários",
+    "description": "Gerencie os destinatários que recebem pagamentos.",
+    "add": "Adicionar",
+    "empty": "Nenhum destinatário cadastrado.",
+    "emptyHint": "Adicione destinatários para usar no chat de pagamentos.",
+    "addSuccess": "Destinatário adicionado",
+    "updateSuccess": "Destinatário atualizado",
+    "deleteSuccess": "Destinatário removido",
+    "editAria": "Editar {{name}}",
+    "deleteAria": "Excluir {{name}}",
+    "deleteConfirmTitle": "Excluir destinatário",
+    "deleteConfirmDescription": "Tem certeza que deseja excluir \"{{name}}\"? Esta ação não pode ser desfeita.",
+    "cancel": "Cancelar",
+    "deleteConfirm": "Excluir",
+    "columns": {
+      "name": "Nome",
+      "coin": "Moeda",
+      "pixKey": "Chave PIX",
+      "actions": "Ações"
+    }
+  },
+  "payment": {
+    "title": "Recibo de pagamento",
+    "back": "Voltar para pagamentos",
+    "loading": "Carregando pedido…",
+    "error": "Não foi possível carregar o pedido.",
+    "status": "Status",
+    "recipients": "destinatários",
+    "orderId": "ID do pagamento",
+    "amount": "Valor",
+    "amountInTokens": "Tokens",
+    "txHash": "Transação",
+    "copyTx": "Copiar hash da transação",
+    "copiedTx": "Copiado!",
+    "statuses": {
+      "created": "Criado",
+      "funded": "Recebido",
+      "completed": "Concluído",
+      "failed": "Falhou",
+      "refunded": "Reembolsado",
+      "canceled": "Cancelado"
+    }
+  }
+}
