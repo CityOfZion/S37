@@ -88,6 +88,7 @@ export const ChatPage = () => {
     setIsProcessing,
     draftMessage,
     setDraftMessage,
+    setDraftFile,
     reset: resetChat,
   } = useChatStore()
   const {
@@ -138,7 +139,9 @@ export const ChatPage = () => {
   )
 
   const chatMutation = useChatMutation()
-  const [attachedFile, setAttachedFile] = useState<File | null>(null)
+  const [attachedFile, setAttachedFile] = useState<File | null>(
+    () => useChatStore.getState().draftFile
+  )
   const [reviewModalOpen, setReviewModalOpen] = useState(false)
   const [executionQueue, setExecutionQueue] = useState<TDestinationAllocation[]>([])
   const [executionKey, setExecutionKey] = useState(0)
@@ -193,6 +196,10 @@ export const ChatPage = () => {
 
     return () => window.removeEventListener('beforeunload', handleBeforeUnload)
   }, [isLoading, conversationId, hasUserMessage])
+
+  useEffect(() => {
+    setDraftFile(attachedFile)
+  }, [attachedFile, setDraftFile])
 
   useEffect(() => {
     textareaRef.current?.focus()

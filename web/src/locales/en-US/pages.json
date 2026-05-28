@@ -111,6 +111,7 @@
     "txHash": "Transaction",
     "copyTx": "Copy transaction hash",
     "copiedTx": "Copied!",
+    "technicalDetails": "Technical details",
     "viewPayments": "View payments",
     "allocationsTitle": "Recipients",
     "noPayments": "No payments found",
