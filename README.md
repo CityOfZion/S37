@@ -114,7 +114,7 @@ make deploy-testnet  # Deploy to testnet
 ┌────────────────────────────────────────────────────────────────┐
 │                          User Flow                             │
 │                                                                │
-│  [Sign in with Google → session cookie]                        │
+│  [Sign in with Google → JWT (PKCE exchange, Bearer token)]     │
 │        ↓                                                       │
 │  [Register destinations: name + PIX key (DestinationsPage)]    │
 │        ↓                                                       │
@@ -153,12 +153,10 @@ make deploy-testnet  # Deploy to testnet
 | `GOOGLE_CLIENT_ID` | Yes | Google OAuth client ID |
 | `GOOGLE_CLIENT_SECRET` | Yes | Google OAuth client secret |
 | `OAUTH_CALLBACK_URL` | No (default: `http://localhost:3000/auth/google/callback`) | Must match the redirect URI in Google Cloud Console |
-| `SESSION_SECRET` | Yes (≥32 chars) | Signs the `fractapay_session` httpOnly cookie |
-| `SESSION_COOKIE_NAME` | No (default: `fractapay_session`) | Name of the session cookie |
+| `SESSION_SECRET` | Yes (≥32 chars) | HS256 secret for `@fastify/jwt` (signs the Bearer JWT); also the `@fastify/cookie` secret for the OAuth state/PKCE round-trip cookie |
 | `WEB_BASE_URL` | No (default: `http://localhost:5173`) | Base URL of the web app; used as fallback for login redirect URLs |
-| `WEB_LOGIN_SUCCESS_URL` | No (default: `WEB_BASE_URL`) | Redirect target after successful Google login |
+| `WEB_LOGIN_SUCCESS_URL` | No (default: `WEB_BASE_URL`) | Redirect target after successful Google login. **Must include the SPA base path in prod** (e.g. `https://host/S37/`) — landing path mismatch makes login silently fail |
 | `WEB_LOGIN_FAILURE_URL` | No (default: `WEB_BASE_URL/?login=failed`) | Redirect target on OAuth callback failure |
-| `COOKIE_DOMAIN` | No | Cookie `Domain` attribute — leave blank for localhost dev |
 
 ### Web (`web/.env`)
 
