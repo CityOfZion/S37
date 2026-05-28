@@ -37,12 +37,16 @@ export type TUser = {
   name: string | null
   picture: string | null
   onboardingCompletedAt: string | null
+  stellarAddress: string | null
+  passkeyCredentialId: string | null
 }
 
 export type TAuthMeResult = { success: true; user: TUser } | { success: false; error: ErrorCode }
 
 export type TCompleteOnboardingPayload = {
   companyName: string
+  stellarAddress: string
+  passkeyCredentialId: string
 }
 
 export type TExchangePayload = {

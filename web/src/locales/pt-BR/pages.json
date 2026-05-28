@@ -31,7 +31,19 @@
     "saving": "Salvando…",
     "successHeadline": "Tudo certo!",
     "successMessage": "Redirecionando…",
-    "homeAria": "Voltar para a tela inicial"
+    "homeAria": "Voltar para a tela inicial",
+    "walletTitle": "Crie sua carteira",
+    "walletSubtitle": "Vamos criar uma passkey neste dispositivo. Ela assina transações Stellar e recebe seu TESOURO.",
+    "walletCreate": "Criar carteira com passkey",
+    "walletCreating": "Criando carteira…",
+    "walletCreatedHeadline": "Carteira pronta",
+    "walletCreatedSubtitle": "Seu endereço:",
+    "walletError": "Não foi possível criar a carteira. Tente novamente.",
+    "walletFinish": "Concluir",
+    "walletUseExisting": "Já tenho uma passkey",
+    "walletConnecting": "Conectando…",
+    "walletNoExisting": "Nenhuma conta encontrada para esta passkey.",
+    "walletConnectError": "Não foi possível conectar sua passkey. Tente novamente."
   },
   "payments": {
     "title": "Pagamentos",
@@ -47,7 +59,10 @@
     "saving": "Salvando…",
     "saveSuccess": "Perfil atualizado",
     "saveError": "Não foi possível salvar. Tente novamente.",
-    "nameRequired": "Nome é obrigatório"
+    "nameRequired": "Nome é obrigatório",
+    "walletLabel": "Endereço da carteira",
+    "walletCopy": "Copiar endereço",
+    "walletCopied": "Endereço copiado"
   },
   "chat": {
     "title": "Chat",

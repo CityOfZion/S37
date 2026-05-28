@@ -36,7 +36,7 @@ export const usePaymentsStore = create<TPaymentsStore>(set => ({
   setToken: token => set({ token }),
   price: '0',
   setPrice: price => set({ price }),
-  address: 'GBEYN3IHO67REHEXFLOH2PXPDDVRBO22BAYBMUI5ETGWG3VZZQ2PYWWS',
+  address: '',
   setAddress: address => set({ address }),
   payments: [],
   hasPayments: false,

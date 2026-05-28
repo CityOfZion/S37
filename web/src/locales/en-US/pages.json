@@ -31,7 +31,19 @@
     "saving": "Saving…",
     "successHeadline": "All set!",
     "successMessage": "Redirecting…",
-    "homeAria": "Back to the home screen"
+    "homeAria": "Back to the home screen",
+    "walletTitle": "Create your wallet",
+    "walletSubtitle": "We'll create a passkey on this device. It signs Stellar transactions and receives your TESOURO.",
+    "walletCreate": "Create wallet with passkey",
+    "walletCreating": "Creating wallet…",
+    "walletCreatedHeadline": "Wallet ready",
+    "walletCreatedSubtitle": "Your address:",
+    "walletError": "Could not create wallet. Try again.",
+    "walletFinish": "Finish",
+    "walletUseExisting": "I already have a passkey",
+    "walletConnecting": "Connecting…",
+    "walletNoExisting": "No smart account found for this passkey.",
+    "walletConnectError": "Could not connect your passkey. Try again."
   },
   "payments": {
     "title": "Payments",
@@ -47,7 +59,10 @@
     "saving": "Saving…",
     "saveSuccess": "Profile updated",
     "saveError": "Could not save. Please try again.",
-    "nameRequired": "Name is required"
+    "nameRequired": "Name is required",
+    "walletLabel": "Wallet address",
+    "walletCopy": "Copy address",
+    "walletCopied": "Address copied"
   },
   "chat": {
     "title": "Chat",

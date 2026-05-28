@@ -8,6 +8,8 @@ export const mapUserToTUser = (user: User): TUser => ({
   name: user.name,
   picture: user.avatarUrl,
   onboardingCompletedAt: user.onboardingCompletedAt?.toISOString() ?? null,
+  stellarAddress: user.stellarAddress,
+  passkeyCredentialId: user.passkeyCredentialId,
 })
 
 export const findUserById = async (id: string): Promise<User | null> => {
@@ -64,12 +66,23 @@ export const upsertGoogleUser = async ({ profile }: TUpsertGoogleUserInput): Pro
   })
 }
 
+type TMarkOnboardingCompletedInput = {
+  companyName: string
+  stellarAddress: string
+  passkeyCredentialId: string
+}
+
 export const markOnboardingCompleted = async (
   userId: string,
-  companyName: string
+  { companyName, stellarAddress, passkeyCredentialId }: TMarkOnboardingCompletedInput
 ): Promise<User> => {
   return prisma.user.update({
     where: { id: userId },
-    data: { companyName, onboardingCompletedAt: new Date() },
+    data: {
+      companyName,
+      stellarAddress,
+      passkeyCredentialId,
+      onboardingCompletedAt: new Date(),
+    },
   })
 }

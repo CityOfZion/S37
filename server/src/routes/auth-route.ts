@@ -4,6 +4,7 @@ import type { FastifyInstance } from 'fastify'
 
 import {
   ErrorCode,
+  StellarHelper,
   type TAuthMeResult,
   type TCompleteOnboardingPayload,
   type TExchangePayload,
@@ -149,13 +150,23 @@ export const authRoute = async (fastify: FastifyInstance): Promise<void> => {
     { preHandler: requireAuth },
     async (request, reply) => {
       const companyName = request.body?.companyName?.trim()
+      const stellarAddress = request.body?.stellarAddress?.trim()
+      const passkeyCredentialId = request.body?.passkeyCredentialId?.trim()
 
-      if (!companyName) {
+      if (!companyName || !stellarAddress || !passkeyCredentialId) {
         return reply.status(400).send({ success: false, error: ErrorCode.INVALID_PAYLOAD })
       }
 
+      if (!StellarHelper.isValidContractAddress(stellarAddress)) {
+        return reply.status(400).send({ success: false, error: ErrorCode.INVALID_ADDRESS })
+      }
+
       // TODO: persist missing necessary data when columns land
-      const updated = await markOnboardingCompleted(request.user!.id, companyName)
+      const updated = await markOnboardingCompleted(request.user!.id, {
+        companyName,
+        stellarAddress,
+        passkeyCredentialId,
+      })
 
       request.log.info({ userId: updated.id }, '[Auth] onboarding completed')
 

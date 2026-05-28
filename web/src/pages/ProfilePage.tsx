@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next'
 
 import { useQueryClient } from '@tanstack/react-query'
 
+import { StringHelper } from 'fractapay-shared'
+
 import { Button } from '../components/Button'
 import { Input } from '../components/Input'
 import { ToastHelper } from '../helpers/ToastHelper'
@@ -110,6 +112,38 @@ export const ProfilePage = () => {
             </Button>
           </div>
         </form>
+
+        {user?.stellarAddress ? (
+          <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4 flex flex-col gap-2">
+            <span className="text-xs uppercase tracking-wide text-neutral-500">
+              {t('walletLabel')}
+            </span>
+            <div className="flex items-center justify-between gap-3">
+              <span
+                className="font-mono text-sm text-neutral-900 truncate"
+                title={user.stellarAddress}
+              >
+                {StringHelper.truncateMiddle(user.stellarAddress, 20)}
+              </span>
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={async () => {
+                  try {
+                    await navigator.clipboard.writeText(user.stellarAddress ?? '')
+                    ToastHelper.success(t('walletCopied'))
+                  } catch {
+                    ToastHelper.error(t('saveError'))
+                  }
+                }}
+                aria-label={t('walletCopy')}
+              >
+                {t('walletCopy')}
+              </Button>
+            </div>
+          </div>
+        ) : null}
       </div>
     </main>
   )

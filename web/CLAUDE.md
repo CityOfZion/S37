@@ -35,8 +35,8 @@ npm run typecheck
 
 ## Environment Variables
 
-| File | Variable | Purpose |
-|---|---|---|
+| File       | Variable       | Purpose                         |
+| ---------- | -------------- | ------------------------------- |
 | `web/.env` | `VITE_API_URL` | Default `http://localhost:3000` |
 
 ## Code Style
