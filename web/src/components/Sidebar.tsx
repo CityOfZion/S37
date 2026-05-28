@@ -1,7 +1,7 @@
-import { type ComponentType, type SVGProps, useEffect, useRef } from 'react'
+import { type ComponentType, type SVGProps, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { useNavigate, useRouterState } from '@tanstack/react-router'
+import { useNavigate, useParams, useRouterState } from '@tanstack/react-router'
 
 import type { TLanguage, TUser } from 'fractapay-shared'
 import { DEFAULT_LANGUAGE } from 'fractapay-shared'
@@ -9,11 +9,12 @@ import { DEFAULT_LANGUAGE } from 'fractapay-shared'
 import logoUrl from '../assets/logos/logo.svg'
 import { APP_NAME, LANGUAGE_NAMES } from '../constants'
 import { StyleHelper } from '../helpers/StyleHelper'
-import { useConversationStore } from '../hooks/use-conversation-store'
+import { useChatStore } from '../hooks/use-chat-store'
 import { useLanguageStore } from '../hooks/use-language-store'
 import { useLogoutMutation } from '../hooks/use-logout-mutation'
 import { useSidebarStore } from '../hooks/use-sidebar-store'
 import { useUserQuery } from '../hooks/use-user-query'
+import { ConversationWarningModal } from '../modals/ConversationWarningModal'
 import { Button } from './Button'
 import { NavLink } from './NavLink'
 import { Tooltip } from './Tooltip'
@@ -62,10 +63,6 @@ const NavContent = ({
 }: TNavContentProps) => {
   const { t } = useTranslation('components', { keyPrefix: 'sidebar' })
   const { language } = useLanguageStore()
-  const navigate = useNavigate()
-  const { conversations, setActiveConversation } = useConversationStore()
-
-  const recentConversations = conversations.slice(0, 6)
 
   return (
     <nav className="flex flex-col h-full" aria-label={t('label')}>
@@ -108,33 +105,6 @@ const NavContent = ({
             ))}
           </ul>
         </div>
-
-        {recentConversations.length > 0 && (
-          <div>
-            <p className="text-[10px] font-bold tracking-widest uppercase text-neutral-500 px-3 mb-2 select-none">
-              {t('recentConversations')}
-            </p>
-            <ul className="space-y-0.5">
-              {recentConversations.map(conversation => (
-                <li key={conversation.id}>
-                  <Button
-                    variant="ghost"
-                    size="xs"
-                    className="w-full justify-start px-3 py-2 text-xs text-neutral-400 hover:text-white hover:bg-white/5 truncate"
-                    title={conversation.title}
-                    onClick={() => {
-                      setActiveConversation(conversation.id)
-                      void navigate({ to: '/chat' })
-                      onClose()
-                    }}
-                  >
-                    {conversation.title}
-                  </Button>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
       </div>
 
       <div className="px-2 py-4 border-t border-white/10 space-y-1">
@@ -199,6 +169,9 @@ export const Sidebar = () => {
   const { mobileOpen, setMobileOpen } = useSidebarStore()
   const { data: user } = useUserQuery()
   const logoutMutation = useLogoutMutation()
+  const { conversationId } = useParams({ strict: false })
+  const hasUserMessages = useChatStore(state => state.messages.some(message => message.role === 'user'))
+  const [logoutWarningOpen, setLogoutWarningOpen] = useState(false)
 
   const asideRef = useRef<HTMLElement>(null)
 
@@ -245,7 +218,7 @@ export const Sidebar = () => {
     setLanguage(next)
   }
 
-  const handleLogout = async () => {
+  const doLogout = async () => {
     setMobileOpen(false)
 
     try {
@@ -253,6 +226,16 @@ export const Sidebar = () => {
     } finally {
       void navigate({ to: '/login' })
     }
+  }
+
+  const handleLogout = () => {
+    if (!conversationId && hasUserMessages) {
+      setLogoutWarningOpen(true)
+
+      return
+    }
+
+    void doLogout()
   }
 
   return (
@@ -296,6 +279,16 @@ export const Sidebar = () => {
           isLoggingOut={logoutMutation.isPending}
         />
       </aside>
+
+      <ConversationWarningModal
+        open={logoutWarningOpen}
+        variant="logout"
+        onOpenChange={open => !open && setLogoutWarningOpen(false)}
+        onConfirm={() => {
+          setLogoutWarningOpen(false)
+          void doLogout()
+        }}
+      />
     </>
   )
 }

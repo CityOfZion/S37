@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import * as uuid from 'uuid'
 
 import type { TDestination } from 'fractapay-shared'
+import { TOKEN } from 'fractapay-shared'
 
 import { Button } from '../components/Button'
 import { Input } from '../components/Input'
@@ -24,16 +25,17 @@ type TProps = {
   onSave: (destination: TDestination) => void
 }
 
-const TOKEN_OPTIONS = [
-  {
-    value: 'TESOURO',
-    label: 'Real',
-    icon: <BrazilFlagIcon className="size-5 rounded-sm" aria-hidden="true" />,
-  },
-]
-
 export const DestinationModal = ({ open, onOpenChange, destination, onSave }: TProps) => {
   const { t } = useTranslation('modals', { keyPrefix: 'destination' })
+  const { t: tCommon } = useTranslation('common')
+
+  const TOKEN_OPTIONS = [
+    {
+      value: TOKEN.TESOURO,
+      label: tCommon(`fiatByToken.${TOKEN.TESOURO}`),
+      icon: <BrazilFlagIcon className="size-5 rounded-sm" aria-hidden="true" />,
+    },
+  ]
 
   const PIX_KEY_TYPE_OPTIONS = [
     { value: 'evp', label: t('pixKeyTypeEvp') },
@@ -59,7 +61,7 @@ export const DestinationModal = ({ open, onOpenChange, destination, onSave }: TP
     resolver: zodResolver(destinationSchema),
     defaultValues: {
       name: destination?.name ?? '',
-      token: destination?.token ?? 'TESOURO',
+      token: destination?.token ?? TOKEN.TESOURO,
       pixKey: InputHelper.applyPixKeyMask(
         destination?.pixKey ?? '',
         destination?.pixKeyType ?? 'evp'
@@ -75,7 +77,7 @@ export const DestinationModal = ({ open, onOpenChange, destination, onSave }: TP
 
       reset({
         name: destination?.name ?? '',
-        token: destination?.token ?? 'TESOURO',
+        token: destination?.token ?? TOKEN.TESOURO,
         pixKey: InputHelper.applyPixKeyMask(destination?.pixKey ?? '', pixKeyType),
         pixKeyType,
       })

@@ -1,10 +1,14 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { useNavigate } from '@tanstack/react-router'
+import { useNavigate, useParams } from '@tanstack/react-router'
 
+import { StringHelper, TOKEN } from 'fractapay-shared'
+
+import { ToastHelper } from '../helpers/ToastHelper'
 import { useChatStore } from '../hooks/use-chat-store'
 import { useConversationStore } from '../hooks/use-conversation-store'
+import { useLanguageStore } from '../hooks/use-language-store'
 import { ConversationWarningModal } from '../modals/ConversationWarningModal'
 import { Button } from './Button'
 import { SidebarPanel } from './SidebarPanel'
@@ -22,15 +26,20 @@ type TProps = {
 
 export const ChatSidebar = ({ open, onClose, onNewConversation }: TProps) => {
   const { t } = useTranslation('components', { keyPrefix: 'sidebar' })
+  const { t: tChat } = useTranslation('pages', { keyPrefix: 'chat' })
+  const { t: tChatPaymentsBar } = useTranslation('components', { keyPrefix: 'chatPaymentsBar' })
+  const { language } = useLanguageStore()
   const navigate = useNavigate()
-  const { conversations, setActiveConversation, activeConversationId } = useConversationStore()
+  const { conversations } = useConversationStore()
+  const { conversationId } = useParams({ strict: false })
   const hasUserMessages = useChatStore(state =>
     state.messages.some(message => message.role === 'user')
   )
   const isProcessing = useChatStore(state => state.isProcessing)
   const [warningOpen, setWarningOpen] = useState(false)
+  const [pendingConversationId, setPendingConversationId] = useState<string | null>(null)
 
-  const isNewConversation = activeConversationId === null
+  const isNewConversation = !conversationId
   const isAlreadyNew = isNewConversation && !hasUserMessages
   const isDisabled = isAlreadyNew || isProcessing
 
@@ -40,10 +49,16 @@ export const ChatSidebar = ({ open, onClose, onNewConversation }: TProps) => {
     onClose()
   }
 
+  const doSelectConversation = (id: string) => {
+    void navigate({ to: '/chat/$conversationId', params: { conversationId: id } })
+    onClose()
+  }
+
   const handleNewConversation = () => {
     if (isDisabled) return
 
     if (isNewConversation && hasUserMessages) {
+      setPendingConversationId(null)
       setWarningOpen(true)
     } else {
       doNewConversation()
@@ -51,9 +66,20 @@ export const ChatSidebar = ({ open, onClose, onNewConversation }: TProps) => {
   }
 
   const handleSelectConversation = (id: string) => {
-    setActiveConversation(id)
-    void navigate({ to: '/chat' })
-    onClose()
+    if (id === conversationId) return
+
+    if (isProcessing) {
+      ToastHelper.info(tChat('navigatingWhileLoading'))
+
+      return
+    }
+
+    if (isNewConversation && hasUserMessages) {
+      setPendingConversationId(id)
+      setWarningOpen(true)
+    } else {
+      doSelectConversation(id)
+    }
   }
 
   const header = (
@@ -125,17 +151,39 @@ export const ChatSidebar = ({ open, onClose, onNewConversation }: TProps) => {
               </p>
             </div>
           ) : (
-            <ul className="space-y-0.5 px-2">
+            <ul className="space-y-1 px-2">
               {conversations.map(conversation => (
                 <li key={conversation.id}>
                   <Button
                     variant="ghost"
                     size="xs"
-                    className="w-full justify-start px-3 py-2 text-xs text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 truncate"
-                    title={conversation.title}
+                    className={
+                      conversation.id === conversationId
+                        ? 'w-full justify-start px-3 py-2 text-xs font-semibold text-primary bg-primary/10 hover:bg-primary/15 text-wrap text-left'
+                        : 'w-full justify-start px-3 py-2 text-xs text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 text-wrap text-left'
+                    }
                     onClick={() => handleSelectConversation(conversation.id)}
                   >
-                    {conversation.title}
+                    {(() => {
+                      const date = new Date(conversation.createdAt).toLocaleDateString(language, {
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric',
+                      })
+
+                      return conversation.totalAmount
+                        ? tChat('conversationTitle', {
+                            date,
+                            amount: StringHelper.formatCurrencyAmount(
+                              conversation.totalAmount,
+                              TOKEN.TESOURO
+                            ),
+                            recipients: tChatPaymentsBar('allocationsCount', {
+                              count: conversation.allocations.length,
+                            }),
+                          })
+                        : tChat('conversationTitleEmpty', { date })
+                    })()}
                   </Button>
                 </li>
               ))}
@@ -146,10 +194,17 @@ export const ChatSidebar = ({ open, onClose, onNewConversation }: TProps) => {
 
       <ConversationWarningModal
         open={warningOpen}
+        variant={pendingConversationId ? 'open' : 'new'}
         onOpenChange={open => !open && setWarningOpen(false)}
         onConfirm={() => {
           setWarningOpen(false)
-          doNewConversation()
+
+          if (pendingConversationId) {
+            doSelectConversation(pendingConversationId)
+            setPendingConversationId(null)
+          } else {
+            doNewConversation()
+          }
         }}
       />
     </>

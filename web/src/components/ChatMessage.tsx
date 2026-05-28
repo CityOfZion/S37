@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import BigNumber from 'bignumber.js'
@@ -34,8 +35,6 @@ const FeeTooltipIcon = ({ label }: TFeeTooltipProps) => {
   )
 }
 
-import { useState } from 'react'
-
 type TProps = {
   message: TChatMessage
   language: string
@@ -44,7 +43,7 @@ type TProps = {
 }
 
 export const ChatMessage = ({ message, language, userName, userPicture }: TProps) => {
-  const { t } = useTranslation('pages', { keyPrefix: 'chat' })
+  const { t } = useTranslation('components', { keyPrefix: 'chatMessage' })
 
   const isUser = message.role === 'user'
 
@@ -75,14 +74,17 @@ export const ChatMessage = ({ message, language, userName, userPicture }: TProps
       <div
         className={StyleHelper.merge(
           'flex flex-col max-w-[80%]',
-          isUser ? 'items-end' : 'items-start'
+          isUser ? 'items-end' : 'items-start',
+          {
+            'max-w-96': message.type === 'summary',
+          }
         )}
       >
         <div
           className={StyleHelper.merge(
             'rounded-2xl px-4 pt-3 pb-2 text-sm leading-relaxed',
             isUser
-              ? 'bg-primary text-white rounded-tr-sm shadow-sm border border-white/20'
+              ? 'bg-primary/92 text-white rounded-tr-sm shadow-sm border border-white/20'
               : 'bg-white text-neutral-900 rounded-tl-sm shadow-sm border border-neutral-100'
           )}
         >

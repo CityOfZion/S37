@@ -21,6 +21,39 @@
   "info": {
     "label": "Informações"
   },
+  "countdownRing": {
+    "expiresIn": "Expira em {{seconds}}s",
+    "expired": "Cotação expirou",
+    "loading": "Buscando cotação…",
+    "refresh": "Atualizar"
+  },
+  "chatInput": {
+    "placeholder": "Digite uma mensagem ou anexe um arquivo…",
+    "send": "Enviar mensagem",
+    "attachFile": "Anexar arquivo",
+    "removeFile": "Remover arquivo",
+    "hint": "Enter para enviar • Shift+Enter para nova linha • arquivos CSV, XLS, XLSX, PDF e TXT",
+    "orderExecuted": "Pagamento em andamento. Acesse Pagamentos para acompanhar."
+  },
+  "chatMessage": {
+    "summaryEmpty": "Não encontrei o destinatário. Verifique se ele está cadastrado na página de Destinatários e tente novamente.",
+    "summaryDestination": "Destinatário",
+    "summaryPercentage": "Percentual",
+    "summaryAmount": "Valor",
+    "summaryFee": "Taxa",
+    "summaryFeeTooltip": "Taxa de {{fee}}% aplicada sobre a soma dos valores de todos os destinatários. Essa taxa pode aumentar um pouco somando com a taxa do provedor na tela de revisão.",
+    "summaryTotal": "Total a pagar"
+  },
+  "chatPaymentsBar": {
+    "paymentsCount": "{{count}} pagamento",
+    "paymentsCount_other": "{{count}} pagamentos",
+    "allocationsCount": "{{count}} destinatário",
+    "allocationsCount_other": "{{count}} destinatários",
+    "paymentsPanel": "Ver pagamento",
+    "paymentsPanel_other": "Ver pagamentos",
+    "allocationsPanel": "Ver destinatário",
+    "allocationsPanel_other": "Ver destinatários"
+  },
   "pix": {
     "qrLabel": "QR code PIX",
     "amount": "Valor",
@@ -29,6 +62,7 @@
     "copied": "Código PIX copiado",
     "copyError": "Não foi possível copiar o código PIX.",
     "pendingOrder": "Você já tem um pagamento pendente. Conclua enviando o PIX abaixo.",
+    "waitForRedirect": "Após a confirmação do pagamento, você será redirecionado automaticamente para a página de detalhes.",
     "simulate": "Simular recebimento do fiat",
     "simulating": "Simulando…",
     "simulateSuccess": "Recebimento do fiat simulado",

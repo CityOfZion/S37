@@ -4,7 +4,7 @@ import type { TOrderResult } from 'fractapay-shared'
 
 import { server } from '../services/server'
 
-const TERMINAL_STATUSES = new Set(['completed', 'failed', 'refunded', 'canceled'])
+export const TERMINAL_STATUSES = new Set(['completed', 'failed', 'refunded', 'canceled'])
 
 export function useOrderQuery(orderId: string) {
   return useQuery<TOrderResult>({

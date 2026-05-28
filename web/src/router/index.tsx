@@ -47,6 +47,12 @@ const chatRoute = createRoute({
   component: ChatPage,
 })
 
+const chatConversationRoute = createRoute({
+  getParentRoute: () => authRoute,
+  path: '/chat/$conversationId',
+  component: ChatPage,
+})
+
 const paymentsRoute = createRoute({
   getParentRoute: () => authRoute,
   path: '/payments',
@@ -67,7 +73,7 @@ const profileRoute = createRoute({
 
 const paymentRoute = createRoute({
   getParentRoute: () => authRoute,
-  path: '/payment/$orderId',
+  path: '/payments/$orderId',
   component: PaymentPage,
 })
 
@@ -96,6 +102,7 @@ const routeTree = rootRoute.addChildren([
   authRoute.addChildren([
     indexRoute,
     chatRoute,
+    chatConversationRoute,
     paymentsRoute,
     destinationsRoute,
     profileRoute,

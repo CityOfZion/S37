@@ -1,5 +1,11 @@
 {
   "actions": {
     "close": "Close"
+  },
+  "fiatByToken": {
+    "TESOURO": "Real"
+  },
+  "fiatBySymbol": {
+    "BRL": "Real"
   }
 }

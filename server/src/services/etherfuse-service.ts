@@ -14,8 +14,9 @@ import type {
   TPixInstructions,
   TQuotePayload,
   TQuoteResult,
+  TToken,
 } from 'fractapay-shared'
-import { ErrorCode, FEE_PERCENTAGE, StringHelper } from 'fractapay-shared'
+import { ErrorCode, FEE_PERCENTAGE, StringHelper, TOKEN } from 'fractapay-shared'
 
 import { EnvHelper } from '../helpers/EnvHelper'
 
@@ -41,8 +42,8 @@ const ensureAccountFunded = async (publicKey: string): Promise<void> => {
   }
 }
 
-const TOKEN_ASSET: Record<'TESOURO', string> = {
-  TESOURO: 'TESOURO:GC3CW7EDYRTWQ635VDIGY6S4ZUF5L6TQ7AA4MWS7LEQDBLUSZXV7UPS4',
+const TOKEN_ASSET: Record<TToken, string> = {
+  [TOKEN.TESOURO]: `${TOKEN.TESOURO}:GC3CW7EDYRTWQ635VDIGY6S4ZUF5L6TQ7AA4MWS7LEQDBLUSZXV7UPS4`,
 }
 
 type TKycRawStatus =
