@@ -55,7 +55,7 @@ export class StringHelper {
       maximumFractionDigits: 2,
     })
       .formatToParts(safeValue)
-      .map(part => (part.type === 'currency' ? `${SYMBOL_BY_TOKEN[token]} ` : part.value))
+      .map(part => (part.type === 'currency' ? SYMBOL_BY_TOKEN[token] : part.value))
       .join('')
       .trim()
   }

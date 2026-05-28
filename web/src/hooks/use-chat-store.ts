@@ -1,41 +1,41 @@
 import { create } from 'zustand'
 
 import type {
+  TChatDestination,
   TChatMessage,
-  TDestinationAllocation,
-  TPayment,
+  TPaymentItem,
   TPaymentSummaryItem,
 } from 'fractapay-shared'
 
 type TChatStore = {
   messages: TChatMessage[]
-  payments: TPayment[]
-  price: string
-  allocations: TDestinationAllocation[]
+  payments: TPaymentItem[]
+  destinations: TChatDestination[]
   summary: TPaymentSummaryItem[]
   isProcessing: boolean
   draftMessage: string
+  draftFile: File | null
   addMessage: (message: TChatMessage) => void
   setMessages: (messages: TChatMessage[]) => void
   updateMessage: (id: string, patch: Partial<TChatMessage>) => void
-  setPayments: (payments: TPayment[]) => void
-  mergePayments: (payments: TPayment[]) => void
-  setPrice: (price: string) => void
-  setAllocations: (allocations: TDestinationAllocation[]) => void
+  setPayments: (payments: TPaymentItem[]) => void
+  mergePayments: (payments: TPaymentItem[]) => void
+  setDestinations: (destinations: TChatDestination[]) => void
   setSummary: (summary: TPaymentSummaryItem[]) => void
   setIsProcessing: (value: boolean) => void
   setDraftMessage: (value: string) => void
+  setDraftFile: (file: File | null) => void
   reset: () => void
 }
 
 const INITIAL_STATE = {
   messages: [],
   payments: [],
-  price: '0',
-  allocations: [],
+  destinations: [],
   summary: [],
   isProcessing: false,
   draftMessage: '',
+  draftFile: null,
 }
 
 export const useChatStore = create<TChatStore>(set => ({
@@ -56,10 +56,10 @@ export const useChatStore = create<TChatStore>(set => ({
 
       return { payments: [...state.payments, ...newPayments] }
     }),
-  setPrice: price => set({ price }),
-  setAllocations: allocations => set({ allocations }),
+  setDestinations: destinations => set({ destinations }),
   setSummary: summary => set({ summary }),
   setIsProcessing: value => set({ isProcessing: value }),
   setDraftMessage: value => set({ draftMessage: value }),
+  setDraftFile: file => set({ draftFile: file }),
   reset: () => set(INITIAL_STATE),
 }))

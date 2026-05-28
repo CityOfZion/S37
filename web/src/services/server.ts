@@ -1,14 +1,14 @@
 import axios from 'axios'
 
-import { ErrorCode } from 'fractapay-shared'
+import { EErrorCode } from 'fractapay-shared'
 
 import { AUTH_TOKEN_STORAGE_KEY } from '../constants'
 import { EnvHelper } from '../helpers/EnvHelper'
 import i18n from '../i18next'
 
 const AUTH_WIPE_ERROR_CODES: ReadonlySet<string> = new Set([
-  ErrorCode.UNAUTHORIZED,
-  ErrorCode.SESSION_EXPIRED,
+  EErrorCode.UNAUTHORIZED,
+  EErrorCode.SESSION_EXPIRED,
 ])
 
 export const server = axios.create({

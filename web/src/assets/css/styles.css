@@ -1,7 +1,6 @@
 @import 'tailwindcss';
 
 @theme {
-  /* Brand — violet */
   --color-brand-50: #f3efff;
   --color-brand-100: #e4daff;
   --color-brand-200: #c9b5ff;
@@ -12,16 +11,12 @@
   --color-brand-700: #4d33b5;
   --color-brand-800: #3a2587;
   --color-brand-900: #1f1153;
-
-  /* Accent — mint */
   --color-accent-50: #e6fbf5;
   --color-accent-100: #c0f3e2;
   --color-accent-400: #2ad9a8;
   --color-accent-500: #00c9a7;
   --color-accent-600: #00a085;
   --color-accent-900: #003d33;
-
-  /* Neutral — cool gray with violet hint */
   --color-neutral-0: #ffffff;
   --color-neutral-50: #f8f7fb;
   --color-neutral-100: #efedf5;
@@ -127,6 +122,12 @@
     @apply box-border;
   }
 
+  html,
+  body,
+  #root {
+    @apply h-full overflow-hidden;
+  }
+
   body {
     @apply bg-neutral-50 text-neutral-900 antialiased font-sans;
   }
@@ -166,4 +167,14 @@
   ::selection {
     @apply bg-brand-500/72 text-white;
   }
+}
+
+@utility min-size-* {
+  min-width: calc(var(--spacing) * --value(number));
+  min-height: calc(var(--spacing) * --value(number));
+}
+
+@utility max-size-* {
+  max-width: calc(var(--spacing) * --value(number));
+  max-height: calc(var(--spacing) * --value(number));
 }

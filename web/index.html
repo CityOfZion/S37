@@ -53,9 +53,224 @@
       href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
+
+    <style>
+      noscript {
+        font-family: 'Manrope', sans-serif;
+        background: #fafafa;
+        color: #171717;
+        overflow: hidden;
+        height: 100dvh;
+        width: 100dvw;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+      }
+
+      html,
+      body,
+      noscript,
+      noscript *,
+      noscript *::before,
+      noscript *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      noscript .card {
+        padding: 24px 16px;
+
+        max-width: 440px;
+        width: 100%;
+        text-align: center;
+      }
+
+      noscript .logo {
+        --size: 48px;
+
+        width: var(--size);
+        height: var(--size);
+        border-radius: 12px;
+        margin: 0 auto 16px;
+        display: block;
+      }
+
+      noscript .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: #fef2f2;
+        color: #dc2626;
+        border: 1px solid #fecaca;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 600;
+        padding: 3px 10px;
+        text-transform: uppercase;
+        margin-bottom: 12px;
+      }
+
+      noscript .badge .badge-dot {
+        --size: 6px;
+
+        width: var(--size);
+        height: var(--size);
+        background: #dc2626;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+
+      noscript .title {
+        font-size: 18px;
+        font-weight: 800;
+        color: #0a0a0a;
+        margin-bottom: 6px;
+      }
+
+      noscript .description {
+        font-size: 13px;
+        color: #737373;
+        margin-bottom: 20px;
+      }
+
+      noscript .steps {
+        list-style: none;
+        text-align: left;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 20px;
+      }
+
+      noscript .steps .step {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 13px;
+        color: #525252;
+      }
+
+      noscript .steps .step .step-number {
+        --size: 20px;
+
+        width: var(--size);
+        height: var(--size);
+        border-radius: 50%;
+        background: #7b61ff;
+        color: #ffffff;
+        font-size: 10px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+
+      noscript .divider {
+        height: 1px;
+        background: #e5e5e5;
+        margin-bottom: 16px;
+      }
+
+      noscript .footer {
+        font-size: 12px;
+        color: #a3a3a3;
+      }
+
+      noscript .footer .brand {
+        font-weight: 700;
+        color: #7b61ff;
+      }
+
+      @media (min-width: 480px) {
+        noscript .card {
+          background: #ffffff;
+          border: 1px solid #e5e5e5;
+          border-radius: 24px;
+          padding: 48px 40px;
+          box-shadow:
+            0 1px 3px rgba(0, 0, 0, 0.06),
+            0 4px 24px rgba(0, 0, 0, 0.04);
+        }
+
+        noscript .logo {
+          --size: 64px;
+
+          border-radius: 16px;
+          margin-bottom: 28px;
+        }
+
+        noscript .title {
+          font-size: 22px;
+          margin-bottom: 10px;
+        }
+
+        noscript .description {
+          font-size: 14px;
+          margin-bottom: 32px;
+        }
+
+        noscript .steps {
+          gap: 10px;
+          margin-bottom: 32px;
+        }
+
+        noscript .steps .step .step-number {
+          --size: 22px;
+
+          font-size: 11px;
+        }
+
+        noscript .divider {
+          margin-bottom: 24px;
+        }
+      }
+    </style>
   </head>
   <body>
+    <noscript>
+      <div class="card">
+        <img class="logo" src="/favicon.svg" alt="FractaPay" />
+
+        <p class="badge">
+          <span class="badge-dot"></span>
+          JavaScript required
+        </p>
+
+        <h1 class="title">Enable JavaScript to continue</h1>
+
+        <p class="description">
+          FractaPay is an AI-powered payment processor and needs JavaScript to run. Please enable it
+          in your browser settings.
+        </p>
+
+        <ol class="steps">
+          <li class="step">
+            <span class="step-number">1</span>
+            <span>Open your browser settings or preferences</span>
+          </li>
+          <li class="step">
+            <span class="step-number">2</span>
+            <span>Search for <strong>JavaScript</strong> and enable it</span>
+          </li>
+          <li class="step">
+            <span class="step-number">3</span>
+            <span>Reload this page</span>
+          </li>
+        </ol>
+
+        <div class="divider"></div>
+
+        <p class="footer">
+          <strong class="brand">FractaPay</strong> &mdash; AI-powered batch payment processor
+        </p>
+      </div>
+    </noscript>
+
     <div id="root"></div>
+
     <script type="module" src="/src/index.tsx"></script>
   </body>
 </html>

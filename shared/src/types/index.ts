@@ -2,9 +2,19 @@ export type TToken = 'TESOURO'
 
 export type TLanguage = 'en-US' | 'pt-BR'
 
-export type TPixKeyType = 'evp' | 'cpf' | 'cnpj' | 'email' | 'phone'
+export type TPixKeyType = 'EVP' | 'CPF' | 'CNPJ' | 'EMAIL' | 'PHONE'
 
-export enum ErrorCode {
+export type TFiatCurrency = 'BRL'
+
+export type TPaymentStatus = 'CREATED' | 'FUNDED' | 'COMPLETED' | 'FAILED' | 'REFUNDED' | 'CANCELED'
+
+export type TPaymentMethod = 'PIX'
+
+export type TPaymentMessageRole = 'ASSISTANT' | 'USER'
+
+export type TKycStatus = 'NOT_STARTED' | 'PENDING' | 'APPROVED' | 'REJECTED'
+
+export enum EErrorCode {
   NO_FILE = 'NO_FILE',
   UNSUPPORTED_FILE_TYPE = 'UNSUPPORTED_FILE_TYPE',
   INVALID_TOKEN = 'INVALID_TOKEN',
@@ -38,7 +48,17 @@ export enum ErrorCode {
   EMAIL_SEND_FAILED = 'EMAIL_SEND_FAILED',
   WALLET_NOT_REGISTERED = 'WALLET_NOT_REGISTERED',
   BALANCE_FETCH_FAILED = 'BALANCE_FETCH_FAILED',
+  DESTINATION_NOT_FOUND = 'DESTINATION_NOT_FOUND',
+  DESTINATION_PIX_KEY_EXISTS = 'DESTINATION_PIX_KEY_EXISTS',
+  DESTINATION_NAME_EXISTS = 'DESTINATION_NAME_EXISTS',
+  PAYMENT_NOT_FOUND = 'PAYMENT_NOT_FOUND',
+  PAYMENT_CREATE_FAILED = 'PAYMENT_CREATE_FAILED',
+  PAYMENT_PENDING = 'PAYMENT_PENDING',
   UNKNOWN = 'UNKNOWN',
+}
+
+export type TErrorResponse = {
+  error: EErrorCode
 }
 
 export type TUser = {
@@ -51,7 +71,9 @@ export type TUser = {
   passkeyCredentialId: string | null
 }
 
-export type TAuthMeResult = { success: true; user: TUser } | { success: false; error: ErrorCode }
+export type TAuthToken = {
+  token: string
+}
 
 export type TCompleteOnboardingPayload = {
   companyName: string
@@ -64,51 +86,6 @@ export type TExchangePayload = {
   verifier: string
 }
 
-export type TExchangeResult =
-  | { success: true; token: string }
-  | { success: false; error: ErrorCode }
-
-export type TSignupRequestPayload = {
-  fullName: string
-  email: string
-}
-
-export type TSignupRequestResult =
-  | { success: true; expiresAt: string; cooldownEndsAt: string }
-  | { success: false; error: ErrorCode; cooldownEndsAt?: string }
-
-export type TSignupVerifyPayload = {
-  email: string
-  code: string
-}
-
-export type TSignupVerifyResult =
-  | { success: true; token: string; user: TUser }
-  | { success: false; error: ErrorCode }
-
-export type TPasskeyLoginPayload = {
-  address: string
-}
-
-export type TPasskeyLoginResult =
-  | { success: true; token: string; user: TUser }
-  | { success: false; error: ErrorCode }
-
-export type TPayment = {
-  id: string
-  amount: string
-  description?: string
-}
-
-export type TPaymentResponse = {
-  payments: TPayment[]
-  price: string
-}
-
-export type TFiatCurrency = 'BRL'
-
-export type TKycStatus = 'not_started' | 'pending' | 'approved' | 'rejected'
-
 export type TOnboardingPayload = {
   address: string
 }
@@ -119,83 +96,8 @@ export type TOnboardingResult = {
   presignedUrl: string
 }
 
-export type TKycStatusResult = {
+export type TKycStatusResponse = {
   status: TKycStatus
-}
-
-export type TBalanceResult = {
-  token: TToken
-  balance: string
-  balanceInFiat: string
-}
-
-export type TOrganizationPayload = {
-  displayName: string
-  accountType: 'personal' | 'business'
-  email: string
-  userDisplayName: string
-  address: string
-}
-
-export type TOrganizationWallet = {
-  id: string
-  address: string
-  blockchain: string
-}
-
-export type TOrganizationResult = {
-  organizationId: string
-  displayName: string
-  accountType: string
-  wallets: TOrganizationWallet[]
-}
-
-export type TKycName = { givenName: string; familyName: string }
-
-export type TKycAddress = {
-  street: string
-  city: string
-  region: string
-  postalCode: string
-  country: string
-}
-
-export type TKycIdNumber = { value: string; type: string }
-
-export type TKycIdentity = {
-  id: string
-  email: string
-  phoneNumber: string
-  occupation: string
-  name: TKycName
-  dateOfBirth: string
-  address: TKycAddress
-  idNumbers?: TKycIdNumber[]
-}
-
-export type TSubmitKycPayload = {
-  address: string
-  identity: TKycIdentity
-}
-
-export type TSubmitKycResult = {
-  status: string
-  message: string
-}
-
-export type TBankAccountPayload = {
-  presignedUrl: string
-  pixKey: string
-  pixKeyType: TPixKeyType
-  firstName: string
-  lastName: string
-  cpf: string
-}
-
-export type TBankAccountResult = {
-  bankAccountId: string
-  pixKey?: string
-  status: string
 }
 
 export type TQuotePayload = {
@@ -211,39 +113,10 @@ export type TQuoteResult = {
   destinationAmount: string
   exchangeRate: string
   feeAmount: string
-  etherfuseFeeAmount: string
-  fractapayFeeAmount: string
   expiresAt: string
   createdAt: string
-}
-
-export type TOrderPayload = {
-  quoteId: string
-  customerId: string
-  bankAccountId: string
   address: string
-  memo?: string
-}
-
-export type TPixInstructions = {
-  pixCode: string
-  pixKey?: string
-  pixKeyType?: string
-  beneficiary?: string
-  amount: string
-  currency: TFiatCurrency
-}
-
-export type TOrderStatus = 'created' | 'funded' | 'completed' | 'failed' | 'refunded' | 'canceled'
-
-export type TOrderResult = {
-  orderId: string
-  status: TOrderStatus
-  pix?: TPixInstructions
-  confirmedTxSignature?: string
-  amountInFiat?: string
-  amountInTokens?: string
-  isRecovered?: boolean
+  addressUrl: string
 }
 
 export type TDestination = {
@@ -254,9 +127,134 @@ export type TDestination = {
   pixKeyType: TPixKeyType
 }
 
-export type TDestinationAllocation = {
-  destination: TDestination
+export type TCreateDestinationPayload = {
+  name: string
+  token: TToken
+  pixKey: string
+  pixKeyType: TPixKeyType
+}
+
+export type TUpdateDestinationPayload = {
+  name?: string
+  token?: TToken
+  pixKey?: string
+  pixKeyType?: TPixKeyType
+}
+
+export type TPaymentPix = {
+  pixCode: string
+  pixKey?: string
+  pixKeyType?: string
+  beneficiary?: string
+  amount: string
+  currency: TFiatCurrency
+}
+
+export type TPaymentDestination = {
+  id: string
+  destinationId: string | null
+  name: string
+  token: TToken
+  pixKey: string
+  pixKeyType: TPixKeyType
   percentage: number
+  amount: string
+}
+
+export type TPaymentItem = {
+  id: string
+  amount: string
+  description: string | null
+}
+
+export type TPaymentMessage = {
+  id: string
+  role: TPaymentMessageRole
+  text: string
+  createdAt: string
+}
+
+export type TPayment = {
+  id: string
+  externalId: string
+  transactionHash: string | null
+  transactionUrl: string | null
+  status: TPaymentStatus
+  token: TToken
+  method: TPaymentMethod
+  amount: string
+  feeAmount: string
+  feePercentage: string
+  tokenAmount: string
+  exchangeRate: string
+  address: string
+  addressUrl: string
+  isRecurrence: boolean
+  errorMessage: string | null
+  createdAt: string
+  updatedAt: string
+  items: TPaymentItem[]
+  destinations: TPaymentDestination[]
+  messages: TPaymentMessage[]
+  pix: TPaymentPix | null
+}
+
+export type TCreatePaymentItem = {
+  amount: string
+  description: string | null
+}
+
+export type TCreatePaymentDestination = {
+  id: string
+  name: string
+  token: TToken
+  pixKey: string
+  pixKeyType: TPixKeyType
+  amount: string
+  percentage: number
+}
+
+export type TCreatePaymentMessage = {
+  role: TPaymentMessageRole
+  text: string
+}
+
+export type TCreatePaymentPayload = {
+  quoteId: string
+  customerId: string
+  bankAccountId: string
+  address: string
+  amount: string
+  feeAmount: string
+  feePercentage: string
+  exchangeRate: string
+  token: TToken
+  tokenAmount: string
+  items: TCreatePaymentItem[]
+  destinations: TCreatePaymentDestination[]
+  messages: TCreatePaymentMessage[]
+}
+
+export type TGetPaymentsParams = {
+  page?: number
+  pageSize?: number
+  status?: TPaymentStatus
+  dateFrom?: string
+  dateTo?: string
+}
+
+export type TGetPaymentsResponse = {
+  data: TPayment[]
+  total: number
+  page: number
+  pageSize: number
+}
+
+export type TUpdatePaymentByIdParams = {
+  id: string
+  status: string
+  tokenAmount: string
+  transactionHash: string
 }
 
 export type TPaymentSummaryItem = {
@@ -268,36 +266,79 @@ export type TPaymentSummaryItem = {
   totalAmount?: string
 }
 
-export type TChatRole = 'user' | 'assistant'
-
-export type TChatHistoryMessage = { role: TChatRole; content: string }
+export type TChatMessageHistory = {
+  role: TPaymentMessageRole
+  text: string
+}
 
 export type TChatMessage = {
   id: string
-  role: TChatRole
-  content: string
-  type: 'text' | 'file-import' | 'summary'
-  payments?: TPayment[]
+  role: TPaymentMessageRole
+  text: string
+  type: 'text' | 'file' | 'summary'
+  payments?: TPaymentItem[]
   summary?: TPaymentSummaryItem[]
   timestamp: string
 }
 
 export type TChatAction =
-  | 'none'
-  | 'add_payments'
-  | 'update_payments'
-  | 'set_allocations'
-  | 'request_confirmation'
-  | 'execute'
-  | 'clear'
+  | 'NONE'
+  | 'ADD_PAYMENTS'
+  | 'UPDATE_PAYMENTS'
+  | 'SET_DESTINATIONS'
+  | 'REQUEST_CONFIRMATION'
+  | 'EXECUTE'
+  | 'CLEAR'
+  | 'CREATE_DESTINATION'
 
-export type TChatResponse = {
-  message: string
-  action: TChatAction
-  payments?: TPayment[]
-  price?: string
-  allocations?: TDestinationAllocation[]
-  summary?: TPaymentSummaryItem[]
-  errorCode?: ErrorCode
-  filename?: string
+export type TChatDestination = {
+  destination: TDestination
+  percentage: number
 }
+
+export type TChatPayment = {
+  payments: TPaymentItem[]
+}
+
+export type TChatResponse =
+  | {
+      text: string
+      action: TChatAction
+      error?: EErrorCode
+      payments?: TChatPayment[]
+      destinations?: TChatDestination[]
+      summary?: TPaymentSummaryItem[]
+      newDestination?: TCreateDestinationPayload
+      fileName?: string
+    }
+  | TErrorResponse
+
+export type TSignupRequestPayload = {
+  fullName: string
+  email: string
+}
+
+export type TSignupRequestResponse =
+  | { expiresAt: string; cooldownEndsAt: string }
+  | (TErrorResponse & { cooldownEndsAt?: string })
+
+export type TSignupVerifyPayload = {
+  email: string
+  code: string
+}
+
+export type TSignupVerifyResponse = { token: string; user: TUser } | TErrorResponse
+
+export type TPasskeyLoginPayload = {
+  address: string
+}
+
+export type TPasskeyLoginResponse = { token: string; user: TUser } | TErrorResponse
+
+export type TBalanceResult = {
+  token: TToken
+  balance: string
+  balanceInFiat: string
+}
+
+export type TBalanceResponse = TBalanceResult | TErrorResponse

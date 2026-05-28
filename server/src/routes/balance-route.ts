@@ -1,35 +1,29 @@
 import type { FastifyInstance } from 'fastify'
 
-import type { TBalanceResult } from 'fractapay-shared'
-import { ErrorCode, StellarHelper } from 'fractapay-shared'
+import { EErrorCode, ErrorHelper, TBalanceResponse } from 'fractapay-shared'
 
+import { balanceSchema } from '../schemas/balances-schema'
 import { getTesouroBalanceInBrl } from '../services/balance-service'
 
-type TErrorResponse = { success: false; error: ErrorCode }
-
-const mapError = (error: unknown): ErrorCode => {
-  const message = (error as Error).message as ErrorCode
-
-  return Object.values(ErrorCode).includes(message) ? message : ErrorCode.UNKNOWN
+type TParams = {
+  Params: { address: string }
+  Reply: TBalanceResponse
 }
 
 export const balanceRoute = async (fastify: FastifyInstance): Promise<void> => {
-  fastify.get<{ Params: { address: string }; Reply: TBalanceResult | TErrorResponse }>(
-    '/balance/:address',
-    async (request, reply) => {
-      const { address } = request.params
+  fastify.get<TParams>('/balance/:address', async (request, reply) => {
+    const parsed = balanceSchema.safeParse(request.params)
 
-      if (!StellarHelper.isValidStellarDestination(address)) {
-        return reply.status(400).send({ success: false, error: ErrorCode.INVALID_ADDRESS })
-      }
-
-      try {
-        const result = await getTesouroBalanceInBrl(address)
-
-        return reply.status(200).send(result)
-      } catch (error) {
-        return reply.status(502).send({ success: false, error: mapError(error) })
-      }
+    if (!parsed.success) {
+      return reply.status(400).send({ error: EErrorCode.INVALID_ADDRESS })
     }
-  )
+
+    try {
+      const result = await getTesouroBalanceInBrl(parsed.data.address)
+
+      return reply.status(200).send(result)
+    } catch (error) {
+      return reply.status(502).send({ error: ErrorHelper.map(error) })
+    }
+  })
 }

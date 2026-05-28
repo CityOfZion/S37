@@ -11,7 +11,7 @@
     <img src="https://img.shields.io/badge/Stellar-Horizon-blue?style=flat-square&logo=stellar" alt="Stellar" />
     <img src="https://img.shields.io/badge/Rust-Soroban-B7410E?style=flat-square&logo=rust" alt="Rust" />
     <img src="https://img.shields.io/badge/Gemini-AI-4285F4?style=flat-square&logo=google" alt="Gemini AI" />
-    <img src="https://img.shields.io/badge/Hackathon-Stellar%20×%20NearX-1F75FE?style=flat-square" alt="Hackathon" />
+    <img src="https://img.shields.io/badge/Hackathon-Stellar%20×%20NearX-blue?style=flat-square" alt="Hackathon" />
   </p>
 
   <p>
@@ -40,10 +40,10 @@ KYC is mandatory before the first payment. The first time you confirm, FractaPay
 ```
 root/
 ├── server/       # Node.js + Fastify + TypeScript + Prisma  →  chat, AI, prices, auth, DB
+│   └── prisma/   # Prisma schema + migrations               →  MariaDB via Docker or Fly.io
 ├── web/          # React + Vite + TailwindCSS                →  user interface
 ├── contracts/    # Rust + Soroban                            →  Stellar smart contract
-├── shared/       # TypeScript types and helpers              →  shared between server and web
-└── db/           # Prisma schema + migrations                →  MariaDB via Docker or Fly.io
+└── shared/       # TypeScript types and helpers              →  shared between server and web
 ```
 
 ---
@@ -121,18 +121,22 @@ make deploy-testnet  # Deploy to testnet
 │  [Chat with AI at /chat: type amounts or upload a payment file]│
 │        ↓                                                       │
 │  [AI extracts payments + proposes allocations per destination] │
+│  [No price in chat — accurate rate comes from Etherfuse quote] │
 │        ↓                                                       │
 │  [AI requests confirmation → summary table in chat bubble]     │
 │        ↓                                                       │
-│  [Review modal for all allocations: combined quote + 2% fee]   │
+│  [Review modal: live Etherfuse quote + 2% fee + countdown]     │
 │        ↓                                                       │
 │  [First time only: Etherfuse KYC embedded flow]                │
 │        ↓                                                       │
-│  [Confirm → Etherfuse onramp order → PIX QR + copy-paste]      │
+│  [Confirm → POST /payments → Etherfuse order + DB record]      │
+│  [feeAmount + feePercentage saved with payment]                │
 │        ↓                                                       │
-│  [User pays PIX → TESOURO delivered to address on Stellar]     │
+│  [PIX QR + copy-paste → user pays]                             │
 │        ↓                                                       │
-│  [Conversation saved with title → visible in /payments history]│
+│  [TESOURO delivered to destination address on Stellar]         │
+│        ↓                                                       │
+│  [Conversation saved → visible in /payments history]           │
 └────────────────────────────────────────────────────────────────┘
 ```
 
@@ -142,21 +146,22 @@ make deploy-testnet  # Deploy to testnet
 
 ### Server (`server/.env`)
 
-| Variable | Required | Description |
-|---|---|---|
-| `PORT` | No (default: 3000) | Server port |
-| `GEMINI_API_KEY` | Yes | Google Gemini API key |
-| `ETHERFUSE_API_KEY` | Yes | Etherfuse Ramp API key (sandbox or production) |
-| `ETHERFUSE_BASE_URL` | No (default: `https://api.sand.etherfuse.com`) | Etherfuse base URL — `https://api.etherfuse.com` for production |
-| `CORS_ORIGIN` | No (default: `http://localhost:5173`) | Comma-separated list of allowed CORS origins |
-| `DATABASE_URL` | Yes | MariaDB connection string (e.g. `mysql://fractapay:fractapay@127.0.0.1:3306/fractapay`) |
-| `GOOGLE_CLIENT_ID` | Yes | Google OAuth client ID |
-| `GOOGLE_CLIENT_SECRET` | Yes | Google OAuth client secret |
+| Variable | Required                                                   | Description |
+|---|------------------------------------------------------------|---|
+| `PORT` | No (default: 3000)                                         | Server port |
+| `GEMINI_API_KEY` | Yes                                                        | Google Gemini API key |
+| `ETHERFUSE_API_KEY` | Yes                                                        | Etherfuse Ramp API key (sandbox or production) |
+| `ETHERFUSE_BASE_URL` | No (default: `https://api.sand.etherfuse.com`)             | Etherfuse base URL — `https://api.etherfuse.com` for production |
+| `ETHERFUSE_WEBHOOK_SECRET` | Yes                                                        | Base64-encoded HMAC key from the Etherfuse webhook creation response. Leave empty to skip signature verification |
+| `CORS_ORIGIN` | No (default: `http://localhost:5173`)                      | Comma-separated list of allowed CORS origins |
+| `DATABASE_URL` | Yes                                                        | MariaDB connection string (e.g. `mysql://fractapay:fractapay@127.0.0.1:3306/fractapay`) |
+| `GOOGLE_CLIENT_ID` | Yes                                                        | Google OAuth client ID |
+| `GOOGLE_CLIENT_SECRET` | Yes                                                        | Google OAuth client secret |
 | `OAUTH_CALLBACK_URL` | No (default: `http://localhost:3000/auth/google/callback`) | Must match the redirect URI in Google Cloud Console |
-| `SESSION_SECRET` | Yes (≥32 chars) | HS256 secret for `@fastify/jwt` (signs the Bearer JWT); also the `@fastify/cookie` secret for the OAuth state/PKCE round-trip cookie |
-| `WEB_BASE_URL` | No (default: `http://localhost:5173`) | Base URL of the web app; used as fallback for login redirect URLs |
-| `WEB_LOGIN_SUCCESS_URL` | No (default: `WEB_BASE_URL`) | Redirect target after successful Google login. **Must include the SPA base path in prod** (e.g. `https://host/S37/`) — landing path mismatch makes login silently fail |
-| `WEB_LOGIN_FAILURE_URL` | No (default: `WEB_BASE_URL/?login=failed`) | Redirect target on OAuth callback failure |
+| `SESSION_SECRET` | Yes (≥32 chars)                                            | HS256 secret for `@fastify/jwt` (signs the Bearer JWT); also the `@fastify/cookie` secret for the OAuth state/PKCE round-trip cookie |
+| `WEB_BASE_URL` | No (default: `http://localhost:5173`)                      | Base URL of the web app; used as fallback for login redirect URLs |
+| `WEB_LOGIN_SUCCESS_URL` | No (default: `WEB_BASE_URL`)                               | Redirect target after successful Google login. **Must include the SPA base path in prod** (e.g. `https://host/S37/`) — landing path mismatch makes login silently fail |
+| `WEB_LOGIN_FAILURE_URL` | No (default: `WEB_BASE_URL/?login=failed`)                 | Redirect target on OAuth callback failure |
 
 ### Web (`web/.env`)
 
@@ -168,19 +173,18 @@ make deploy-testnet  # Deploy to testnet
 
 ## Etherfuse Ramp Integration
 
-FractaPay uses [Etherfuse](https://docs.etherfuse.com/initial-setup) for the BRL ↔ TESOURO PIX onramp/offramp. The server exposes the following endpoints under `/etherfuse/*`:
+FractaPay uses [Etherfuse](https://docs.etherfuse.com/initial-setup) for the BRL ↔ TESOURO PIX onramp/offramp. The server exposes the following endpoints (all require authentication except the webhook receiver):
 
 | Method + Path | Purpose |
 |---|---|
-| `POST /etherfuse/onboarding` | Create customer + return presigned KYC URL |
-| `GET  /etherfuse/kyc/:customerId/:publicKey` | Read KYC status (polled by the web app) |
-| `POST /etherfuse/bank-account` | Register a PIX bank account |
-| `POST /etherfuse/quote` | Quote BRL → TESOURO with `feeAmount` and `expiresAt` |
-| `POST /etherfuse/order` | Create an onramp order; response contains the PIX code |
-| `GET  /etherfuse/order/:orderId` | Read order status (polled until completed) |
-| `POST /etherfuse/order/:orderId/simulate` | **Sandbox only** — simulate the PIX deposit |
-| `POST /etherfuse/webhook` | Receives Etherfuse webhook events (`order_updated`, `kyc_updated`, etc.) and caches the latest status in memory |
+| `POST /onboarding` | Create customer + return presigned KYC URL |
+| `GET  /kyc/:customerId/:address` | Read KYC status (polled by the web app) |
+| `POST /quote` | Quote BRL → TESOURO with `feeAmount` and `expiresAt` |
+| `POST /payments` | Create an onramp order + persist payment to DB; response contains the PIX code |
+| `GET  /payments/:id` | Read payment + sync order status from Etherfuse (polled until terminal) |
+| `POST /payments/:id/simulate` | **Sandbox only** — simulate the PIX deposit |
+| `POST /webhook` | Receives Etherfuse webhook events; verifies HMAC-SHA256 signature; on `order_updated` updates payment status in DB |
 
 The Etherfuse API key never reaches the browser — all calls are proxied through the server, which uses `axios` (same version as the web client) for outbound requests.
 
-Point the Etherfuse dashboard's webhook URL at `<public-host>/etherfuse/webhook` so order/KYC state changes are pushed to the server in real time. The cache lives in process memory (`src/services/etherfuse-webhook-store.ts`) — fine for a single-instance hackathon deployment; swap in Redis or a DB before going multi-instance.
+Point the Etherfuse dashboard's webhook URL at `<public-host>/webhook` so order/KYC state changes are pushed to the server in real time. `order_updated` events update the payment record in the DB directly; other events are cached in process memory (`src/services/etherfuse-webhook-store.ts`). Use ngrok or a similar tunnel to expose localhost during development.

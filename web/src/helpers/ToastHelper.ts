@@ -6,10 +6,10 @@ export class ToastHelper {
   }
 
   static error(title: string, description?: string): void {
-    toast.error(title, { description })
+    toast.error(title, { description, duration: 8000 })
   }
 
   static info(title: string, description?: string): void {
-    toast.info(title, { description })
+    toast.info(title, { description, duration: 6000 })
   }
 }

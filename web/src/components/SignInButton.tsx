@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next'
 
 import { PKCE_VERIFIER_STORAGE_KEY } from '../constants'
 import { EnvHelper } from '../helpers/EnvHelper'
-import { computeChallenge, generateVerifier } from '../helpers/pkce'
+import { PkceHelper } from '../helpers/PkceHelper'
 import { StyleHelper } from '../helpers/StyleHelper'
 import { Button } from './Button'
 
@@ -16,10 +16,11 @@ export const SignInButton = ({ className }: TProps) => {
   const { t } = useTranslation('pages', { keyPrefix: 'auth' })
 
   const handleClick = async () => {
-    const verifier = generateVerifier()
+    const verifier = PkceHelper.generateVerifier()
+
     sessionStorage.setItem(PKCE_VERIFIER_STORAGE_KEY, verifier)
 
-    const challenge = await computeChallenge(verifier)
+    const challenge = await PkceHelper.computeChallenge(verifier)
 
     window.location.href = `${EnvHelper.API_URL}/auth/google?cc=${encodeURIComponent(challenge)}`
   }

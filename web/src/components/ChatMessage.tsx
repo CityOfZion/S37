@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import BigNumber from 'bignumber.js'
@@ -6,34 +5,15 @@ import BigNumber from 'bignumber.js'
 import type { TChatMessage } from 'fractapay-shared'
 import { FEE_PERCENTAGE, StringHelper } from 'fractapay-shared'
 
+import { DestinationsHelper } from '../helpers/DestinationsHelper'
 import { StyleHelper } from '../helpers/StyleHelper'
 import { AiAvatar } from './AiAvatar'
+import { FeeIcon } from './FeeIcon'
 import { Tooltip } from './Tooltip'
 import { UserAvatar } from './UserAvatar'
 
 import FileIcon from '../assets/icons/file-icon.svg?react'
-import InfoIcon from '../assets/icons/info-icon.svg?react'
 import WarningIcon from '../assets/icons/warning-icon.svg?react'
-
-type TFeeTooltipProps = { label: string }
-
-const FeeTooltipIcon = ({ label }: TFeeTooltipProps) => {
-  const [open, setOpen] = useState(false)
-
-  return (
-    <Tooltip content={label} open={open} onOpenChange={setOpen}>
-      <span
-        tabIndex={0}
-        className="inline-flex cursor-pointer"
-        aria-label={label}
-        onClick={() => setOpen(previous => !previous)}
-        onKeyDown={event => event.key === 'Enter' && setOpen(previous => !previous)}
-      >
-        <InfoIcon className="size-3 text-neutral-400" aria-hidden="true" />
-      </span>
-    </Tooltip>
-  )
-}
 
 type TProps = {
   message: TChatMessage
@@ -45,12 +25,12 @@ type TProps = {
 export const ChatMessage = ({ message, language, userName, userPicture }: TProps) => {
   const { t } = useTranslation('components', { keyPrefix: 'chatMessage' })
 
-  const isUser = message.role === 'user'
+  const isUser = message.role === 'USER'
 
   const bubbleContent = () => {
-    if (message.type === 'file-import') {
-      const parts = message.content.split('\n')
-      const filename = parts[parts.length - 1]
+    if (message.type === 'file') {
+      const parts = message.text.split('\n')
+      const fileName = parts[parts.length - 1]
       const textPart = parts.length > 1 ? parts.slice(0, -1).join('\n') : null
 
       return (
@@ -58,13 +38,13 @@ export const ChatMessage = ({ message, language, userName, userPicture }: TProps
           {textPart && <p className="whitespace-pre-wrap mb-1">{textPart}</p>}
           <span className="flex gap-1 text-sm font-semibold text-white/86">
             <FileIcon className="size-4 mt-0.75 shrink-0" aria-hidden="true" />
-            <span className="wrap-break-word min-w-0">{filename}</span>
+            <span className="wrap-break-word min-w-0">{fileName}</span>
           </span>
         </>
       )
     }
 
-    return <p className="whitespace-pre-wrap">{message.content}</p>
+    return <p className="whitespace-pre-wrap">{message.text}</p>
   }
 
   return (
@@ -80,6 +60,9 @@ export const ChatMessage = ({ message, language, userName, userPicture }: TProps
           }
         )}
       >
+        <p className="text-[10px] font-medium text-neutral-400 mb-0.5 uppercase select-none">
+          {isUser ? t('senderMe') : t('senderAssistant')}
+        </p>
         <div
           className={StyleHelper.merge(
             'rounded-2xl px-4 pt-3 pb-2 text-sm leading-relaxed',
@@ -118,19 +101,30 @@ export const ChatMessage = ({ message, language, userName, userPicture }: TProps
                     <tr key={index} className="border-b border-neutral-100">
                       <td className="py-1.5 pr-3 text-neutral-900">{item.destinationName}</td>
                       <td className="py-1.5 pr-3 text-right text-neutral-500">
-                        {item.percentage}%
+                        {DestinationsHelper.formatPercentage(item.percentage)}
                       </td>
                       <td className="py-1.5 text-right text-neutral-900 whitespace-nowrap">
                         {StringHelper.formatCurrencyAmount(item.amount, item.token)}
                       </td>
                     </tr>
                   ))}
-                  {message.summary.length > 0 &&
-                    message.summary[0].feeAmount &&
+                  {message.summary[0].feeAmount &&
                     (() => {
-                      const summaryToken = message.summary[0].token
+                      const summary = message.summary!
+                      const summaryToken = summary[0].token
                       const fee = FEE_PERCENTAGE.times(100).toFixed(0)
                       const feeLabel = t('summaryFeeTooltip', { fee })
+
+                      const sumField = (field: 'feeAmount' | 'totalAmount') =>
+                        StringHelper.formatCurrencyAmount(
+                          StringHelper.formatAmount(
+                            summary.reduce(
+                              (sum, item) => sum.plus(item[field] || '0'),
+                              new BigNumber(0)
+                            )
+                          ),
+                          summaryToken
+                        )
 
                       return (
                         <>
@@ -138,20 +132,12 @@ export const ChatMessage = ({ message, language, userName, userPicture }: TProps
                             <td className="py-1.5 pr-3 text-neutral-500">
                               <span className="flex items-center gap-1">
                                 {t('summaryFee')}
-                                <FeeTooltipIcon label={feeLabel} />
+                                <FeeIcon label={feeLabel} />
                               </span>
                             </td>
                             <td className="py-1.5 pr-3 text-right text-neutral-500">{`${fee}%`}</td>
                             <td className="py-1.5 text-right text-neutral-500 whitespace-nowrap">
-                              {StringHelper.formatCurrencyAmount(
-                                StringHelper.formatAmount(
-                                  message.summary.reduce(
-                                    (sum, item) => sum.plus(item.feeAmount ?? '0'),
-                                    new BigNumber(0)
-                                  )
-                                ),
-                                summaryToken
-                              )}
+                              {sumField('feeAmount')}
                             </td>
                           </tr>
                           <tr className="border-b border-neutral-100">
@@ -159,15 +145,7 @@ export const ChatMessage = ({ message, language, userName, userPicture }: TProps
                               {t('summaryTotal')}
                             </td>
                             <td className="py-1.5 text-right font-bold text-neutral-900 whitespace-nowrap">
-                              {StringHelper.formatCurrencyAmount(
-                                StringHelper.formatAmount(
-                                  message.summary.reduce(
-                                    (sum, item) => sum.plus(item.totalAmount ?? '0'),
-                                    new BigNumber(0)
-                                  )
-                                ),
-                                summaryToken
-                              )}
+                              {sumField('totalAmount')}
                             </td>
                           </tr>
                         </>

@@ -3,7 +3,6 @@ import { Controller, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
 import { zodResolver } from '@hookform/resolvers/zod'
-import * as uuid from 'uuid'
 
 import type { TDestination } from 'fractapay-shared'
 import { TOKEN } from 'fractapay-shared'
@@ -13,8 +12,7 @@ import { Input } from '../components/Input'
 import { Modal } from '../components/Modal'
 import { Select } from '../components/Select'
 import { InputHelper } from '../helpers/InputHelper'
-import { useDestinationsStore } from '../hooks/use-destinations-store'
-import { destinationSchema, type TDestinationFormValues } from '../schemas/destination-schema'
+import { destinationsSchema, type TDestinationFormValues } from '../schemas/destinations-schema'
 
 import BrazilFlagIcon from '../assets/icons/brazil-flag-icon.svg?react'
 
@@ -22,10 +20,11 @@ type TProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
   destination?: TDestination
-  onSave: (destination: TDestination) => void
+  onSave: (data: Omit<TDestination, 'id'>) => void
+  isSaving?: boolean
 }
 
-export const DestinationModal = ({ open, onOpenChange, destination, onSave }: TProps) => {
+export const DestinationModal = ({ open, onOpenChange, destination, onSave, isSaving }: TProps) => {
   const { t } = useTranslation('modals', { keyPrefix: 'destination' })
   const { t: tCommon } = useTranslation('common')
 
@@ -38,15 +37,13 @@ export const DestinationModal = ({ open, onOpenChange, destination, onSave }: TP
   ]
 
   const PIX_KEY_TYPE_OPTIONS = [
-    { value: 'evp', label: t('pixKeyTypeEvp') },
-    { value: 'cpf', label: t('pixKeyTypeCpf') },
-    { value: 'cnpj', label: t('pixKeyTypeCnpj') },
-    { value: 'email', label: t('pixKeyTypeEmail') },
-    { value: 'phone', label: t('pixKeyTypePhone') },
+    { value: 'EVP', label: t('pixKeyTypeEvp') },
+    { value: 'CPF', label: t('pixKeyTypeCpf') },
+    { value: 'CNPJ', label: t('pixKeyTypeCnpj') },
+    { value: 'EMAIL', label: t('pixKeyTypeEmail') },
+    { value: 'PHONE', label: t('pixKeyTypePhone') },
   ]
   const isEditing = !!destination
-
-  const { destinations } = useDestinationsStore()
 
   const {
     control,
@@ -54,31 +51,30 @@ export const DestinationModal = ({ open, onOpenChange, destination, onSave }: TP
     reset,
     watch,
     setValue,
-    setError,
     clearErrors,
     formState: { errors, isValid },
   } = useForm<TDestinationFormValues>({
-    resolver: zodResolver(destinationSchema),
+    resolver: zodResolver(destinationsSchema),
     defaultValues: {
-      name: destination?.name ?? '',
-      token: destination?.token ?? TOKEN.TESOURO,
+      name: destination?.name || '',
+      token: destination?.token || TOKEN.TESOURO,
       pixKey: InputHelper.applyPixKeyMask(
-        destination?.pixKey ?? '',
-        destination?.pixKeyType ?? 'evp'
+        destination?.pixKey || '',
+        destination?.pixKeyType || 'EVP'
       ),
-      pixKeyType: destination?.pixKeyType ?? 'evp',
+      pixKeyType: destination?.pixKeyType || 'EVP',
     },
     mode: 'onChange',
   })
 
   useEffect(() => {
     if (open) {
-      const pixKeyType = destination?.pixKeyType ?? 'evp'
+      const pixKeyType = destination?.pixKeyType || 'EVP'
 
       reset({
-        name: destination?.name ?? '',
-        token: destination?.token ?? TOKEN.TESOURO,
-        pixKey: InputHelper.applyPixKeyMask(destination?.pixKey ?? '', pixKeyType),
+        name: destination?.name || '',
+        token: destination?.token || TOKEN.TESOURO,
+        pixKey: InputHelper.applyPixKeyMask(destination?.pixKey || '', pixKeyType),
         pixKeyType,
       })
     }
@@ -87,36 +83,12 @@ export const DestinationModal = ({ open, onOpenChange, destination, onSave }: TP
   const pixKeyType = watch('pixKeyType')
 
   const onSubmit = (values: TDestinationFormValues) => {
-    const currentId = destination?.id
-    const name = values.name.trim()
-    const nameLowercase = name.toLowerCase()
-    const others = destinations.filter(existing => existing.id !== currentId)
-    const nameTaken = others.some(existing => existing.name.trim().toLowerCase() === nameLowercase)
-    const normalizedPixKey = InputHelper.normalizePixKeyForStorage(values.pixKey, values.pixKeyType)
-    const pixKeyTaken = others.some(existing => existing.pixKey === normalizedPixKey)
-
-    if (nameTaken) {
-      setError('name', { message: t('nameAlreadyExists') })
-
-      return
-    }
-
-    if (pixKeyTaken) {
-      setError('pixKey', { message: 'pixKeyAlreadyExists' })
-
-      return
-    }
-
-    const saved: TDestination = {
-      id: currentId ?? uuid.v4(),
-      name,
+    onSave({
+      name: values.name.trim(),
       token: values.token,
-      pixKey: normalizedPixKey,
+      pixKey: InputHelper.normalizePixKey(values.pixKey, values.pixKeyType),
       pixKeyType: values.pixKeyType,
-    }
-
-    onSave(saved)
-    onOpenChange(false)
+    })
   }
 
   return (
@@ -139,11 +111,7 @@ export const DestinationModal = ({ open, onOpenChange, destination, onSave }: TP
               required
               maxLength={200}
               error={
-                errors.name
-                  ? errors.name.message
-                    ? errors.name.message
-                    : t('nameError')
-                  : undefined
+                errors.name ? t((errors.name.message ?? 'nameError') as 'nameError') : undefined
               }
             />
           )}
@@ -187,7 +155,7 @@ export const DestinationModal = ({ open, onOpenChange, destination, onSave }: TP
           render={({ field }) => (
             <Input
               {...field}
-              type={pixKeyType === 'email' ? 'email' : 'text'}
+              type={pixKeyType === 'EMAIL' ? 'email' : 'text'}
               label={t('pixKeyLabel')}
               placeholder={t('pixKeyPlaceholder')}
               required
@@ -213,8 +181,8 @@ export const DestinationModal = ({ open, onOpenChange, destination, onSave }: TP
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
             {t('cancel')}
           </Button>
-          <Button type="submit" disabled={!isValid}>
-            {t('save')}
+          <Button type="submit" disabled={!isValid || isSaving}>
+            {isSaving ? t('saving') : t('save')}
           </Button>
         </div>
       </form>

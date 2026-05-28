@@ -4,31 +4,26 @@ import type { FastifyInstance } from 'fastify'
 
 import {
   DEFAULT_LANGUAGE,
-  ErrorCode,
+  EErrorCode,
   StellarHelper,
   SUPPORTED_LANGUAGES,
-  type TAuthMeResult,
+  type TAuthToken,
   type TCompleteOnboardingPayload,
   type TExchangePayload,
-  type TExchangeResult,
   type TLanguage,
   type TPasskeyLoginPayload,
-  type TPasskeyLoginResult,
+  type TPasskeyLoginResponse,
   type TSignupRequestPayload,
-  type TSignupRequestResult,
+  type TSignupRequestResponse,
   type TSignupVerifyPayload,
-  type TSignupVerifyResult,
+  TSignupVerifyResponse,
+  type TUser,
 } from 'fractapay-shared'
-
-declare module 'fastify' {
-  interface FastifyInstance {
-    googleOAuth2: OAuth2Namespace
-  }
-}
 
 import { EnvHelper } from '../helpers/EnvHelper'
 import { PkceHelper } from '../helpers/PkceHelper'
-import { optionalAuth, requireAuth } from '../hooks/require-auth'
+import { requireAuth } from '../hooks/require-auth'
+import { loginSchema, requestSchema, verifySchema } from '../schemas/auth-schema'
 import { consumeAuthCode, createAuthCode } from '../services/auth-code-store'
 import { sendVerificationCode } from '../services/email-service'
 import {
@@ -43,23 +38,42 @@ import {
   markOnboardingCompleted,
   upsertEmailVerifiedUser,
   upsertGoogleUser,
-} from '../services/user-service'
+} from '../services/users-service'
+
+declare module 'fastify' {
+  interface FastifyInstance {
+    googleOAuth2: OAuth2Namespace
+  }
+}
 
 const GOOGLE_USERINFO_URL = 'https://www.googleapis.com/oauth2/v3/userinfo'
-
 const JWT_EXPIRES_IN = '7d'
 
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-
-const isLikelyEmail = (value: string): boolean => EMAIL_REGEX.test(value)
-
-type TGoogleUserInfo = {
+type TGoogleUserInfoResponse = {
   sub: string
   email: string
   email_verified?: boolean
   name?: string
   picture?: string
 }
+
+type TExchangeParams = { Body: TExchangePayload }
+
+type TCompleteOnboardingParams = { Body: TCompleteOnboardingPayload }
+
+type TLoginParams = {
+  Body: TPasskeyLoginPayload
+  Reply: TPasskeyLoginResponse
+}
+
+type TVerifyParams = { Body: TSignupVerifyPayload; Reply: TSignupVerifyResponse }
+
+type TRequestParams = {
+  Body: TSignupRequestPayload
+  Reply: TSignupRequestResponse
+}
+
+type TSignupParams = { Reply: { error: EErrorCode } }
 
 export const authRoute = async (fastify: FastifyInstance): Promise<void> => {
   fastify.get('/auth/google/callback', async (request, reply) => {
@@ -68,7 +82,7 @@ export const authRoute = async (fastify: FastifyInstance): Promise<void> => {
         await fastify.googleOAuth2.getAccessTokenFromAuthorizationCodeFlow(request)
       const accessToken = tokenResponse.token.access_token
 
-      const { data } = await axios.get<TGoogleUserInfo>(GOOGLE_USERINFO_URL, {
+      const { data } = await axios.get<TGoogleUserInfoResponse>(GOOGLE_USERINFO_URL, {
         headers: { Authorization: `Bearer ${accessToken}` },
         timeout: 10_000,
       })
@@ -77,34 +91,28 @@ export const authRoute = async (fastify: FastifyInstance): Promise<void> => {
       reply.header('Pragma', 'no-cache')
 
       if (!data.email_verified) {
-        request.log.warn({ email: data.email }, '[Auth] unverified Google email rejected')
-
         return reply.redirect(EnvHelper.WEB_LOGIN_FAILURE_URL)
       }
 
       const user = await upsertGoogleUser({ profile: data })
 
-      const signedChallenge = request.cookies.fractapay_pkce
+      const signedChallenge = request.cookies['fractapay.pkce']
       const unsigned = signedChallenge ? request.unsignCookie(signedChallenge) : null
       const challenge = unsigned?.valid ? unsigned.value : null
 
-      reply.clearCookie('fractapay_pkce', { path: '/auth' })
+      reply.clearCookie('fractapay.pkce', { path: '/auth' })
 
       if (!challenge) {
-        request.log.warn({ userId: user.id }, '[Auth] missing PKCE challenge cookie')
-
         return reply.redirect(EnvHelper.WEB_LOGIN_FAILURE_URL)
       }
 
       const code = createAuthCode({ userId: user.id, email: user.email, challenge })
-
       const successUrl = new URL(EnvHelper.WEB_LOGIN_SUCCESS_URL)
+
       successUrl.searchParams.set('code', code)
 
       return reply.redirect(successUrl.toString())
-    } catch (error) {
-      request.log.error({ error }, '[Auth] OAuth callback failed')
-
+    } catch {
       reply.header('Cache-Control', 'no-store, no-cache, must-revalidate')
       reply.header('Pragma', 'no-cache')
 
@@ -112,201 +120,175 @@ export const authRoute = async (fastify: FastifyInstance): Promise<void> => {
     }
   })
 
-  fastify.post<{ Body: TExchangePayload; Reply: TExchangeResult }>(
-    '/auth/exchange',
-    async (request, reply) => {
-      const code = request.body?.code
-      const verifier = request.body?.verifier
+  fastify.post<TExchangeParams>('/auth/exchange', async (request, reply) => {
+    const code = request.body?.code
+    const verifier = request.body?.verifier
 
-      reply.header('Cache-Control', 'no-store, no-cache, must-revalidate')
-      reply.header('Pragma', 'no-cache')
+    reply.header('Cache-Control', 'no-store, no-cache, must-revalidate')
+    reply.header('Pragma', 'no-cache')
 
-      if (typeof code !== 'string' || !code || typeof verifier !== 'string' || !verifier) {
-        return reply.status(400).send({ success: false, error: ErrorCode.INVALID_PAYLOAD })
-      }
-
-      const entry = consumeAuthCode(code)
-
-      if (!entry || !PkceHelper.verifyChallenge(verifier, entry.challenge)) {
-        return reply.status(400).send({ success: false, error: ErrorCode.INVALID_AUTH_CODE })
-      }
-
-      const token = await reply.jwtSign(
-        { sub: entry.userId, email: entry.email },
-        { expiresIn: JWT_EXPIRES_IN }
-      )
-
-      return reply.status(200).send({ success: true, token })
+    if (typeof code !== 'string' || !code || typeof verifier !== 'string' || !verifier) {
+      return reply.status(400).send({ error: EErrorCode.INVALID_PAYLOAD })
     }
-  )
 
-  fastify.get<{ Reply: TAuthMeResult }>(
-    '/auth/me',
-    { preHandler: requireAuth },
-    async (request, reply) => {
-      return reply.status(200).send({ success: true, user: request.user! })
+    const entry = consumeAuthCode(code)
+
+    if (!entry || !PkceHelper.verifyChallenge(verifier, entry.challenge)) {
+      return reply.status(400).send({ error: EErrorCode.INVALID_AUTH_CODE })
     }
-  )
 
-  fastify.post<{ Reply: { success: true } }>(
-    '/auth/logout',
-    { preHandler: optionalAuth },
-    async (_, reply) => {
-      return reply.status(200).send({ success: true })
+    const token = await reply.jwtSign(
+      { sub: entry.userId, email: entry.email },
+      { expiresIn: JWT_EXPIRES_IN }
+    )
+
+    return reply.status(200).send({ token } satisfies TAuthToken)
+  })
+
+  fastify.get('/auth/me', { preHandler: requireAuth }, async (request, reply) => {
+    return reply.status(200).send(request.user!)
+  })
+
+  fastify.post<TSignupParams>('/auth/signup', async (request, reply) => {
+    request.log.info('[Auth] signup endpoint hit — not yet implemented')
+
+    return reply.status(501).send({ error: EErrorCode.NOT_IMPLEMENTED })
+  })
+
+  fastify.post<TRequestParams>('/auth/signup/request', async (request, reply) => {
+    reply.header('Cache-Control', 'no-store, no-cache, must-revalidate')
+
+    const parsed = requestSchema.safeParse(request.body)
+
+    if (!parsed.success) {
+      return reply.status(400).send({ error: EErrorCode.INVALID_PAYLOAD })
     }
-  )
 
-  fastify.post<{ Body: TSignupRequestPayload; Reply: TSignupRequestResult }>(
-    '/auth/signup/request',
-    async (request, reply) => {
-      reply.header('Cache-Control', 'no-store, no-cache, must-revalidate')
+    const { fullName } = parsed.data
+    const email = normalizeEmail(parsed.data.email)
+    const existing = await findUserByEmail(email)
 
-      const fullName = request.body?.fullName?.trim()
-      const rawEmail = request.body?.email?.trim()
+    if (existing) {
+      const hasOAuthAccount = existing.accounts.some(account => account.provider === 'google')
 
-      if (!fullName || !rawEmail || !isLikelyEmail(rawEmail)) {
-        return reply.status(400).send({ success: false, error: ErrorCode.INVALID_PAYLOAD })
+      if (hasOAuthAccount) {
+        return reply.status(409).send({ error: EErrorCode.EMAIL_LINKED_TO_OAUTH })
       }
 
-      const email = normalizeEmail(rawEmail)
-      const existing = await findUserByEmail(email)
-
-      if (existing) {
-        const hasOAuthAccount = existing.accounts.some(account => account.provider === 'google')
-
-        if (hasOAuthAccount) {
-          return reply.status(409).send({ success: false, error: ErrorCode.EMAIL_LINKED_TO_OAUTH })
-        }
-
-        // Only a completed signup (onboarding finished) blocks a new attempt.
-        if (existing.onboardingCompletedAt) {
-          return reply
-            .status(409)
-            .send({ success: false, error: ErrorCode.EMAIL_ALREADY_REGISTERED })
-        }
+      // Only a completed signup (onboarding finished) blocks a new attempt.
+      if (existing.onboardingCompletedAt) {
+        return reply.status(409).send({ error: EErrorCode.EMAIL_ALREADY_REGISTERED })
       }
+    }
 
-      const challenge = await createChallenge({ email, fullName })
+    const challenge = await createChallenge({ email, fullName })
 
-      if (!challenge.ok) {
-        return reply.status(429).send({
-          success: false,
-          error: ErrorCode.RESEND_TOO_SOON,
-          cooldownEndsAt: new Date(challenge.cooldownEndsAt).toISOString(),
-        })
-      }
-
-      const acceptLanguage = request.headers['accept-language']?.split(',')[0]?.trim() || ''
-      const language = SUPPORTED_LANGUAGES.includes(acceptLanguage as TLanguage)
-        ? (acceptLanguage as TLanguage)
-        : DEFAULT_LANGUAGE
-
-      try {
-        await sendVerificationCode({ email, code: challenge.code, fullName, language })
-      } catch {
-        return reply.status(502).send({ success: false, error: ErrorCode.EMAIL_SEND_FAILED })
-      }
-
-      return reply.status(200).send({
-        success: true,
-        expiresAt: new Date(challenge.expiresAt).toISOString(),
-        cooldownEndsAt: new Date(challenge.cooldownEndsAt).toISOString(),
+    if (!challenge.ok) {
+      return reply.status(429).send({
+        error: EErrorCode.RESEND_TOO_SOON,
+        cooldownEndsAt: new Date(challenge.cooldownEndsAt).toJSON(),
       })
     }
-  )
 
-  fastify.post<{ Body: TSignupVerifyPayload; Reply: TSignupVerifyResult }>(
-    '/auth/signup/verify',
-    async (request, reply) => {
-      reply.header('Cache-Control', 'no-store, no-cache, must-revalidate')
+    const acceptLanguage = request.headers['accept-language']?.split(',')[0]?.trim() || ''
+    const language = SUPPORTED_LANGUAGES.includes(acceptLanguage as TLanguage)
+      ? (acceptLanguage as TLanguage)
+      : DEFAULT_LANGUAGE
 
-      const rawEmail = request.body?.email?.trim()
-      const code = request.body?.code?.trim()
-
-      if (!rawEmail || !isLikelyEmail(rawEmail) || !code || !/^\d{6}$/.test(code)) {
-        return reply.status(400).send({ success: false, error: ErrorCode.INVALID_PAYLOAD })
-      }
-
-      const email = normalizeEmail(rawEmail)
-      const result = await consumeChallenge({ email, code })
-
-      if (!result.ok) {
-        const error =
-          result.reason === 'expired'
-            ? ErrorCode.VERIFICATION_EXPIRED
-            : result.reason === 'too_many_attempts'
-              ? ErrorCode.TOO_MANY_VERIFICATION_ATTEMPTS
-              : ErrorCode.INVALID_VERIFICATION_CODE
-
-        return reply.status(400).send({ success: false, error })
-      }
-
-      const existing = await findUserByEmail(email)
-
-      if (existing) {
-        const hasOAuthAccount = existing.accounts.some(account => account.provider === 'google')
-
-        if (hasOAuthAccount) {
-          return reply.status(409).send({ success: false, error: ErrorCode.EMAIL_LINKED_TO_OAUTH })
-        }
-
-        // Mirror the request-side guard: only a completed signup (onboarding finished) is rejected.
-        // An incomplete row is an abandoned attempt and gets reused by upsertEmailVerifiedUser.
-        if (existing.onboardingCompletedAt) {
-          return reply
-            .status(409)
-            .send({ success: false, error: ErrorCode.EMAIL_ALREADY_REGISTERED })
-        }
-      }
-
-      const user = await upsertEmailVerifiedUser({ email, fullName: result.fullName })
-
-      const token = await reply.jwtSign(
-        { sub: user.id, email: user.email },
-        { expiresIn: JWT_EXPIRES_IN }
-      )
-
-      return reply.status(200).send({ success: true, token, user: mapUserToTUser(user) })
+    try {
+      await sendVerificationCode({ email, code: challenge.code, fullName, language })
+    } catch {
+      return reply.status(502).send({ error: EErrorCode.EMAIL_SEND_FAILED })
     }
-  )
 
-  fastify.post<{ Body: TPasskeyLoginPayload; Reply: TPasskeyLoginResult }>(
-    '/auth/passkey/login',
-    async (request, reply) => {
-      reply.header('Cache-Control', 'no-store, no-cache, must-revalidate')
+    return reply.status(200).send({
+      expiresAt: new Date(challenge.expiresAt).toJSON(),
+      cooldownEndsAt: new Date(challenge.cooldownEndsAt).toJSON(),
+    })
+  })
 
-      const address = request.body?.address?.trim()
+  fastify.post<TVerifyParams>('/auth/signup/verify', async (request, reply) => {
+    reply.header('Cache-Control', 'no-store, no-cache, must-revalidate')
 
-      if (!address || !StellarHelper.isValidContractAddress(address)) {
-        return reply.status(400).send({ success: false, error: ErrorCode.INVALID_PAYLOAD })
-      }
+    const parsed = verifySchema.safeParse(request.body)
 
-      // TODO: this trusts the client-supplied wallet address (the WebAuthn assertion is
-      // verified only in the browser). Add a server-side WebAuthn challenge/assertion check
-      // to cryptographically prove control of the passkey before issuing the session.
-      const user = await findUserByAddress(address)
-
-      if (!user) {
-        return reply.status(404).send({ success: false, error: ErrorCode.WALLET_NOT_REGISTERED })
-      }
-
-      const token = await reply.jwtSign(
-        { sub: user.id, email: user.email },
-        { expiresIn: JWT_EXPIRES_IN }
-      )
-
-      return reply.status(200).send({ success: true, token, user: mapUserToTUser(user) })
+    if (!parsed.success) {
+      return reply.status(400).send({ error: EErrorCode.INVALID_PAYLOAD })
     }
-  )
 
-  fastify.post<{ Body: TCompleteOnboardingPayload; Reply: TAuthMeResult }>(
+    const email = normalizeEmail(parsed.data.email)
+    const { code } = parsed.data
+    const result = await consumeChallenge({ email, code })
+
+    if (!result.ok) {
+      const error =
+        result.reason === 'expired'
+          ? EErrorCode.VERIFICATION_EXPIRED
+          : result.reason === 'too_many_attempts'
+            ? EErrorCode.TOO_MANY_VERIFICATION_ATTEMPTS
+            : EErrorCode.INVALID_VERIFICATION_CODE
+
+      return reply.status(400).send({ error })
+    }
+
+    const existing = await findUserByEmail(email)
+
+    if (existing) {
+      const hasOAuthAccount = existing.accounts.some(account => account.provider === 'google')
+
+      if (hasOAuthAccount) {
+        return reply.status(409).send({ error: EErrorCode.EMAIL_LINKED_TO_OAUTH })
+      }
+
+      // Mirror the request-side guard: only a completed signup (onboarding finished) is rejected.
+      // An incomplete row is an abandoned attempt and gets reused by upsertEmailVerifiedUser.
+      if (existing.onboardingCompletedAt) {
+        return reply.status(409).send({ error: EErrorCode.EMAIL_ALREADY_REGISTERED })
+      }
+    }
+
+    const user = await upsertEmailVerifiedUser({ email, fullName: result.fullName })
+
+    const token = await reply.jwtSign(
+      { sub: user.id, email: user.email },
+      { expiresIn: JWT_EXPIRES_IN }
+    )
+
+    return reply.status(200).send({ token, user: mapUserToTUser(user) })
+  })
+
+  fastify.post<TLoginParams>('/auth/passkey/login', async (request, reply) => {
+    reply.header('Cache-Control', 'no-store, no-cache, must-revalidate')
+
+    const parsed = loginSchema.safeParse(request.body)
+
+    if (!parsed.success) {
+      return reply.status(400).send({ error: EErrorCode.INVALID_PAYLOAD })
+    }
+
+    // TODO: this trusts the client-supplied wallet address (the WebAuthn assertion is
+    // verified only in the browser). Add a server-side WebAuthn challenge/assertion check
+    // to cryptographically prove control of the passkey before issuing the session.
+    const user = await findUserByAddress(parsed.data.address)
+
+    if (!user) {
+      return reply.status(404).send({ error: EErrorCode.WALLET_NOT_REGISTERED })
+    }
+
+    const token = await reply.jwtSign(
+      { sub: user.id, email: user.email },
+      { expiresIn: JWT_EXPIRES_IN }
+    )
+
+    return reply.status(200).send({ token, user: mapUserToTUser(user) })
+  })
+
+  fastify.post<TCompleteOnboardingParams>(
     '/auth/onboarding',
     { preHandler: requireAuth },
     async (request, reply) => {
       if (request.user!.onboardingCompletedAt) {
-        return reply
-          .status(409)
-          .send({ success: false, error: ErrorCode.ONBOARDING_ALREADY_COMPLETED })
+        return reply.status(409).send({ error: EErrorCode.ONBOARDING_ALREADY_COMPLETED })
       }
 
       const companyName = request.body?.companyName?.trim()
@@ -314,11 +296,11 @@ export const authRoute = async (fastify: FastifyInstance): Promise<void> => {
       const passkeyCredentialId = request.body?.passkeyCredentialId?.trim()
 
       if (!companyName || !address || !passkeyCredentialId) {
-        return reply.status(400).send({ success: false, error: ErrorCode.INVALID_PAYLOAD })
+        return reply.status(400).send({ error: EErrorCode.INVALID_PAYLOAD })
       }
 
       if (!StellarHelper.isValidContractAddress(address)) {
-        return reply.status(400).send({ success: false, error: ErrorCode.INVALID_ADDRESS })
+        return reply.status(400).send({ error: EErrorCode.INVALID_ADDRESS })
       }
 
       // TODO: the passkey/wallet binding is trusted from the client — the address format is
@@ -331,7 +313,7 @@ export const authRoute = async (fastify: FastifyInstance): Promise<void> => {
         passkeyCredentialId,
       })
 
-      return reply.status(200).send({ success: true, user: mapUserToTUser(updated) })
+      return reply.status(200).send(mapUserToTUser(updated) satisfies TUser)
     }
   )
 }

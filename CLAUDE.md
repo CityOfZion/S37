@@ -53,22 +53,22 @@ auth gate (router beforeLoad, see web/CLAUDE.md → Routing)
 web (ChatPage at `/chat`)
   → user interacts via AI chat: types payment amounts or uploads a file (CSV/XLS/XLSX/PDF/TXT)
     → file upload: POST multipart/form-data to server /chat
-      → chat-route.ts parses file, calls FileHelper + analyze() to extract payments + price
+      → chat-route.ts parses file, calls FileHelper + analyze() to extract payments
       → chat-service.ts calls Gemini with full conversation history + current state context
-      → Gemini returns structured JSON { message, action, payments?, allocations?, summary? }
+      → Gemini returns structured JSON { message, action, payments?, destinations?, summary? }
       → action "add_payments": client merges new payments into useChatStore
-      → action "set_allocations": client updates destination allocations in useChatStore
+      → action "set_destinations": client updates destination allocations in useChatStore
       → action "request_confirmation": client renders summary table in chat bubble
-      → action "execute": client opens ReviewModal for all allocations at once
-    → text message: POST /chat with messages history + context (destinations, payments, allocations)
+      → action "execute": client opens ReviewModal for all destinations at once
+    → text message: POST /chat with messages history + context (destinations, payments, chatDestinations)
   → user registers destinations (DestinationsPage at /destinations) with name, token, PIX key
     → stored in useDestinationsStore (Zustand persist → localStorage, key: fractapay.destinations)
-  → after AI confirms, ReviewModal opens for ALL allocations at once (one combined quote/order):
-    → KYC/quote/order/PIX flow for the shared recipientAddress
-    → recovered pending orders detected server-side via findPendingOrder; returned with isRecovered=true
-    → after execution, conversation saved to useConversationStore with a generated title
-  → /payments shows PaymentsListPage: list of past conversations that created an order
-  → /payment/$orderId is the receipt page (polls GET /etherfuse/order/:orderId until terminal)
+  → after AI confirms, ReviewModal opens for ALL destinations at once (one combined quote/order):
+    → KYC (`/kyc`), quote (`/quote`), onboarding (`/onboarding`) flow for the shared recipientAddress
+    → confirm → POST /payments: server creates Etherfuse order + persists payment to DB (items, destinations, messages, PIX, encrypted fields) → returns TPayment
+    → on success: payment added to TanStack Query cache; chat resets; navigate to /chat/$payment.id
+  → /payments shows PaymentsListPage: list of DB payments fetched via GET /payments
+  → /payments/$id is the receipt page (polls GET /payments/:id until terminal, status synced from Etherfuse)
   → /profile lets the authenticated user edit their display name
 ```
 

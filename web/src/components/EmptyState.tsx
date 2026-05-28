@@ -8,7 +8,7 @@ type TProps = {
 }
 
 export const EmptyState = ({ icon: Icon, title, description, action }: TProps) => (
-  <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
+  <div className="flex flex-col items-center justify-center py-20 gap-4 text-center select-none pointer-events-none">
     <Icon className="size-16 text-neutral-300" aria-hidden="true" />
     <div>
       <p className="text-neutral-500 font-medium">{title}</p>

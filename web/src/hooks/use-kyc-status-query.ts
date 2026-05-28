@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 
-import type { TKycStatusResult } from 'fractapay-shared'
+import type { TKycStatusResponse } from 'fractapay-shared'
 
 import { server } from '../services/server'
 
@@ -11,16 +11,16 @@ type TParams = {
 }
 
 export function useKycStatusQuery({ customerId, address, enabled = true }: TParams) {
-  return useQuery<TKycStatusResult>({
+  return useQuery<TKycStatusResponse>({
     queryKey: ['kyc-status', customerId, address],
     enabled: enabled && !!customerId && !!address,
     refetchInterval: data =>
-      data.state.data?.status === 'approved' || data.state.data?.status === 'rejected'
+      data.state.data?.status === 'APPROVED' || data.state.data?.status === 'REJECTED'
         ? false
         : 5000,
     queryFn: async () => {
-      const { data } = await server.get<TKycStatusResult>(
-        `/etherfuse/kyc/${encodeURIComponent(customerId)}/${encodeURIComponent(address)}`
+      const { data } = await server.get<TKycStatusResponse>(
+        `/kyc/${encodeURIComponent(customerId)}/${encodeURIComponent(address)}`
       )
 
       return data

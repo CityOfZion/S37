@@ -8,8 +8,8 @@ export class ClipboardHelper {
   static async paste(): Promise<string | undefined> {
     try {
       return await navigator.clipboard.readText()
-    } catch (error) {
-      console.error(error)
+    } catch {
+      return undefined
     }
   }
 
@@ -24,8 +24,8 @@ export class ClipboardHelper {
       if (onAfterSuccess) {
         setTimeout(() => onAfterSuccess(), afterSuccessMilliseconds ?? 2000)
       }
-    } catch (error) {
-      console.error(error)
+    } catch {
+      /* empty */
     }
   }
 }

@@ -5,6 +5,7 @@
   "scripts": {
     "postinstall": "prisma generate",
     "dev": "tsx watch src/index.ts",
+    "dev:expose": "ngrok http 3000",
     "build": "tsc",
     "start": "node dist/index.js",
     "lint": "eslint . --fix && prettier . --write",
@@ -31,8 +32,9 @@
     "@google/genai": "^2.2.0",
     "@prisma/client": "^5.22.0",
     "@stellar/stellar-sdk": "15.0.0",
-    "axios": "1.15.2",
+    "axios": "^1.16.1",
     "bignumber.js": "^11.1.1",
+    "canonicalize": "^1.0.8",
     "csv-parse": "^5.6.0",
     "dotenv": "^16.6.1",
     "fastify": "^5.8.5",

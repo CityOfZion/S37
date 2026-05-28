@@ -43,8 +43,8 @@ export class FileHelper {
     return buffer.toString('utf-8').trim()
   }
 
-  static async parse(buffer: Buffer, filename: string, mimeType: string): Promise<string> {
-    const extension = filename.split('.').pop()?.toLowerCase() as TSupportedFileType | undefined
+  static async parse(buffer: Buffer, fileName: string, mimeType: string): Promise<string> {
+    const extension = fileName.split('.').pop()?.toLowerCase() as TSupportedFileType | undefined
 
     if (mimeType === 'text/csv' || extension === 'csv') {
       return FileHelper.parseCsv(buffer)
