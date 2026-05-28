@@ -24,7 +24,13 @@ type TProps = {
   onPaid?: () => void
 }
 
-export const PixInstructions = ({ pix, orderId, isPendingOrder, hideRedirectMessage, onPaid }: TProps) => {
+export const PixInstructions = ({
+  pix,
+  orderId,
+  isPendingOrder,
+  hideRedirectMessage,
+  onPaid,
+}: TProps) => {
   const { t } = useTranslation('components', { keyPrefix: 'pix' })
   const simulateMutation = useSimulateFiatMutation()
   const paidRef = useRef(false)
