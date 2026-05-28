@@ -36,7 +36,16 @@
   "payments": {
     "title": "Payments",
     "subtitle": "History of all payments made via FractaPay.",
-    "empty": "No payments yet. Start a conversation."
+    "empty": "No payments yet. Start a conversation.",
+    "mobileSummary": "{{payments}} payments | {{recipients}} recipients",
+    "recurrent": "Recurring",
+    "columns": {
+      "date": "Date",
+      "paymentsCount": "Payments",
+      "recipientsCount": "Recipients",
+      "amount": "Amount",
+      "status": "Status"
+    }
   },
   "profile": {
     "title": "Profile",
@@ -94,17 +103,18 @@
   },
   "payment": {
     "title": "Payment receipt",
-    "back": "Back to payments",
-    "loading": "Loading order…",
     "error": "Could not load the order.",
     "status": "Status",
-    "recipients": "recipients",
     "orderId": "Payment ID",
     "amount": "Amount",
     "amountInTokens": "Tokens",
     "txHash": "Transaction",
     "copyTx": "Copy transaction hash",
     "copiedTx": "Copied!",
+    "technicalDetails": "Technical details",
+    "viewPayments": "View payments",
+    "allocationsTitle": "Recipients",
+    "noPayments": "No payments found",
     "statuses": {
       "created": "Created",
       "funded": "Funded",

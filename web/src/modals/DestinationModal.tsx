@@ -96,7 +96,7 @@ export const DestinationModal = ({ open, onOpenChange, destination, onSave }: TP
     const pixKeyTaken = others.some(existing => existing.pixKey === normalizedPixKey)
 
     if (nameTaken) {
-      setError('name', { message: t('nameAlreadyExists') })
+      setError('name', { message: 'nameAlreadyExists' })
 
       return
     }
@@ -139,11 +139,7 @@ export const DestinationModal = ({ open, onOpenChange, destination, onSave }: TP
               required
               maxLength={200}
               error={
-                errors.name
-                  ? errors.name.message
-                    ? errors.name.message
-                    : t('nameError')
-                  : undefined
+                errors.name ? t((errors.name.message ?? 'nameError') as 'nameError') : undefined
               }
             />
           )}

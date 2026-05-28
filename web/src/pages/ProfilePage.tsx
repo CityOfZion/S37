@@ -6,6 +6,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { Button } from '../components/Button'
 import { Input } from '../components/Input'
 import { ToastHelper } from '../helpers/ToastHelper'
+import { useBreadcrumb } from '../hooks/use-breadcrumb-store'
 import { usePageTitle } from '../hooks/use-page-title'
 import { USER_QUERY_KEY, useUserQuery } from '../hooks/use-user-query'
 import { server } from '../services/server'
@@ -13,6 +14,7 @@ import { server } from '../services/server'
 export const ProfilePage = () => {
   const { t } = useTranslation('pages', { keyPrefix: 'profile' })
   usePageTitle(t('title'))
+  useBreadcrumb([{ label: t('title') }])
   const { data: user } = useUserQuery()
   const queryClient = useQueryClient()
 

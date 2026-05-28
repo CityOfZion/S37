@@ -15,6 +15,7 @@ type TChatStore = {
   summary: TPaymentSummaryItem[]
   isProcessing: boolean
   draftMessage: string
+  draftFile: File | null
   addMessage: (message: TChatMessage) => void
   setMessages: (messages: TChatMessage[]) => void
   updateMessage: (id: string, patch: Partial<TChatMessage>) => void
@@ -25,6 +26,7 @@ type TChatStore = {
   setSummary: (summary: TPaymentSummaryItem[]) => void
   setIsProcessing: (value: boolean) => void
   setDraftMessage: (value: string) => void
+  setDraftFile: (file: File | null) => void
   reset: () => void
 }
 
@@ -36,6 +38,7 @@ const INITIAL_STATE = {
   summary: [],
   isProcessing: false,
   draftMessage: '',
+  draftFile: null,
 }
 
 export const useChatStore = create<TChatStore>(set => ({
@@ -61,5 +64,6 @@ export const useChatStore = create<TChatStore>(set => ({
   setSummary: summary => set({ summary }),
   setIsProcessing: value => set({ isProcessing: value }),
   setDraftMessage: value => set({ draftMessage: value }),
+  setDraftFile: file => set({ draftFile: file }),
   reset: () => set(INITIAL_STATE),
 }))

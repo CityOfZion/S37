@@ -45,6 +45,18 @@ export const PixInstructions = ({
     }
   }, [order, onPaid])
 
+  const pixCodeRef = useRef<HTMLDivElement>(null)
+
+  const selectAll = () => {
+    const element = pixCodeRef.current
+    if (!element) return
+    const selection = window.getSelection()
+    const range = document.createRange()
+    range.selectNodeContents(element)
+    selection?.removeAllRanges()
+    selection?.addRange(range)
+  }
+
   const copyCode = async () => {
     try {
       await navigator.clipboard.writeText(pix.pixCode)
@@ -103,8 +115,10 @@ export const PixInstructions = ({
 
         <div className="flex items-stretch gap-2">
           <div
+            ref={pixCodeRef}
             id="pix-code"
-            className="w-full rounded-xl border border-neutral-200 bg-white p-3 text-xs font-mono text-neutral-900 resize-none break-all"
+            className="w-full rounded-xl border border-neutral-200 bg-white p-3 text-xs font-mono text-neutral-900 break-all cursor-pointer"
+            onClick={selectAll}
           >
             {pix.pixCode}
           </div>

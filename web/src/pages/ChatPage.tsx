@@ -15,7 +15,7 @@ import BigNumber from 'bignumber.js'
 import * as uuid from 'uuid'
 
 import type { TDestinationAllocation } from 'fractapay-shared'
-import { ALLOWED_EXTENSIONS, ALLOWED_MIME_TYPES, StringHelper } from 'fractapay-shared'
+import { ALLOWED_EXTENSIONS, ALLOWED_MIME_TYPES, StringHelper, TOKEN } from 'fractapay-shared'
 
 import { Button } from '../components/Button'
 import { ChatInput } from '../components/ChatInput'
@@ -27,6 +27,7 @@ import { DaySeparator } from '../components/DaySeparator'
 import { RightPanel } from '../components/RightPanel'
 import { Tooltip } from '../components/Tooltip'
 import { ToastHelper } from '../helpers/ToastHelper'
+import { useBreadcrumb } from '../hooks/use-breadcrumb-store'
 import { useChatMutation } from '../hooks/use-chat-mutation'
 import { useChatStore } from '../hooks/use-chat-store'
 import { useConversationStore } from '../hooks/use-conversation-store'
@@ -87,6 +88,7 @@ export const ChatPage = () => {
     setIsProcessing,
     draftMessage,
     setDraftMessage,
+    setDraftFile,
     reset: resetChat,
   } = useChatStore()
   const {
@@ -96,13 +98,39 @@ export const ChatPage = () => {
     token: paymentToken,
     address,
   } = usePaymentsStore()
-  const { addConversation, conversations, lastConversationId, setLastConversationId } =
-    useConversationStore()
+  const { addConversation, conversations, setLastConversationId } = useConversationStore()
   const { conversationId } = useParams({ strict: false })
 
   const currentConversation = useMemo(
     () => conversations.find(conversation => conversation.id === conversationId),
     [conversations, conversationId]
+  )
+
+  const conversationBreadcrumbLabel = currentConversation
+    ? currentConversation.totalAmount
+      ? t('conversationTitle', {
+          count: currentConversation.allocations.length,
+          date: new Date(currentConversation.createdAt).toLocaleDateString(language, {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+          }),
+          amount: StringHelper.formatCurrencyAmount(currentConversation.totalAmount, TOKEN.TESOURO),
+          recipients: currentConversation.allocations.length,
+        })
+      : t('conversationTitleEmpty', {
+          date: new Date(currentConversation.createdAt).toLocaleDateString(language, {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+          }),
+        })
+    : null
+
+  useBreadcrumb(
+    conversationBreadcrumbLabel
+      ? [{ label: t('title'), to: '/chat' }, { label: conversationBreadcrumbLabel }]
+      : [{ label: t('title') }]
   )
 
   const eligibleDestinations = useMemo(
@@ -111,7 +139,9 @@ export const ChatPage = () => {
   )
 
   const chatMutation = useChatMutation()
-  const [attachedFile, setAttachedFile] = useState<File | null>(null)
+  const [attachedFile, setAttachedFile] = useState<File | null>(
+    () => useChatStore.getState().draftFile
+  )
   const [reviewModalOpen, setReviewModalOpen] = useState(false)
   const [executionQueue, setExecutionQueue] = useState<TDestinationAllocation[]>([])
   const [executionKey, setExecutionKey] = useState(0)
@@ -127,6 +157,7 @@ export const ChatPage = () => {
   const lastFileRef = useRef<File | null>(null)
   const lastTextRef = useRef<string>('')
   const isLanguageMounted = useRef(false)
+  const prevConversationIdRef = useRef<string | undefined>(undefined)
 
   const isViewingConversation = !!conversationId
   const hasUserMessage = messages.some(message => message.role === 'user')
@@ -167,22 +198,48 @@ export const ChatPage = () => {
   }, [isLoading, conversationId, hasUserMessage])
 
   useEffect(() => {
+    setDraftFile(attachedFile)
+  }, [attachedFile, setDraftFile])
+
+  useEffect(() => {
     textareaRef.current?.focus()
   }, [])
 
   useEffect(() => {
-    if (!conversationId && lastConversationId) {
-      void navigate({ to: '/chat/$conversationId', params: { conversationId: lastConversationId } })
-    }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+    const prevId = prevConversationIdRef.current
+    prevConversationIdRef.current = conversationId
 
-  useEffect(() => {
     if (conversationId) {
       setLastConversationId(conversationId)
-    }
-  }, [conversationId, setLastConversationId])
 
-  useEffect(() => {
+      return
+    }
+
+    if (prevId !== undefined) {
+      // conversationId changed from a value to null while mounted → explicit navigation to /chat
+      setLastConversationId(null)
+      resetChat()
+      setOrderExecuted(false)
+      addMessage({
+        id: uuid.v4(),
+        role: 'assistant',
+        content: t('greeting'),
+        type: 'text',
+        timestamp: new Date().toISOString(),
+      })
+
+      return
+    }
+
+    // Fresh mount at /chat with no id
+    const lastId = useConversationStore.getState().lastConversationId
+
+    if (lastId) {
+      void navigate({ to: '/chat/$conversationId', params: { conversationId: lastId } })
+
+      return
+    }
+
     if (useChatStore.getState().messages.length === 0) {
       addMessage({
         id: uuid.v4(),
@@ -192,7 +249,7 @@ export const ChatPage = () => {
         timestamp: new Date().toISOString(),
       })
     }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [conversationId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!isLanguageMounted.current) {
@@ -219,6 +276,10 @@ export const ChatPage = () => {
 
     resetChat()
     setMessages(conversation.messages)
+
+    return () => {
+      resetChat()
+    }
   }, [conversationId, resetChat, setMessages])
 
   const startExecution = useCallback(
@@ -376,7 +437,23 @@ export const ChatPage = () => {
         new BigNumber(0)
       )
 
-      const title = new Date().toISOString()
+      const date = new Date().toLocaleDateString(language, {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      })
+
+      const title = total.isGreaterThan(0)
+        ? t('conversationTitle', {
+            count: allocations.length,
+            date,
+            amount: StringHelper.formatCurrencyAmount(
+              StringHelper.formatAmount(total),
+              TOKEN.TESOURO
+            ),
+            recipients: allocations.length,
+          })
+        : t('conversationTitleEmpty', { date })
 
       addConversation({
         id: newConversationId,
@@ -395,7 +472,16 @@ export const ChatPage = () => {
       resetChat()
       void navigate({ to: '/chat/$conversationId', params: { conversationId: newConversationId } })
     },
-    [chatPayments, allocations, newConversationId, addConversation, resetChat, navigate]
+    [
+      chatPayments,
+      allocations,
+      newConversationId,
+      addConversation,
+      resetChat,
+      navigate,
+      language,
+      t,
+    ]
   )
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -476,7 +562,7 @@ export const ChatPage = () => {
   }, [resetChat, setLastConversationId, addMessage, t])
 
   return (
-    <div className="flex min-h-[calc(100dvh-3.5rem)] lg:min-h-screen">
+    <div className="flex min-h-[calc(100dvh-3.5rem)]">
       <ChatSidebar
         open={chatSidebarOpen}
         onClose={() => setChatSidebarOpen(false)}
@@ -511,7 +597,7 @@ export const ChatPage = () => {
         </Tooltip>
 
         {currentConversation?.orderId && (
-          <div className="sticky top-0 z-10 flex justify-center pt-4 pointer-events-none">
+          <div className="sticky top-14 z-10 flex justify-center pt-6 pointer-events-none">
             <div className="relative pointer-events-auto">
               <div className="absolute inset-0 rounded-full bg-primary/30 blur-md animate-pulse" />
               <Button
