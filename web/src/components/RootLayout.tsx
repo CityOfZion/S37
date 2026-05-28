@@ -3,13 +3,13 @@ import { useEffect, useRef } from 'react'
 import { Outlet } from '@tanstack/react-router'
 
 import { useSidebarStore } from '../hooks/use-sidebar-store'
-import { MobileHeader } from './MobileHeader'
 import { Sidebar } from './Sidebar'
+import { Toolbar } from './Toolbar'
 
 export const RootLayout = () => {
   const { mobileOpen, chatSidebarOpen } = useSidebarStore()
   const nonSidebarRef = useRef<HTMLDivElement>(null)
-  const mobileHeaderRef = useRef<HTMLDivElement>(null)
+  const toolbarRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const element = nonSidebarRef.current
@@ -23,7 +23,7 @@ export const RootLayout = () => {
   }, [mobileOpen])
 
   useEffect(() => {
-    const element = mobileHeaderRef.current
+    const element = toolbarRef.current
     if (!element) return
 
     if (chatSidebarOpen) {
@@ -37,10 +37,10 @@ export const RootLayout = () => {
     <div className="bg-neutral-50 text-neutral-900 min-h-screen lg:flex">
       <Sidebar />
       <div ref={nonSidebarRef} className="flex-1 min-w-0 flex flex-col">
-        <div ref={mobileHeaderRef} data-mobile-header>
-          <MobileHeader />
+        <div ref={toolbarRef} data-toolbar>
+          <Toolbar />
         </div>
-        <main className="flex-1">
+        <main className="flex-1 pt-14">
           <Outlet />
         </main>
       </div>

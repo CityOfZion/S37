@@ -36,7 +36,16 @@
   "payments": {
     "title": "Pagamentos",
     "subtitle": "Histórico de todos os pagamentos realizados pelo FractaPay.",
-    "empty": "Nenhum pagamento ainda. Inicie uma conversa."
+    "empty": "Nenhum pagamento ainda. Inicie uma conversa.",
+    "mobileSummary": "{{payments}} pagamentos | {{recipients}} destinatários",
+    "recurrent": "Recorrente",
+    "columns": {
+      "date": "Data",
+      "paymentsCount": "Pagamentos",
+      "recipientsCount": "Destinatários",
+      "amount": "Valor",
+      "status": "Status"
+    }
   },
   "profile": {
     "title": "Perfil",
@@ -94,17 +103,17 @@
   },
   "payment": {
     "title": "Recibo de pagamento",
-    "back": "Voltar para pagamentos",
-    "loading": "Carregando pedido…",
     "error": "Não foi possível carregar o pedido.",
     "status": "Status",
-    "recipients": "destinatários",
     "orderId": "ID do pagamento",
     "amount": "Valor",
     "amountInTokens": "Tokens",
     "txHash": "Transação",
     "copyTx": "Copiar hash da transação",
     "copiedTx": "Copiado!",
+    "viewPayments": "Ver pagamentos",
+    "allocationsTitle": "Destinatários",
+    "noPayments": "Nenhum pagamento encontrado",
     "statuses": {
       "created": "Criado",
       "funded": "Recebido",

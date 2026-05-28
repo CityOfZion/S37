@@ -66,11 +66,11 @@ export const SidebarPanel = ({
       child => child !== panel && !child.hasAttribute('data-backdrop')
     ) as HTMLElement[]
 
-    const mobileHeader = document.querySelector<HTMLElement>('[data-mobile-header]')
+    const toolbar = document.querySelector<HTMLElement>('[data-toolbar]')
     const navSidebar = document.querySelector<HTMLElement>('[data-nav-sidebar]')
 
     siblings.forEach(sibling => sibling.setAttribute('inert', ''))
-    mobileHeader?.setAttribute('inert', '')
+    toolbar?.setAttribute('inert', '')
     navSidebar?.setAttribute('inert', '')
 
     requestAnimationFrame(() => {
@@ -85,7 +85,7 @@ export const SidebarPanel = ({
 
     return () => {
       siblings.forEach(sibling => sibling.removeAttribute('inert'))
-      mobileHeader?.removeAttribute('inert')
+      toolbar?.removeAttribute('inert')
       if (window.matchMedia('(min-width: 1024px)').matches) {
         navSidebar?.removeAttribute('inert')
       }
@@ -115,7 +115,7 @@ export const SidebarPanel = ({
           'fixed top-0 z-50 h-full bg-white border-neutral-200 flex flex-col transition-all duration-300 ease-in-out',
           positionClass,
           staticOnDesktop &&
-            'lg:sticky lg:top-0 lg:h-screen lg:z-auto lg:translate-x-0 lg:shrink-0',
+            'lg:sticky lg:top-14 lg:h-[calc(100dvh-3.5rem)] lg:z-auto lg:translate-x-0 lg:shrink-0',
           open ? 'translate-x-0 opacity-100' : closedTranslate,
           !staticOnDesktop && !open && 'opacity-0 pointer-events-none',
           panelClassName

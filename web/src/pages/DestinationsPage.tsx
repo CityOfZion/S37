@@ -8,6 +8,7 @@ import { Modal } from '../components/Modal'
 import { Tooltip } from '../components/Tooltip'
 import { InputHelper } from '../helpers/InputHelper'
 import { ToastHelper } from '../helpers/ToastHelper'
+import { useBreadcrumb } from '../hooks/use-breadcrumb-store'
 import { useDestinationsStore } from '../hooks/use-destinations-store'
 import { usePageTitle } from '../hooks/use-page-title'
 import { DestinationModal } from '../modals/DestinationModal'
@@ -22,6 +23,7 @@ export const DestinationsPage = () => {
   const { t } = useTranslation('pages', { keyPrefix: 'destinations' })
   const { t: tCommon } = useTranslation('common')
   usePageTitle(t('title'))
+  useBreadcrumb([{ label: t('title') }])
   const { destinations, addDestination, updateDestination, deleteDestination } =
     useDestinationsStore()
   const [modalOpen, setModalOpen] = useState(false)
@@ -135,6 +137,7 @@ export const DestinationsPage = () => {
                         <Button
                           variant="ghost"
                           size="xs"
+                          className="hover:bg-transparent active:bg-transparent focus:bg-transparent"
                           aria-label={t('editAria', { name: destination.name })}
                           onClick={() => handleEdit(destination)}
                         >
@@ -146,7 +149,7 @@ export const DestinationsPage = () => {
                           variant="ghost"
                           size="xs"
                           aria-label={t('deleteAria', { name: destination.name })}
-                          className="hover:text-red-400 focus:text-red-400"
+                          className="hover:text-red-400 focus:text-red-400 hover:bg-transparent active:bg-transparent focus:bg-transparent"
                           onClick={() => openDeleteConfirm(destination.id)}
                         >
                           <DeleteIcon className="size-4" aria-hidden="true" />

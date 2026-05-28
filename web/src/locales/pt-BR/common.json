@@ -1,6 +1,7 @@
 {
   "actions": {
-    "close": "Fechar"
+    "close": "Fechar",
+    "breadcrumb": "Trilha de navegação"
   },
   "fiatByToken": {
     "TESOURO": "Real"
