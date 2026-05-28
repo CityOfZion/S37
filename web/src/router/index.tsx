@@ -7,8 +7,8 @@ import {
 } from '@tanstack/react-router'
 
 import { RootLayout } from '../components/RootLayout'
-import { userQueryOptions } from '../hooks/use-user-query'
 import { BASE_PATH } from '../constants'
+import { userQueryOptions } from '../hooks/use-user-query'
 import { ChatPage } from '../pages/ChatPage'
 import { DestinationsPage } from '../pages/DestinationsPage'
 import { LoginPage } from '../pages/LoginPage'
