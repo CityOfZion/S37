@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
 import type {
+  TChatMessage,
   TDestinationAllocation,
   TOrderStatus,
   TPayment,
@@ -11,6 +12,7 @@ import type {
 export type TConversation = {
   id: string
   title: string
+  messages: TChatMessage[]
   payments: TPayment[]
   allocations: TDestinationAllocation[]
   summary: TPaymentSummaryItem[]
@@ -23,18 +25,18 @@ export type TConversation = {
 
 type TConversationStore = {
   conversations: TConversation[]
-  activeConversationId: string | null
+  lastConversationId: string | null
   addConversation: (conversation: TConversation) => void
   updateConversation: (id: string, patch: Partial<TConversation>) => void
-  setActiveConversation: (id: string | null) => void
   removeConversation: (id: string) => void
+  setLastConversationId: (id: string | null) => void
 }
 
 export const useConversationStore = create<TConversationStore>()(
   persist(
     set => ({
       conversations: [],
-      activeConversationId: null,
+      lastConversationId: null,
       addConversation: conversation =>
         set(state => ({ conversations: [conversation, ...state.conversations] })),
       updateConversation: (id, patch) =>
@@ -45,11 +47,11 @@ export const useConversationStore = create<TConversationStore>()(
               : conversation
           ),
         })),
-      setActiveConversation: id => set({ activeConversationId: id }),
       removeConversation: id =>
         set(state => ({
           conversations: state.conversations.filter(conversation => conversation.id !== id),
         })),
+      setLastConversationId: id => set({ lastConversationId: id }),
     }),
     { name: 'fractapay.conversations' }
   )

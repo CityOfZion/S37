@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 
 import type { TPayment, TToken } from 'fractapay-shared'
+import { TOKEN } from 'fractapay-shared'
 
 type TPaymentsStore = {
   token: TToken
@@ -31,7 +32,7 @@ const filterPayments = (payments: TPayment[]): TPayment[] => {
 }
 
 export const usePaymentsStore = create<TPaymentsStore>(set => ({
-  token: 'TESOURO',
+  token: TOKEN.TESOURO,
   setToken: token => set({ token }),
   price: '0',
   setPrice: price => set({ price }),

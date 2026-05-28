@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate } from '@tanstack/react-router'
 import BigNumber from 'bignumber.js'
 
-import { StringHelper } from 'fractapay-shared'
+import { StringHelper, TOKEN } from 'fractapay-shared'
 
 import { Button } from '../components/Button'
 import { EmptyState } from '../components/EmptyState'
@@ -18,6 +18,8 @@ import EmptyStateIcon from '../assets/icons/empty-state-icon.svg?react'
 export const PaymentsPage = () => {
   const { t } = useTranslation('pages', { keyPrefix: 'payments' })
   const { t: tPayment } = useTranslation('pages', { keyPrefix: 'payment' })
+  const { t: tChat } = useTranslation('pages', { keyPrefix: 'chat' })
+  const { t: tChatPaymentsBar } = useTranslation('components', { keyPrefix: 'chatPaymentsBar' })
   usePageTitle(t('title'))
   const { language } = useLanguageStore()
   const navigate = useNavigate()
@@ -40,7 +42,7 @@ export const PaymentsPage = () => {
         <div className="space-y-3">
           {withOrders.map(conversation => {
             const total = conversation.totalAmount
-              ? StringHelper.formatCurrencyAmount(conversation.totalAmount, 'TESOURO')
+              ? StringHelper.formatCurrencyAmount(conversation.totalAmount, TOKEN.TESOURO)
               : conversation.payments.length > 0
                 ? StringHelper.formatCurrencyAmount(
                     StringHelper.formatAmount(
@@ -49,7 +51,7 @@ export const PaymentsPage = () => {
                         new BigNumber(0)
                       )
                     ),
-                    'TESOURO'
+                    TOKEN.TESOURO
                   )
                 : '—'
 
@@ -63,14 +65,30 @@ export const PaymentsPage = () => {
                 onClick={() =>
                   conversation.orderId &&
                   void navigate({
-                    to: '/payment/$orderId',
+                    to: '/payments/$orderId',
                     params: { orderId: conversation.orderId },
                   })
                 }
                 className="w-full text-left rounded-2xl border border-neutral-200 bg-white hover:bg-white shadow-sm px-5 py-4 flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-primary/40 hover:shadow-md transition-all h-auto min-h-0"
               >
                 <div className="space-y-0.5 min-w-0">
-                  <p className="font-semibold text-neutral-900 truncate">{conversation.title}</p>
+                  <p className="font-semibold text-neutral-900">
+                    {(() => {
+                      const date = new Date(conversation.createdAt).toLocaleDateString(language, {
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric',
+                      })
+
+                      return conversation.totalAmount
+                        ? tChat('conversationTitle', {
+                            date,
+                            amount: StringHelper.formatCurrencyAmount(conversation.totalAmount, TOKEN.TESOURO),
+                            recipients: tChatPaymentsBar('allocationsCount', { count: conversation.allocations.length }),
+                          })
+                        : tChat('conversationTitleEmpty', { date })
+                    })()}
+                  </p>
                   <p className="text-xs text-neutral-400">
                     {new Date(conversation.updatedAt).toLocaleDateString(language, {
                       dateStyle: 'medium',

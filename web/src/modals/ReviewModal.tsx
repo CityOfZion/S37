@@ -13,13 +13,6 @@ import type {
 } from 'fractapay-shared'
 import { FEE_PERCENTAGE, FIAT_BY_TOKEN, QUOTE_EXPIRY_SECONDS, StringHelper } from 'fractapay-shared'
 
-import tesouroIconUrl from '../assets/icons/tesouro-icon.webp'
-import { ToastHelper } from '../helpers/ToastHelper'
-
-const TOKEN_ICON_URL: Partial<Record<string, string>> = {
-  TESOURO: tesouroIconUrl,
-}
-
 import { Accordion } from '../components/Accordion'
 import { Button } from '../components/Button'
 import { CountdownRing } from '../components/CountdownRing'
@@ -28,6 +21,8 @@ import { PixInstructions } from '../components/PixInstructions'
 import { Skeleton } from '../components/Skeleton'
 import { Tooltip } from '../components/Tooltip'
 import { APP_NAME } from '../constants'
+import { TOKEN_ICON_URL } from '../constants/token-icons'
+import { ToastHelper } from '../helpers/ToastHelper'
 import { useCountdown } from '../hooks/use-countdown'
 import { useCustomerLookupQuery } from '../hooks/use-customer-lookup-query'
 import { useEtherfuseStore } from '../hooks/use-etherfuse-store'
@@ -64,7 +59,7 @@ type TProps = {
   onOpenChange: (open: boolean) => void
   recipientAddress: string
   allocations: TDestinationAllocation[]
-  onPaymentCompleted?: () => void
+  onPaymentCompleted?: (orderId?: string) => void
 }
 
 export const ReviewModal = ({
@@ -75,6 +70,7 @@ export const ReviewModal = ({
   onPaymentCompleted,
 }: TProps) => {
   const { t } = useTranslation('modals', { keyPrefix: 'review' })
+  const { t: tCommon } = useTranslation('common')
   const navigate = useNavigate()
   const { payments, token, setPayments } = usePaymentsStore()
   const account = useEtherfuseStore(state => state.accounts[recipientAddress])
@@ -88,6 +84,14 @@ export const ReviewModal = ({
   const [quoteReady, setQuoteReady] = useState(false)
   const [quote, setQuote] = useState<TQuoteResult | null>(null)
   const [isQuotePending, setIsQuotePending] = useState(false)
+
+  const handlePaymentDone = () => {
+    if (!order) return
+
+    onOpenChange(false)
+    setPayments([])
+    void navigate({ to: '/payments/$orderId', params: { orderId: order.orderId } })
+  }
 
   const customerLookupQuery = useCustomerLookupQuery({
     publicKey: recipientAddress,
@@ -194,6 +198,12 @@ export const ReviewModal = ({
   const orderResetRef = useRef(orderMutation.reset)
 
   orderResetRef.current = orderMutation.reset
+
+  useEffect(() => {
+    if (order?.pix) {
+      onPaymentCompleted?.(order.orderId)
+    }
+  }, [order?.pix]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!open) {
@@ -306,12 +316,7 @@ export const ReviewModal = ({
           pix={order.pix}
           orderId={order.orderId}
           isPendingOrder={order.isRecovered}
-          onSimulated={() => {
-            onPaymentCompleted?.()
-            onOpenChange(false)
-            setPayments([])
-            void navigate({ to: '/payment/$orderId', params: { orderId: order.orderId } })
-          }}
+          onPaid={handlePaymentDone}
         />
       ) : (
         <div className="space-y-4">
@@ -375,7 +380,8 @@ export const ReviewModal = ({
                   {TOKEN_ICON_URL[token] && (
                     <img
                       src={TOKEN_ICON_URL[token]}
-                      alt={token}
+                      alt=""
+                      aria-hidden="true"
                       className="size-4 rounded-full object-cover"
                     />
                   )}
@@ -390,7 +396,7 @@ export const ReviewModal = ({
                       <Skeleton />
                     ) : (
                       t('rateValue', {
-                        fiat: t(`fiatByToken.${FIAT_BY_TOKEN[token]}`).toLowerCase(),
+                        fiat: tCommon(`fiatBySymbol.${FIAT_BY_TOKEN[token]}`).toLowerCase(),
                         rate: StringHelper.formatAmount(quote?.exchangeRate ?? '0'),
                         token,
                       })

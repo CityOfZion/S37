@@ -21,6 +21,39 @@
   "info": {
     "label": "Info"
   },
+  "countdownRing": {
+    "expiresIn": "Expires in {{seconds}}s",
+    "expired": "Quote expired",
+    "loading": "Fetching quote…",
+    "refresh": "Refresh"
+  },
+  "chatInput": {
+    "placeholder": "Type a message or attach a file…",
+    "send": "Send message",
+    "attachFile": "Attach file",
+    "removeFile": "Remove file",
+    "hint": "Enter to send • Shift+Enter for new line • CSV, XLS, XLSX, PDF and TXT files",
+    "orderExecuted": "Payment in progress. Go to Payments to track it."
+  },
+  "chatMessage": {
+    "summaryEmpty": "Recipient not found. Please verify it is registered on the Recipients page and try again.",
+    "summaryDestination": "Recipient",
+    "summaryPercentage": "Percentage",
+    "summaryAmount": "Amount",
+    "summaryFee": "Fee",
+    "summaryFeeTooltip": "{{fee}}% fee applied to the sum of all recipient amounts. This fee may increase slightly when added to the provider's fee shown on the review screen.",
+    "summaryTotal": "Total to pay"
+  },
+  "chatPaymentsBar": {
+    "paymentsCount": "{{count}} payment",
+    "paymentsCount_other": "{{count}} payments",
+    "allocationsCount": "{{count}} recipient",
+    "allocationsCount_other": "{{count}} recipients",
+    "paymentsPanel": "View payment",
+    "paymentsPanel_other": "View payments",
+    "allocationsPanel": "View recipient",
+    "allocationsPanel_other": "View recipients"
+  },
   "pix": {
     "qrLabel": "PIX QR code",
     "amount": "Amount",
@@ -29,6 +62,7 @@
     "copied": "PIX code copied",
     "copyError": "Could not copy the PIX code.",
     "pendingOrder": "You already have a pending payment. Complete it by sending the PIX below.",
+    "waitForRedirect": "After payment confirmation, you will be automatically redirected to the payment details page.",
     "simulate": "Simulate fiat received",
     "simulating": "Simulating…",
     "simulateSuccess": "Fiat received simulated",

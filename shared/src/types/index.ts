@@ -131,7 +131,7 @@ export type TPixInstructions = {
   pixKeyType?: string
   beneficiary?: string
   amount: string
-  currency: 'BRL'
+  currency: TFiatCurrency
 }
 
 export type TOrderStatus = 'created' | 'funded' | 'completed' | 'failed' | 'refunded' | 'canceled'

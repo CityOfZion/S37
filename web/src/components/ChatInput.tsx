@@ -46,7 +46,7 @@ export const ChatInput = ({
   onSubmit,
   onSelectSuggestion,
 }: TProps) => {
-  const { t } = useTranslation('pages', { keyPrefix: 'chat' })
+  const { t } = useTranslation('components', { keyPrefix: 'chatInput' })
 
   return (
     <div className="max-w-3xl mx-auto w-full px-4 space-y-2">
@@ -119,7 +119,7 @@ export const ChatInput = ({
           rows={1}
           maxLength={5000}
           disabled={disabled}
-          className="flex-1 bg-transparent text-neutral-900 placeholder:text-neutral-400 text-sm resize-none py-2 max-h-32 overflow-y-auto disabled:opacity-50 focus-visible:ring-0 focus-visible:ring-offset-0"
+          className="flex-1 bg-transparent text-neutral-900 placeholder:text-neutral-400 text-sm resize-none py-2 max-h-32 overflow-y-auto disabled:opacity-50 disabled:select-none disabled:pointer-events-none focus-visible:ring-0 focus-visible:ring-offset-0"
           style={{ fieldSizing: 'content' } as CSSProperties}
         />
 

@@ -1,16 +1,20 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { useNavigate, useParams } from '@tanstack/react-router'
 
-import { StringHelper } from 'fractapay-shared'
+import { StringHelper, TOKEN } from 'fractapay-shared'
 
 import { Button } from '../components/Button'
+import { PixInstructions } from '../components/PixInstructions'
 import { Skeleton } from '../components/Skeleton'
+import { Spinner } from '../components/Spinner'
 import { ORDER_STATUS_CLASSES } from '../constants/order-status'
+import { TOKEN_ICON_URL } from '../constants/token-icons'
 import { StyleHelper } from '../helpers/StyleHelper'
+import { useConversationStore } from '../hooks/use-conversation-store'
 import { useLanguageStore } from '../hooks/use-language-store'
-import { useOrderQuery } from '../hooks/use-order-query'
+import { TERMINAL_STATUSES, useOrderQuery } from '../hooks/use-order-query'
 import { usePageTitle } from '../hooks/use-page-title'
 
 export const PaymentPage = () => {
@@ -18,9 +22,20 @@ export const PaymentPage = () => {
   usePageTitle(t('title'))
   const navigate = useNavigate()
   const { language } = useLanguageStore()
-  const { orderId } = useParams({ from: '/auth/payment/$orderId' })
+  const { orderId } = useParams({ from: '/auth/payments/$orderId' })
   const { data, isLoading, isError } = useOrderQuery(orderId)
+  const { conversations, updateConversation } = useConversationStore()
   const [copiedTx, setCopiedTx] = useState(false)
+
+  useEffect(() => {
+    if (!data?.status) return
+
+    const conversation = conversations.find(conversation => conversation.orderId === orderId)
+
+    if (!conversation || conversation.orderStatus === data.status) return
+
+    updateConversation(conversation.id, { orderStatus: data.status })
+  }, [data?.status]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const copyTx = async (hash: string) => {
     try {
@@ -45,10 +60,15 @@ export const PaymentPage = () => {
       </div>
 
       {isLoading && (
-        <div className="rounded-2xl border border-neutral-200 bg-white shadow-sm p-6 space-y-4">
-          <Skeleton className="h-5 w-32" />
-          <Skeleton className="h-4 w-64" />
-          <Skeleton className="h-4 w-48" />
+        <div className="space-y-4">
+          <div className="rounded-2xl border border-neutral-200 bg-white shadow-sm p-6 space-y-5">
+            <Skeleton className="h-8 w-full" />
+          </div>
+          <div className="rounded-2xl border border-neutral-200 bg-white shadow-sm p-6 space-y-5">
+            <Skeleton className="h-8 w-full" />
+            <Skeleton className="h-8 w-3/4" />
+            <Skeleton className="h-8 w-3/4" />
+          </div>
         </div>
       )}
 
@@ -60,38 +80,6 @@ export const PaymentPage = () => {
 
       {data && !isLoading && (
         <div className="space-y-4">
-          <div className="rounded-2xl border border-neutral-200 bg-white shadow-sm p-6 space-y-4">
-            <div className="flex items-center justify-between flex-wrap gap-3">
-              <span className="text-sm font-medium text-neutral-500">{t('status')}</span>
-              <span
-                className={StyleHelper.merge(
-                  'px-3 py-1 rounded-full text-sm font-semibold',
-                  badgeClass
-                )}
-              >
-                {t(`statuses.${statusKey}`)}
-              </span>
-            </div>
-
-            {data.amountInFiat && (
-              <div className="flex items-center justify-between border-t border-neutral-100 pt-4">
-                <span className="text-sm text-neutral-500">{t('amount')}</span>
-                <span className="font-bold text-neutral-900 text-lg">
-                  {StringHelper.formatCurrencyAmount(data.amountInFiat, 'TESOURO')}
-                </span>
-              </div>
-            )}
-
-            {data.amountInTokens && (
-              <div className="flex items-center justify-between border-t border-neutral-100 pt-4">
-                <span className="text-sm text-neutral-500">{t('amountInTokens')}</span>
-                <span className="font-semibold text-neutral-900">
-                  {StringHelper.formatAmount(data.amountInTokens)} TESOURO
-                </span>
-              </div>
-            )}
-          </div>
-
           <div className="rounded-2xl border border-neutral-200 bg-white shadow-sm p-6 space-y-3">
             <div className="flex items-start justify-between gap-4">
               <span className="text-sm text-neutral-500 shrink-0">{t('orderId')}</span>
@@ -119,6 +107,55 @@ export const PaymentPage = () => {
               </div>
             )}
           </div>
+
+          <div className="rounded-2xl border border-neutral-200 bg-white shadow-sm p-6 space-y-4">
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <span className="text-sm font-medium text-neutral-500">{t('status')}</span>
+              <div className="flex items-center gap-2">
+                {!TERMINAL_STATUSES.has(data.status) && <Spinner />}
+                <span
+                  className={StyleHelper.merge(
+                    'px-3 py-1 rounded-full text-sm font-semibold',
+                    badgeClass
+                  )}
+                >
+                  {t(`statuses.${statusKey}`)}
+                </span>
+              </div>
+            </div>
+
+            {data.amountInFiat && (
+              <div className="flex items-center justify-between border-t border-neutral-100 pt-4">
+                <span className="text-sm text-neutral-500">{t('amount')}</span>
+                <span className="font-bold text-neutral-900 text-lg">
+                  {StringHelper.formatCurrencyAmount(data.amountInFiat, TOKEN.TESOURO)}
+                </span>
+              </div>
+            )}
+
+            {data.amountInTokens && (
+              <div className="flex items-center justify-between border-t border-neutral-100 pt-4">
+                <span className="text-sm text-neutral-500">{t('amountInTokens')}</span>
+                <span className="flex items-center gap-1.5 font-semibold text-neutral-900">
+                  {TOKEN_ICON_URL[TOKEN.TESOURO] && (
+                    <img
+                      src={TOKEN_ICON_URL[TOKEN.TESOURO]}
+                      alt=""
+                      aria-hidden="true"
+                      className="size-5 rounded-full shrink-0"
+                    />
+                  )}
+                  {StringHelper.formatAmount(data.amountInTokens)} {TOKEN.TESOURO}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {data.pix && (
+            <div className="rounded-2xl border border-neutral-200 bg-white shadow-sm p-6">
+              <PixInstructions pix={data.pix} orderId={data.orderId} hideRedirectMessage />
+            </div>
+          )}
 
           <p className="text-xs text-neutral-400 text-center select-none">
             {new Date().toLocaleDateString(language, { dateStyle: 'long' })}

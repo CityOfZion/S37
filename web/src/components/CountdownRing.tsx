@@ -31,7 +31,7 @@ export const CountdownRing = ({
   isRefreshing,
   onRefresh,
 }: TProps) => {
-  const { t } = useTranslation('modals', { keyPrefix: 'review' })
+  const { t } = useTranslation('components', { keyPrefix: 'countdownRing' })
   const circleRef = useRef<SVGCircleElement | null>(null)
 
   const showExpired = !isRefreshing && isExpired

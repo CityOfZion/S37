@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import type { TDestination } from 'fractapay-shared'
+import { TDestination, TOKEN } from 'fractapay-shared'
 
 import { Button } from '../components/Button'
 import { Modal } from '../components/Modal'
@@ -20,6 +20,7 @@ import EmptyStateIcon from '../assets/icons/empty-state-icon.svg?react'
 
 export const DestinationsPage = () => {
   const { t } = useTranslation('pages', { keyPrefix: 'destinations' })
+  const { t: tCommon } = useTranslation('common')
   usePageTitle(t('title'))
   const { destinations, addDestination, updateDestination, deleteDestination } =
     useDestinationsStore()
@@ -117,10 +118,12 @@ export const DestinationsPage = () => {
                   <td className="px-4 py-3 font-medium text-neutral-900">{destination.name}</td>
                   <td className="px-4 py-3 text-neutral-700">
                     <span className="flex items-center gap-2">
-                      {destination.token === 'TESOURO' && (
+                      {destination.token === TOKEN.TESOURO && (
                         <BrazilFlagIcon className="size-4 shrink-0 rounded-sm" aria-hidden="true" />
                       )}
-                      {destination.token === 'TESOURO' ? 'Real' : destination.token}
+                      {destination.token === TOKEN.TESOURO
+                        ? tCommon(`fiatByToken.${destination.token}`)
+                        : destination.token}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-neutral-500 font-mono text-xs hidden sm:table-cell">

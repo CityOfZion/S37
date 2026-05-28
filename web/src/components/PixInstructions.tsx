@@ -1,10 +1,12 @@
+import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { QRCode } from 'react-qr-code'
 
 import type { TPixInstructions } from 'fractapay-shared'
-import { StringHelper } from 'fractapay-shared'
+import { StringHelper, TOKEN } from 'fractapay-shared'
 
 import { ToastHelper } from '../helpers/ToastHelper'
+import { useOrderQuery } from '../hooks/use-order-query'
 import { useSimulateFiatMutation } from '../hooks/use-simulate-fiat-mutation'
 import { Button } from './Button'
 import { Tooltip } from './Tooltip'
@@ -12,16 +14,30 @@ import { Tooltip } from './Tooltip'
 import ClipboardIcon from '../assets/icons/clipboard-icon.svg?react'
 import WarningIcon from '../assets/icons/warning-icon.svg?react'
 
+const PAID_STATUSES = new Set(['funded', 'completed'])
+
 type TProps = {
   pix: TPixInstructions
   orderId?: string
   isPendingOrder?: boolean
-  onSimulated?: () => void
+  hideRedirectMessage?: boolean
+  onPaid?: () => void
 }
 
-export const PixInstructions = ({ pix, orderId, isPendingOrder, onSimulated }: TProps) => {
+export const PixInstructions = ({ pix, orderId, isPendingOrder, hideRedirectMessage, onPaid }: TProps) => {
   const { t } = useTranslation('components', { keyPrefix: 'pix' })
   const simulateMutation = useSimulateFiatMutation()
+  const paidRef = useRef(false)
+
+  const { data: order } = useOrderQuery(orderId ?? '')
+
+  useEffect(() => {
+    if (!order || paidRef.current || !onPaid) return
+    if (PAID_STATUSES.has(order.status)) {
+      paidRef.current = true
+      onPaid()
+    }
+  }, [order, onPaid])
 
   const copyCode = async () => {
     try {
@@ -38,7 +54,6 @@ export const PixInstructions = ({ pix, orderId, isPendingOrder, onSimulated }: T
     simulateMutation.mutate(orderId, {
       onSuccess: () => {
         ToastHelper.success(t('simulateSuccess'))
-        onSimulated?.()
       },
       onError: () => ToastHelper.error(t('simulateError')),
     })
@@ -61,10 +76,16 @@ export const PixInstructions = ({ pix, orderId, isPendingOrder, onSimulated }: T
         <p className="text-lg text-neutral-500 text-center">
           {t('amount')}:{' '}
           <strong className="text-neutral-900">
-            {StringHelper.formatCurrencyAmount(pix.amount, 'TESOURO')}
+            {StringHelper.formatCurrencyAmount(pix.amount, TOKEN.TESOURO)}
           </strong>
         </p>
       </div>
+
+      {!hideRedirectMessage && (
+        <p className="text-xs max-w-86 mx-auto text-info-500 font-semibold text-center">
+          {t('waitForRedirect')}
+        </p>
+      )}
 
       <div className="space-y-2">
         <label
@@ -90,12 +111,12 @@ export const PixInstructions = ({ pix, orderId, isPendingOrder, onSimulated }: T
         </div>
       </div>
 
-      {orderId && (
+      {orderId && !PAID_STATUSES.has(order?.status ?? '') && (
         <div className="flex justify-end">
           <Button
             variant="outline"
             size="sm"
-            className="max-sm:w-full"
+            className="w-full"
             disabled={simulateMutation.isPending}
             onClick={simulate}
           >

@@ -10,7 +10,7 @@ import {
 } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { useBlocker, useNavigate } from '@tanstack/react-router'
+import { useBlocker, useNavigate, useParams } from '@tanstack/react-router'
 import BigNumber from 'bignumber.js'
 import * as uuid from 'uuid'
 
@@ -40,6 +40,7 @@ import { ReviewModal } from '../modals/ReviewModal'
 
 import AttachIcon from '../assets/icons/attach-icon.svg?react'
 import MessageIcon from '../assets/icons/message-icon.svg?react'
+import RedirectIcon from '../assets/icons/redirect-icon.svg?react'
 
 const isFileAllowed = (file: File): boolean => {
   const extension = file.name.split('.').pop()?.toLowerCase() ?? ''
@@ -63,8 +64,9 @@ const isSameDay = (a: string, b: string): boolean => {
 
 export const ChatPage = () => {
   const { t } = useTranslation('pages', { keyPrefix: 'chat' })
+  const { t: tChatPaymentsBar } = useTranslation('components', { keyPrefix: 'chatPaymentsBar' })
   const { t: tSidebar } = useTranslation('components', { keyPrefix: 'sidebar' })
-  usePageTitle(tSidebar('chat'))
+  usePageTitle(t('title'))
   const { language } = useLanguageStore()
   const navigate = useNavigate()
   const { destinations } = useDestinationsStore()
@@ -75,6 +77,7 @@ export const ChatPage = () => {
     price,
     allocations,
     addMessage,
+    setMessages,
     updateMessage,
     setPayments,
     mergePayments,
@@ -93,7 +96,14 @@ export const ChatPage = () => {
     token: paymentToken,
     address,
   } = usePaymentsStore()
-  const { addConversation, conversations, setActiveConversation } = useConversationStore()
+  const { addConversation, conversations, lastConversationId, setLastConversationId } =
+    useConversationStore()
+  const { conversationId } = useParams({ strict: false })
+
+  const currentConversation = useMemo(
+    () => conversations.find(conversation => conversation.id === conversationId),
+    [conversations, conversationId]
+  )
 
   const eligibleDestinations = useMemo(
     () => destinations.filter(destination => destination.token === paymentToken),
@@ -106,7 +116,7 @@ export const ChatPage = () => {
   const [executionQueue, setExecutionQueue] = useState<TDestinationAllocation[]>([])
   const [executionKey, setExecutionKey] = useState(0)
   const [orderExecuted, setOrderExecuted] = useState(false)
-  const [conversationId] = useState(() => uuid.v4())
+  const [newConversationId] = useState(() => uuid.v4())
   const [paymentsPanel, setPaymentsPanel] = useState(false)
   const [allocationsPanel, setAllocationsPanel] = useState(false)
   const { chatSidebarOpen, setChatSidebarOpen } = useSidebarStore()
@@ -118,10 +128,11 @@ export const ChatPage = () => {
   const lastTextRef = useRef<string>('')
   const isLanguageMounted = useRef(false)
 
+  const isViewingConversation = !!conversationId
   const hasUserMessage = messages.some(message => message.role === 'user')
   const isLoading = chatMutation.isPending
   const isLoadingRef = useRef(false)
-  const inputDisabled = isLoading || orderExecuted
+  const inputDisabled = isLoading || orderExecuted || isViewingConversation
 
   useEffect(() => {
     isLoadingRef.current = isLoading
@@ -144,7 +155,7 @@ export const ChatPage = () => {
   useBlocker({ shouldBlockFn: shouldBlockNavigation, enableBeforeUnload: false })
 
   useEffect(() => {
-    if (!isLoading) return
+    if (!isLoading && !(!conversationId && hasUserMessage)) return
 
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
       event.preventDefault()
@@ -153,11 +164,23 @@ export const ChatPage = () => {
     window.addEventListener('beforeunload', handleBeforeUnload)
 
     return () => window.removeEventListener('beforeunload', handleBeforeUnload)
-  }, [isLoading])
+  }, [isLoading, conversationId, hasUserMessage])
 
   useEffect(() => {
     textareaRef.current?.focus()
   }, [])
+
+  useEffect(() => {
+    if (!conversationId && lastConversationId) {
+      void navigate({ to: '/chat/$conversationId', params: { conversationId: lastConversationId } })
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (conversationId) {
+      setLastConversationId(conversationId)
+    }
+  }, [conversationId, setLastConversationId])
 
   useEffect(() => {
     if (useChatStore.getState().messages.length === 0) {
@@ -185,6 +208,19 @@ export const ChatPage = () => {
     updateMessage(currentMessages[0].id, { content: t('greeting') })
   }, [language]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  useEffect(() => {
+    if (!conversationId) return
+
+    const conversation = useConversationStore
+      .getState()
+      .conversations.find(conversation => conversation.id === conversationId)
+
+    if (!conversation) return
+
+    resetChat()
+    setMessages(conversation.messages)
+  }, [conversationId, resetChat, setMessages])
+
   const startExecution = useCallback(
     (queue: TDestinationAllocation[]) => {
       if (queue.length === 0) return
@@ -194,8 +230,10 @@ export const ChatPage = () => {
       )
 
       if (hasPendingOrder) {
-        ToastHelper.error(t('pendingPaymentError'))
-        void navigate({ to: '/payments' })
+        setTimeout(() => {
+          ToastHelper.error(t('pendingPaymentError'))
+          void navigate({ to: '/payments' })
+        }, 250)
 
         return
       }
@@ -338,14 +376,12 @@ export const ChatPage = () => {
         new BigNumber(0)
       )
 
-      const title =
-        chatPayments.length > 0
-          ? `${new Date().toLocaleDateString(language, { month: 'short', day: 'numeric' })} · ${StringHelper.formatCurrencyAmount(StringHelper.formatAmount(total), paymentToken)}`
-          : new Date().toLocaleDateString(language, { dateStyle: 'medium' })
+      const title = new Date().toISOString()
 
       addConversation({
-        id: conversationId,
+        id: newConversationId,
         title,
+        messages: useChatStore.getState().messages,
         payments: chatPayments,
         allocations,
         summary: useChatStore.getState().summary,
@@ -357,8 +393,9 @@ export const ChatPage = () => {
       })
 
       resetChat()
+      void navigate({ to: '/chat/$conversationId', params: { conversationId: newConversationId } })
     },
-    [chatPayments, allocations, conversationId, language, paymentToken, addConversation, resetChat]
+    [chatPayments, allocations, newConversationId, addConversation, resetChat, navigate]
   )
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -427,7 +464,7 @@ export const ChatPage = () => {
 
   const handleNewConversation = useCallback(() => {
     resetChat()
-    setActiveConversation(null)
+    setLastConversationId(null)
     addMessage({
       id: uuid.v4(),
       role: 'assistant',
@@ -435,7 +472,8 @@ export const ChatPage = () => {
       type: 'text',
       timestamp: new Date().toISOString(),
     })
-  }, [resetChat, setActiveConversation, addMessage, t])
+    requestAnimationFrame(() => textareaRef.current?.focus())
+  }, [resetChat, setLastConversationId, addMessage, t])
 
   return (
     <div className="flex min-h-[calc(100dvh-3.5rem)] lg:min-h-screen">
@@ -472,6 +510,30 @@ export const ChatPage = () => {
           </Button>
         </Tooltip>
 
+        {currentConversation?.orderId && (
+          <div className="sticky top-0 z-10 flex justify-center pt-4 pointer-events-none">
+            <div className="relative pointer-events-auto">
+              <div className="absolute inset-0 rounded-full bg-primary/30 blur-md animate-pulse" />
+              <Button
+                size="sm"
+                className="relative shadow-lg gap-1.5 group transition-transform duration-200 hover:-translate-y-px hover:shadow-xl"
+                onClick={() =>
+                  void navigate({
+                    to: '/payments/$orderId',
+                    params: { orderId: currentConversation.orderId! },
+                  })
+                }
+              >
+                {t('goToPayment')}
+                <RedirectIcon
+                  className="size-3.5 transition-transform duration-200 group-hover:translate-x-0.5"
+                  aria-hidden="true"
+                />
+              </Button>
+            </div>
+          </div>
+        )}
+
         <div
           ref={messagesContainerRef}
           className="flex-1 px-4 py-6 space-y-4 max-w-3xl mx-auto w-full"
@@ -481,11 +543,16 @@ export const ChatPage = () => {
             const showDaySeparator =
               index === 0 || (prevMessage && !isSameDay(prevMessage.timestamp, message.timestamp))
             const dayLabel = showDaySeparator
-              ? new Date(message.timestamp).toLocaleDateString(language, {
-                  weekday: 'long',
-                  day: 'numeric',
-                  month: 'long',
-                })
+              ? (() => {
+                  const label = new Date(message.timestamp).toLocaleDateString(language, {
+                    weekday: 'long',
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric',
+                  })
+
+                  return `${label.charAt(0).toUpperCase()}${label.slice(1)}`
+                })()
               : null
 
             return (
@@ -541,7 +608,9 @@ export const ChatPage = () => {
         title={t('paymentsTitle')}
       >
         {chatPayments.length === 0 ? (
-          <p className="text-sm text-neutral-400">{t('paymentsCount', { count: 0 })}</p>
+          <p className="text-sm text-neutral-400">
+            {tChatPaymentsBar('paymentsCount', { count: 0 })}
+          </p>
         ) : (
           <ul className="space-y-3">
             {chatPayments.map(payment => (
@@ -578,7 +647,9 @@ export const ChatPage = () => {
         title={t('allocationsTitle')}
       >
         {allocations.length === 0 ? (
-          <p className="text-sm text-neutral-400">{t('allocationsCount', { count: 0 })}</p>
+          <p className="text-sm text-neutral-400">
+            {tChatPaymentsBar('allocationsCount', { count: 0 })}
+          </p>
         ) : (
           <ul className="space-y-3">
             {allocations.map(allocation => {
@@ -623,7 +694,7 @@ export const ChatPage = () => {
           }}
           recipientAddress={address}
           allocations={executionQueue}
-          onPaymentCompleted={() => handlePaymentCompleted()}
+          onPaymentCompleted={handlePaymentCompleted}
         />
       )}
     </div>

@@ -25,7 +25,7 @@ export const ChatPaymentsBar = ({
   onOpenAllocations,
   orderExecuted,
 }: TProps) => {
-  const { t } = useTranslation('pages', { keyPrefix: 'chat' })
+  const { t } = useTranslation('components', { keyPrefix: 'chatPaymentsBar' })
 
   const total = payments.reduce(
     (sum, payment) => sum.plus(new BigNumber(payment.amount || '0')),

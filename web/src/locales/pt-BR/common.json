@@ -1,5 +1,11 @@
 {
   "actions": {
     "close": "Fechar"
+  },
+  "fiatByToken": {
+    "TESOURO": "Real"
+  },
+  "fiatBySymbol": {
+    "BRL": "Real"
   }
 }

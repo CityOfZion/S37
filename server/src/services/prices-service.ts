@@ -1,7 +1,7 @@
 import { Asset, Horizon } from '@stellar/stellar-sdk'
 import BigNumber from 'bignumber.js'
 
-import { ErrorCode } from 'fractapay-shared'
+import { ErrorCode, TOKEN } from 'fractapay-shared'
 
 const HORIZON_URL = 'https://horizon.stellar.org'
 const USD_BRL_URL = 'https://economia.awesomeapi.com.br/json/last/USD-BRL'
@@ -12,7 +12,7 @@ const USDC_MAINNET_ASSET = new Asset(
 )
 
 const TESOURO_MAINNET_ASSET = new Asset(
-  'TESOURO',
+  TOKEN.TESOURO,
   'GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC'
 )
 
