@@ -1,9 +1,6 @@
-#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
-
 branch=$(git symbolic-ref --short HEAD)
 
-if ! echo "$branch" | grep -qE '^CU-[a-z0-9]+$'; then
+if ! echo "$branch" | grep -qE '^CU-[a-z0-9-]+$'; then
   echo "Branch name must follow ClickUp format: CU-<id>"
   echo "Example: CU-86ahefu3e"
 

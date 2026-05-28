@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
+import { AUTH_TOKEN_STORAGE_KEY } from '../constants'
 import { server } from '../services/server'
 import { useChatStore } from './use-chat-store'
 import { useEtherfuseStore } from './use-etherfuse-store'
@@ -11,7 +12,13 @@ export function useLogoutMutation() {
 
   return useMutation<void, Error, void>({
     mutationFn: async () => {
-      await server.post('/auth/logout')
+      try {
+        await server.post('/auth/logout')
+      } catch {
+        // ignore — server logout is best-effort with stateless JWT
+      }
+
+      localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY)
     },
     onSuccess: () => {
       useChatStore.getState().reset()

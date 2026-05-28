@@ -27,7 +27,6 @@ model User {
   updatedAt             DateTime       @updatedAt
 
   accounts OAuthAccount[]
-  sessions Session[]
 }
 
 model OAuthAccount {
@@ -35,12 +34,6 @@ model OAuthAccount {
   userId            String
   provider          String
   providerAccountId String
-  accessToken       String?   @db.Text
-  refreshToken      String?   @db.Text
-  expiresAt         DateTime?
-  tokenType         String?
-  scope             String?   @db.Text
-  idToken           String?   @db.Text
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
@@ -50,16 +43,3 @@ model OAuthAccount {
   @@index([userId])
 }
 
-model Session {
-  id        String   @id @default(cuid())
-  userId    String
-  expiresAt DateTime
-  createdAt DateTime @default(now())
-  userAgent String?  @db.Text
-  ip        String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([expiresAt])
-}

@@ -1,4 +1,18 @@
+import type { TUser } from 'fractapay-shared'
+
 import { prisma, type User } from './prisma-service'
+
+export const mapUserToTUser = (user: User): TUser => ({
+  id: user.id,
+  email: user.email,
+  name: user.name,
+  picture: user.avatarUrl,
+  onboardingCompletedAt: user.onboardingCompletedAt?.toISOString() ?? null,
+})
+
+export const findUserById = async (id: string): Promise<User | null> => {
+  return prisma.user.findUnique({ where: { id } })
+}
 
 type TGoogleProfile = {
   sub: string
@@ -8,33 +22,12 @@ type TGoogleProfile = {
   picture?: string
 }
 
-type TGoogleTokenSet = {
-  access_token: string
-  refresh_token?: string
-  id_token?: string
-  token_type?: string
-  scope?: string
-  expires_at?: Date
-}
-
 type TUpsertGoogleUserInput = {
   profile: TGoogleProfile
-  tokenSet: TGoogleTokenSet
 }
 
-export const upsertGoogleUser = async ({
-  profile,
-  tokenSet,
-}: TUpsertGoogleUserInput): Promise<User> => {
+export const upsertGoogleUser = async ({ profile }: TUpsertGoogleUserInput): Promise<User> => {
   const emailVerified = profile.email_verified ? new Date() : null
-  const tokenFields = {
-    accessToken: tokenSet.access_token,
-    refreshToken: tokenSet.refresh_token ?? null,
-    idToken: tokenSet.id_token ?? null,
-    tokenType: tokenSet.token_type ?? null,
-    scope: tokenSet.scope ?? null,
-    expiresAt: tokenSet.expires_at ?? null,
-  }
 
   return prisma.$transaction(async transaction => {
     const user = await transaction.user.upsert({
@@ -59,12 +52,11 @@ export const upsertGoogleUser = async ({
           providerAccountId: profile.sub,
         },
       },
-      update: tokenFields,
+      update: {},
       create: {
         userId: user.id,
         provider: 'google',
         providerAccountId: profile.sub,
-        ...tokenFields,
       },
     })
 

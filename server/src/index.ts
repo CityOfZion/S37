@@ -1,5 +1,6 @@
 import cookie from '@fastify/cookie'
 import cors from '@fastify/cors'
+import jwt from '@fastify/jwt'
 import multipart from '@fastify/multipart'
 import oauth2 from '@fastify/oauth2'
 import Fastify from 'fastify'
@@ -27,10 +28,25 @@ async function bootstrap(): Promise<void> {
     secret: EnvHelper.SESSION_SECRET,
   })
 
+  const iss = 'fractapay-server'
+
+  await fastify.register(jwt, {
+    secret: EnvHelper.SESSION_SECRET,
+    sign: {
+      algorithm: 'HS256',
+      iss,
+    },
+    verify: {
+      algorithms: ['HS256'],
+      allowedIss: iss,
+      clockTolerance: 30,
+    },
+  })
+
   await fastify.register(cors, {
     origin: EnvHelper.CORS_ORIGIN.split(',').map(origin => origin.trim()),
     methods: ['GET', 'POST', 'OPTIONS'],
-    credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept-Language'],
   })
 
   await fastify.register(oauth2, {
@@ -52,6 +68,25 @@ async function bootstrap(): Promise<void> {
     limits: {
       fileSize: 10 * 1024 * 1024, // 10 MB
     },
+  })
+
+  fastify.addHook('onRequest', async (request, reply) => {
+    const { pathname, searchParams } = new URL(request.url, 'http://localhost')
+
+    if (request.method !== 'GET' || pathname !== '/auth/google') return
+
+    const challenge = searchParams.get('cc')
+
+    if (!challenge || challenge.length > 128 || !/^[A-Za-z0-9_-]+$/.test(challenge)) return
+
+    reply.setCookie('fractapay_pkce', challenge, {
+      signed: true,
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: isProduction,
+      path: '/auth',
+      maxAge: 600,
+    })
   })
 
   await fastify.register(healthRoute)

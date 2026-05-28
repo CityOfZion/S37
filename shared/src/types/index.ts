@@ -26,6 +26,7 @@ export enum ErrorCode {
   UNAUTHORIZED = 'UNAUTHORIZED',
   SESSION_EXPIRED = 'SESSION_EXPIRED',
   OAUTH_FAILED = 'OAUTH_FAILED',
+  INVALID_AUTH_CODE = 'INVALID_AUTH_CODE',
   NOT_IMPLEMENTED = 'NOT_IMPLEMENTED',
   UNKNOWN = 'UNKNOWN',
 }
@@ -38,17 +39,20 @@ export type TUser = {
   onboardingCompletedAt: string | null
 }
 
-export type TSession = {
-  id: string
-  userId: string
-  expiresAt: string
-}
-
 export type TAuthMeResult = { success: true; user: TUser } | { success: false; error: ErrorCode }
 
 export type TCompleteOnboardingPayload = {
   companyName: string
 }
+
+export type TExchangePayload = {
+  code: string
+  verifier: string
+}
+
+export type TExchangeResult =
+  | { success: true; token: string }
+  | { success: false; error: ErrorCode }
 
 export type TPayment = {
   id: string
