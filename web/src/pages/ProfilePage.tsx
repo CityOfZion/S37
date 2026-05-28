@@ -3,10 +3,9 @@ import { useTranslation } from 'react-i18next'
 
 import { useQueryClient } from '@tanstack/react-query'
 
-import { StringHelper } from 'fractapay-shared'
-
 import { Button } from '../components/Button'
 import { Input } from '../components/Input'
+import { ClipboardHelper } from '../helpers/ClipboardHelper'
 import { ToastHelper } from '../helpers/ToastHelper'
 import { usePageTitle } from '../hooks/use-page-title'
 import { USER_QUERY_KEY, useUserQuery } from '../hooks/use-user-query'
@@ -123,21 +122,19 @@ export const ProfilePage = () => {
                 className="font-mono text-sm text-neutral-900 truncate"
                 title={user.stellarAddress}
               >
-                {StringHelper.truncateMiddle(user.stellarAddress, 20)}
+                {user.stellarAddress}
               </span>
               <Button
-                type="button"
                 variant="secondary"
                 size="sm"
                 onClick={async () => {
                   try {
-                    await navigator.clipboard.writeText(user.stellarAddress ?? '')
+                    await ClipboardHelper.copy(user.stellarAddress ?? '')
                     ToastHelper.success(t('walletCopied'))
                   } catch {
                     ToastHelper.error(t('saveError'))
                   }
                 }}
-                aria-label={t('walletCopy')}
               >
                 {t('walletCopy')}
               </Button>

@@ -33,7 +33,7 @@
     "successMessage": "Redirecionando…",
     "homeAria": "Voltar para a tela inicial",
     "walletTitle": "Crie sua carteira",
-    "walletSubtitle": "Vamos criar uma passkey neste dispositivo. Ela assina transações Stellar e recebe seu TESOURO.",
+    "walletSubtitle": "Vamos criar uma passkey neste dispositivo. Ela assina transações.",
     "walletCreate": "Criar carteira com passkey",
     "walletCreating": "Criando carteira…",
     "walletCreatedHeadline": "Carteira pronta",

@@ -5,8 +5,6 @@ import { useTranslation } from 'react-i18next'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Link, useNavigate } from '@tanstack/react-router'
 
-import { StringHelper } from 'fractapay-shared'
-
 import logoUrl from '../assets/logos/logo.svg'
 import { Button } from '../components/Button'
 import { Input } from '../components/Input'
@@ -154,7 +152,9 @@ export const OnboardingPage = () => {
 
   const handleCreateWallet = async () => {
     try {
-      const userName = user?.email ?? user?.name ?? 'FractaPay User'
+      const userName = user?.email || user?.name
+      if (!userName) throw new Error()
+
       const { contractId, credentialId } = await createWalletMutation.mutateAsync({ userName })
 
       await finishOnboarding(contractId, credentialId)
@@ -294,14 +294,11 @@ export const OnboardingPage = () => {
                   <p className="text-xs uppercase tracking-wide text-neutral-500">
                     {t('walletCreatedSubtitle')}
                   </p>
-                  <p className="font-mono text-sm text-neutral-900 break-all">
-                    {StringHelper.truncateMiddle(walletAddress, 20)}
-                  </p>
+                  <p className="font-mono text-sm text-neutral-900 break-all">{walletAddress}</p>
                 </div>
               ) : null}
 
               <Button
-                type="button"
                 size="lg"
                 disabled={isWalletDisabled}
                 className={GRADIENT_CTA_CLASS}
@@ -319,14 +316,13 @@ export const OnboardingPage = () => {
                     : t('walletCreate')}
               </Button>
 
-              <button
-                type="button"
+              <Button
                 disabled={isWalletDisabled}
                 onClick={() => void handleUseExistingWallet()}
                 className="text-sm font-medium text-primary transition-opacity hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary rounded-md"
               >
                 {connectWalletMutation.isPending ? t('walletConnecting') : t('walletUseExisting')}
-              </button>
+              </Button>
             </>
           )}
         </div>

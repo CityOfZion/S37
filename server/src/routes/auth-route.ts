@@ -149,6 +149,12 @@ export const authRoute = async (fastify: FastifyInstance): Promise<void> => {
     '/auth/onboarding',
     { preHandler: requireAuth },
     async (request, reply) => {
+      if (request.user!.onboardingCompletedAt) {
+        return reply
+          .status(409)
+          .send({ success: false, error: ErrorCode.ONBOARDING_ALREADY_COMPLETED })
+      }
+
       const companyName = request.body?.companyName?.trim()
       const stellarAddress = request.body?.stellarAddress?.trim()
       const passkeyCredentialId = request.body?.passkeyCredentialId?.trim()

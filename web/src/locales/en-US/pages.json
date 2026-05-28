@@ -33,7 +33,7 @@
     "successMessage": "Redirecting…",
     "homeAria": "Back to the home screen",
     "walletTitle": "Create your wallet",
-    "walletSubtitle": "We'll create a passkey on this device. It signs Stellar transactions and receives your TESOURO.",
+    "walletSubtitle": "We'll create a passkey on this device. It signs transactions.",
     "walletCreate": "Create wallet with passkey",
     "walletCreating": "Creating wallet…",
     "walletCreatedHeadline": "Wallet ready",
