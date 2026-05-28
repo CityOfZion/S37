@@ -296,7 +296,7 @@ export const PaymentPage = () => {
           <ul className="space-y-3">
             {conversation.payments.map(payment => (
               <li key={payment.id} className="flex items-start justify-between gap-3 text-sm">
-                <span className="text-neutral-700 break-words min-w-0">
+                <span className="text-neutral-700 wrap-break-word min-w-0">
                   {payment.description ?? '—'}
                 </span>
                 <span className="font-semibold text-neutral-900 shrink-0">
