@@ -170,7 +170,9 @@ export const Sidebar = () => {
   const { data: user } = useUserQuery()
   const logoutMutation = useLogoutMutation()
   const { conversationId } = useParams({ strict: false })
-  const hasUserMessages = useChatStore(state => state.messages.some(message => message.role === 'user'))
+  const hasUserMessages = useChatStore(state =>
+    state.messages.some(message => message.role === 'user')
+  )
   const [logoutWarningOpen, setLogoutWarningOpen] = useState(false)
 
   const asideRef = useRef<HTMLElement>(null)

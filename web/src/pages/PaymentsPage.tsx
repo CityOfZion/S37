@@ -83,8 +83,13 @@ export const PaymentsPage = () => {
                       return conversation.totalAmount
                         ? tChat('conversationTitle', {
                             date,
-                            amount: StringHelper.formatCurrencyAmount(conversation.totalAmount, TOKEN.TESOURO),
-                            recipients: tChatPaymentsBar('allocationsCount', { count: conversation.allocations.length }),
+                            amount: StringHelper.formatCurrencyAmount(
+                              conversation.totalAmount,
+                              TOKEN.TESOURO
+                            ),
+                            recipients: tChatPaymentsBar('allocationsCount', {
+                              count: conversation.allocations.length,
+                            }),
                           })
                         : tChat('conversationTitleEmpty', { date })
                     })()}

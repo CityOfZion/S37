@@ -18,9 +18,12 @@ export const ConversationWarningModal = ({
 }: TProps) => {
   const { t } = useTranslation('modals', { keyPrefix: 'conversationWarning' })
 
-  const title = variant === 'open' ? t('openTitle') : variant === 'logout' ? t('logoutTitle') : t('title')
-  const message = variant === 'open' ? t('openMessage') : variant === 'logout' ? t('logoutMessage') : t('message')
-  const confirm = variant === 'open' ? t('openConfirm') : variant === 'logout' ? t('logoutConfirm') : t('confirm')
+  const title =
+    variant === 'open' ? t('openTitle') : variant === 'logout' ? t('logoutTitle') : t('title')
+  const message =
+    variant === 'open' ? t('openMessage') : variant === 'logout' ? t('logoutMessage') : t('message')
+  const confirm =
+    variant === 'open' ? t('openConfirm') : variant === 'logout' ? t('logoutConfirm') : t('confirm')
 
   return (
     <Modal open={open} onOpenChange={onOpenChange} title={title} description={message}>
