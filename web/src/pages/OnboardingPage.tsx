@@ -122,7 +122,7 @@ export const OnboardingPage = () => {
     await completeMutation.mutateAsync({ companyName: values.companyName })
     setIsCelebrating(true)
     window.setTimeout(() => {
-      void navigate({ to: '/payments' })
+      void navigate({ to: '/chat' })
     }, SUCCESS_TRANSITION_MS)
   }
 

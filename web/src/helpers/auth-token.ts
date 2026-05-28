@@ -27,18 +27,18 @@ const stripQuery = (): void => {
   window.history.replaceState(null, '', window.location.pathname)
 }
 
-export const exchangeCodeFromQuery = async (): Promise<void> => {
-  if (typeof window === 'undefined') return
+export const exchangeCodeFromQuery = async (): Promise<boolean> => {
+  if (typeof window === 'undefined') return false
 
   const code = new URLSearchParams(window.location.search).get('code')
 
-  if (!code) return
+  if (!code) return false
 
   if (localStorage.getItem(AUTH_TOKEN_STORAGE_KEY) || !isTrustedLanding()) {
     sessionStorage.removeItem(PKCE_VERIFIER_STORAGE_KEY)
     stripQuery()
 
-    return
+    return false
   }
 
   const verifier = sessionStorage.getItem(PKCE_VERIFIER_STORAGE_KEY)
@@ -46,8 +46,10 @@ export const exchangeCodeFromQuery = async (): Promise<void> => {
   if (!verifier) {
     stripQuery()
 
-    return
+    return false
   }
+
+  let tokenStored = false
 
   try {
     const payload: TExchangePayload = { code, verifier }
@@ -55,6 +57,7 @@ export const exchangeCodeFromQuery = async (): Promise<void> => {
 
     if (data.success) {
       localStorage.setItem(AUTH_TOKEN_STORAGE_KEY, data.token)
+      tokenStored = true
     }
   } catch {
     // ignore — landing without a valid token routes the user to /login
@@ -62,4 +65,6 @@ export const exchangeCodeFromQuery = async (): Promise<void> => {
     sessionStorage.removeItem(PKCE_VERIFIER_STORAGE_KEY)
     stripQuery()
   }
+
+  return tokenStored
 }

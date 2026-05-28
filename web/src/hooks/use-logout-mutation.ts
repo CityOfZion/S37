@@ -27,7 +27,7 @@ export function useLogoutMutation() {
       payments.setPayments([])
       payments.setAddress('')
       payments.setPrice('0')
-      queryClient.setQueryData(USER_QUERY_KEY, null)
+      queryClient.removeQueries({ queryKey: USER_QUERY_KEY })
     },
   })
 }
