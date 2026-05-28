@@ -86,7 +86,7 @@ const validatePixKey = (pixKey: string, pixKeyType: string): boolean => {
 
 export const destinationSchema = z
   .object({
-    name: z.string().min(1).max(200),
+    name: z.string().min(1, { message: 'nameError' }).max(200, { message: 'nameError' }),
     token: z.enum(SUPPORTED_TOKENS),
     pixKey: z.string().min(1, { message: 'pixKeyRequired' }),
     pixKeyType: z.enum(PIX_KEY_TYPES),
