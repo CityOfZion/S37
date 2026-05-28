@@ -1,6 +1,8 @@
 import { useTranslation } from 'react-i18next'
 
+import { PKCE_VERIFIER_STORAGE_KEY } from '../constants'
 import { EnvHelper } from '../helpers/EnvHelper'
+import { computeChallenge, generateVerifier } from '../helpers/pkce'
 import { StyleHelper } from '../helpers/StyleHelper'
 import { Button } from './Button'
 
@@ -19,8 +21,13 @@ const SOLID_WHITE_CLASSES =
 export const SignInButton = ({ variant = 'outline', className }: TProps) => {
   const { t } = useTranslation('components', { keyPrefix: 'auth' })
 
-  const handleClick = () => {
-    window.location.href = `${EnvHelper.API_URL}/auth/google`
+  const handleClick = async () => {
+    const verifier = generateVerifier()
+    sessionStorage.setItem(PKCE_VERIFIER_STORAGE_KEY, verifier)
+
+    const challenge = await computeChallenge(verifier)
+
+    window.location.href = `${EnvHelper.API_URL}/auth/google?cc=${encodeURIComponent(challenge)}`
   }
 
   if (variant === 'solid-white') {

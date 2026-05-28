@@ -70,6 +70,25 @@ async function bootstrap(): Promise<void> {
     },
   })
 
+  fastify.addHook('onRequest', async (request, reply) => {
+    const { pathname, searchParams } = new URL(request.url, 'http://localhost')
+
+    if (request.method !== 'GET' || pathname !== '/auth/google') return
+
+    const challenge = searchParams.get('cc')
+
+    if (!challenge || challenge.length > 128 || !/^[A-Za-z0-9_-]+$/.test(challenge)) return
+
+    reply.setCookie('fractapay_pkce', challenge, {
+      signed: true,
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: isProduction,
+      path: '/auth',
+      maxAge: 600,
+    })
+  })
+
   await fastify.register(healthRoute)
   await fastify.register(authRoute)
   await fastify.register(etherfuseRoute)

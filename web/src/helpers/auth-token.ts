@@ -1,4 +1,7 @@
-import { AUTH_TOKEN_STORAGE_KEY, BASE_PATH } from '../constants'
+import type { TExchangePayload, TExchangeResult } from 'fractapay-shared'
+
+import { AUTH_TOKEN_STORAGE_KEY, BASE_PATH, PKCE_VERIFIER_STORAGE_KEY } from '../constants'
+import { server } from '../services/server'
 import { EnvHelper } from './EnvHelper'
 
 const ROOT_PATHS = new Set(BASE_PATH ? [BASE_PATH, `${BASE_PATH}/`] : ['/'])
@@ -20,30 +23,43 @@ const isTrustedLanding = (): boolean => {
   }
 }
 
-export const captureTokenFromHash = (): void => {
+const stripQuery = (): void => {
+  window.history.replaceState(null, '', window.location.pathname)
+}
+
+export const exchangeCodeFromQuery = async (): Promise<void> => {
   if (typeof window === 'undefined') return
 
-  const hash = window.location.hash
+  const code = new URLSearchParams(window.location.search).get('code')
 
-  if (!hash.startsWith('#token=')) return
+  if (!code) return
 
-  if (localStorage.getItem(AUTH_TOKEN_STORAGE_KEY)) {
-    window.history.replaceState(null, '', window.location.pathname + window.location.search)
-
-    return
-  }
-
-  if (!isTrustedLanding()) {
-    window.history.replaceState(null, '', window.location.pathname + window.location.search)
+  if (localStorage.getItem(AUTH_TOKEN_STORAGE_KEY) || !isTrustedLanding()) {
+    sessionStorage.removeItem(PKCE_VERIFIER_STORAGE_KEY)
+    stripQuery()
 
     return
   }
 
-  const token = hash.slice('#token='.length)
+  const verifier = sessionStorage.getItem(PKCE_VERIFIER_STORAGE_KEY)
 
-  if (token) {
-    localStorage.setItem(AUTH_TOKEN_STORAGE_KEY, token)
+  if (!verifier) {
+    stripQuery()
+
+    return
   }
 
-  window.history.replaceState(null, '', window.location.pathname + window.location.search)
+  try {
+    const payload: TExchangePayload = { code, verifier }
+    const { data } = await server.post<TExchangeResult>('/auth/exchange', payload)
+
+    if (data.success) {
+      localStorage.setItem(AUTH_TOKEN_STORAGE_KEY, data.token)
+    }
+  } catch {
+    // ignore — landing without a valid token routes the user to /login
+  } finally {
+    sessionStorage.removeItem(PKCE_VERIFIER_STORAGE_KEY)
+    stripQuery()
+  }
 }
