@@ -88,6 +88,8 @@
     "addSuccess": "Destinatário adicionado",
     "updateSuccess": "Destinatário atualizado",
     "deleteSuccess": "Destinatário removido",
+    "saveError": "Não foi possível salvar. Tente novamente.",
+    "deleteError": "Não foi possível excluir. Tente novamente.",
     "editAria": "Editar {{name}}",
     "deleteAria": "Excluir {{name}}",
     "deleteConfirmTitle": "Excluir destinatário",

@@ -14,6 +14,7 @@ const envSchema = z.object({
   OAUTH_CALLBACK_URL: z.string().url().default('http://localhost:3000/auth/google/callback'),
   WEB_BASE_URL: z.string().url().default('http://localhost:5173'),
   SESSION_SECRET: z.string().min(32, 'SESSION_SECRET must be at least 32 characters'),
+  ENCRYPTION_SECRET: z.string().min(32, 'ENCRYPTION_SECRET must be at least 32 characters'),
   WEB_LOGIN_SUCCESS_URL: z.string().url().optional(),
   WEB_LOGIN_FAILURE_URL: z.string().url().optional(),
 })
@@ -38,6 +39,7 @@ export class EnvHelper {
   static readonly OAUTH_CALLBACK_URL = data.OAUTH_CALLBACK_URL
   static readonly WEB_BASE_URL = data.WEB_BASE_URL
   static readonly SESSION_SECRET = data.SESSION_SECRET
+  static readonly ENCRYPTION_SECRET = data.ENCRYPTION_SECRET
   static readonly WEB_LOGIN_SUCCESS_URL = data.WEB_LOGIN_SUCCESS_URL ?? data.WEB_BASE_URL
   static readonly WEB_LOGIN_FAILURE_URL =
     data.WEB_LOGIN_FAILURE_URL ?? `${data.WEB_BASE_URL}/?login=failed`

@@ -1,8 +1,6 @@
 import { z } from 'zod'
 
-import { SUPPORTED_TOKENS } from 'fractapay-shared'
-
-const PIX_KEY_TYPES = ['evp', 'cpf', 'cnpj', 'email', 'phone'] as const
+import { PIX_KEY, SUPPORTED_TOKENS } from 'fractapay-shared'
 
 const validateCpf = (value: string): boolean => {
   const digits = value.replace(/\D/g, '')
@@ -69,15 +67,15 @@ const validatePixKey = (pixKey: string, pixKeyType: string): boolean => {
   const clean = pixKey.trim()
 
   switch (pixKeyType) {
-    case 'evp':
+    case 'EVP':
       return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(clean)
-    case 'cpf':
+    case 'CPF':
       return validateCpf(clean)
-    case 'cnpj':
+    case 'CNPJ':
       return validateCnpj(clean)
-    case 'email':
+    case 'EMAIL':
       return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clean)
-    case 'phone':
+    case 'PHONE':
       return validatePhone(clean)
     default:
       return false
@@ -89,7 +87,7 @@ export const destinationSchema = z
     name: z.string().min(1, { message: 'nameError' }).max(200, { message: 'nameError' }),
     token: z.enum(SUPPORTED_TOKENS),
     pixKey: z.string().min(1, { message: 'pixKeyRequired' }),
-    pixKeyType: z.enum(PIX_KEY_TYPES),
+    pixKeyType: z.enum(Object.values(PIX_KEY)),
   })
   .refine(data => validatePixKey(data.pixKey, data.pixKeyType), {
     message: 'invalidPixKey',

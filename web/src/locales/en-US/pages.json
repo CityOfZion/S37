@@ -88,6 +88,8 @@
     "addSuccess": "Recipient added",
     "updateSuccess": "Recipient updated",
     "deleteSuccess": "Recipient removed",
+    "saveError": "Could not save. Please try again.",
+    "deleteError": "Could not delete. Please try again.",
     "editAria": "Edit {{name}}",
     "deleteAria": "Delete {{name}}",
     "deleteConfirmTitle": "Delete recipient",

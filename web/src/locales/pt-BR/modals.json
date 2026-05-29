@@ -18,11 +18,10 @@
     "pixKeyPlaceholder": "Digite a chave PIX",
     "pixKeyRequired": "Chave PIX é obrigatória",
     "pixKeyError": "Chave PIX inválida para o tipo selecionado",
-    "nameAlreadyExists": "Já existe um destinatário com este nome",
-    "pixKeyAlreadyExists": "Esta chave PIX já está cadastrada",
     "invalidPixKey": "Chave PIX inválida",
     "cancel": "Cancelar",
-    "save": "Salvar"
+    "save": "Salvar",
+    "saving": "Salvando…"
   },
   "panel": {
     "close": "Fechar"

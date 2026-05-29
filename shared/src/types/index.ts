@@ -2,7 +2,7 @@ export type TToken = 'TESOURO'
 
 export type TLanguage = 'en-US' | 'pt-BR'
 
-export type TPixKeyType = 'evp' | 'cpf' | 'cnpj' | 'email' | 'phone'
+export type TPixKeyType = 'EVP' | 'CPF' | 'CNPJ' | 'EMAIL' | 'PHONE'
 
 export enum ErrorCode {
   NO_FILE = 'NO_FILE',
@@ -28,6 +28,9 @@ export enum ErrorCode {
   OAUTH_FAILED = 'OAUTH_FAILED',
   INVALID_AUTH_CODE = 'INVALID_AUTH_CODE',
   NOT_IMPLEMENTED = 'NOT_IMPLEMENTED',
+  DESTINATION_NOT_FOUND = 'DESTINATION_NOT_FOUND',
+  DESTINATION_PIX_KEY_EXISTS = 'DESTINATION_PIX_KEY_EXISTS',
+  DESTINATION_NAME_EXISTS = 'DESTINATION_NAME_EXISTS',
   UNKNOWN = 'UNKNOWN',
 }
 
@@ -153,6 +156,34 @@ export type TDestination = {
   pixKey: string
   pixKeyType: TPixKeyType
 }
+
+export type TCreateDestinationPayload = {
+  name: string
+  token: TToken
+  pixKey: string
+  pixKeyType: TPixKeyType
+}
+
+export type TUpdateDestinationPayload = {
+  name?: string
+  token?: TToken
+  pixKey?: string
+  pixKeyType?: TPixKeyType
+}
+
+export type TListDestinationsResult =
+  | { success: true; destinations: TDestination[] }
+  | { success: false; error: ErrorCode }
+
+export type TCreateDestinationResult =
+  | { success: true; destination: TDestination }
+  | { success: false; error: ErrorCode }
+
+export type TUpdateDestinationResult =
+  | { success: true; destination: TDestination }
+  | { success: false; error: ErrorCode }
+
+export type TDeleteDestinationResult = { success: true } | { success: false; error: ErrorCode }
 
 export type TDestinationAllocation = {
   destination: TDestination

@@ -4,8 +4,8 @@
   "description": "AI-powered batch payment processor.",
   "start_url": "/S37",
   "display": "standalone",
-  "background_color": "#030712",
-  "theme_color": "#1F75FE",
+  "background_color": "#ffffff",
+  "theme_color": "#7b61ff",
   "icons": [
     {
       "src": "/S37/logo.png",

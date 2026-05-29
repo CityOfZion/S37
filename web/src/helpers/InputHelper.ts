@@ -5,7 +5,7 @@ export class InputHelper {
     const digits = value.replace(/\D/g, '')
 
     switch (type) {
-      case 'cpf': {
+      case 'CPF': {
         const digitsOnly = digits.slice(0, 11)
 
         return digitsOnly
@@ -13,7 +13,7 @@ export class InputHelper {
           .replace(/(\d{3})(\d)/, '$1.$2')
           .replace(/(\d{3})(\d{1,2})$/, '$1-$2')
       }
-      case 'cnpj': {
+      case 'CNPJ': {
         const digitsOnly = digits.slice(0, 14)
 
         return digitsOnly
@@ -22,7 +22,7 @@ export class InputHelper {
           .replace(/(\d{3})(\d)/, '$1/$2')
           .replace(/(\d{4})(\d{1,2})$/, '$1-$2')
       }
-      case 'phone': {
+      case 'PHONE': {
         const digitsOnly = digits.slice(0, 13)
 
         if (digitsOnly.length === 0) return ''
@@ -33,8 +33,8 @@ export class InputHelper {
 
         return `+${digitsOnly.slice(0, 2)} (${digitsOnly.slice(2, 4)}) ${digitsOnly.slice(4, 9)}-${digitsOnly.slice(9)}`
       }
-      case 'evp':
-      case 'email':
+      case 'EVP':
+      case 'EMAIL':
       default:
         return value
     }
@@ -42,9 +42,9 @@ export class InputHelper {
 
   static normalizePixKeyForStorage(value: string, type: TPixKeyType): string {
     switch (type) {
-      case 'cpf':
-      case 'cnpj':
-      case 'phone':
+      case 'CPF':
+      case 'CNPJ':
+      case 'PHONE':
         return value.replace(/\D/g, '')
       default:
         return value
@@ -55,21 +55,21 @@ export class InputHelper {
     if (!value) return ''
 
     switch (type) {
-      case 'cpf': {
+      case 'CPF': {
         const digitsOnly = value.replace(/\D/g, '')
 
         if (digitsOnly.length < 11) return value
 
         return `**${digitsOnly.slice(2, 3)}.${digitsOnly.slice(3, 6)}.${digitsOnly.slice(6, 9)}-**`
       }
-      case 'cnpj': {
+      case 'CNPJ': {
         const digitsOnly = value.replace(/\D/g, '')
 
         if (digitsOnly.length < 14) return value
 
         return `**.${digitsOnly.slice(2, 5)}.${digitsOnly.slice(5, 8)}/${digitsOnly.slice(8, 12)}-**`
       }
-      case 'phone': {
+      case 'PHONE': {
         const digitsOnly = value.replace(/\D/g, '')
 
         if (digitsOnly.length < 10) return value
@@ -80,14 +80,14 @@ export class InputHelper {
 
         return `+${country} (${area}) *****-${suffix}`
       }
-      case 'email': {
+      case 'EMAIL': {
         const [local, domain] = value.split('@')
 
         if (!domain) return value
 
         return `${local.slice(0, 2)}****@${domain}`
       }
-      case 'evp': {
+      case 'EVP': {
         const parts = value.split('-')
 
         if (parts.length !== 5) return value

@@ -1,6 +1,6 @@
 import BigNumber from 'bignumber.js'
 
-import type { TFiatCurrency, TLanguage, TToken } from '../types'
+import type { TFiatCurrency, TLanguage, TPixKeyType, TToken } from '../types'
 
 export const ALLOWED_EXTENSIONS = ['csv', 'xls', 'xlsx', 'pdf', 'txt'] as const
 
@@ -19,6 +19,14 @@ export const TOKEN: Record<TToken, TToken> = {
 } as const
 
 export const SUPPORTED_TOKENS: TToken[] = [TOKEN.TESOURO] as const
+
+export const PIX_KEY: Record<TPixKeyType, TPixKeyType> = {
+  EVP: 'EVP',
+  CPF: 'CPF',
+  CNPJ: 'CNPJ',
+  EMAIL: 'EMAIL',
+  PHONE: 'PHONE',
+} as const
 
 export const SUPPORTED_LANGUAGES: TLanguage[] = ['en-US', 'pt-BR'] as const
 

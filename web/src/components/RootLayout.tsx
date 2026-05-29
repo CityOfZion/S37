@@ -2,14 +2,24 @@ import { useEffect, useRef } from 'react'
 
 import { Outlet } from '@tanstack/react-router'
 
+import { useDestinationsQuery } from '../hooks/use-destinations-query'
+import { useDestinationsStore } from '../hooks/use-destinations-store'
 import { useSidebarStore } from '../hooks/use-sidebar-store'
 import { Sidebar } from './Sidebar'
 import { Toolbar } from './Toolbar'
 
 export const RootLayout = () => {
   const { mobileOpen, chatSidebarOpen } = useSidebarStore()
+  const { data: destinationsData } = useDestinationsQuery()
+  const setDestinations = useDestinationsStore(state => state.setDestinations)
   const nonSidebarRef = useRef<HTMLDivElement>(null)
   const toolbarRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (destinationsData?.success) {
+      setDestinations(destinationsData.destinations)
+    }
+  }, [destinationsData, setDestinations])
 
   useEffect(() => {
     const element = nonSidebarRef.current

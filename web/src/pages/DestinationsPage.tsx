@@ -1,16 +1,20 @@
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { TDestination, TOKEN } from 'fractapay-shared'
+import type { TDestination } from 'fractapay-shared'
+import { TOKEN } from 'fractapay-shared'
 
 import { Button } from '../components/Button'
 import { Modal } from '../components/Modal'
 import { Tooltip } from '../components/Tooltip'
 import { InputHelper } from '../helpers/InputHelper'
 import { ToastHelper } from '../helpers/ToastHelper'
+import { useAddDestinationMutation } from '../hooks/use-add-destination-mutation'
 import { useBreadcrumb } from '../hooks/use-breadcrumb-store'
+import { useDeleteDestinationMutation } from '../hooks/use-delete-destination-mutation'
 import { useDestinationsStore } from '../hooks/use-destinations-store'
 import { usePageTitle } from '../hooks/use-page-title'
+import { useUpdateDestinationMutation } from '../hooks/use-update-destination-mutation'
 import { DestinationModal } from '../modals/DestinationModal'
 
 import AddIcon from '../assets/icons/add-icon.svg?react'
@@ -24,12 +28,16 @@ export const DestinationsPage = () => {
   const { t: tCommon } = useTranslation('common')
   usePageTitle(t('title'))
   useBreadcrumb([{ label: t('title') }])
-  const { destinations, addDestination, updateDestination, deleteDestination } =
-    useDestinationsStore()
+  const { destinations } = useDestinationsStore()
+  const addDestinationMutation = useAddDestinationMutation()
+  const updateDestinationMutation = useUpdateDestinationMutation()
+  const deleteDestinationMutation = useDeleteDestinationMutation()
   const [modalOpen, setModalOpen] = useState(false)
   const [editingDestination, setEditingDestination] = useState<TDestination | undefined>(undefined)
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
   const deletingNameRef = useRef<string>('')
+
+  const isSaving = addDestinationMutation.isPending || updateDestinationMutation.isPending
 
   const openDeleteConfirm = (id: string) => {
     deletingNameRef.current = destinations.find(destination => destination.id === id)?.name ?? ''
@@ -46,22 +54,49 @@ export const DestinationsPage = () => {
     setModalOpen(true)
   }
 
-  const handleSave = (destination: TDestination) => {
+  const handleSave = (data: Omit<TDestination, 'id'>) => {
     if (editingDestination) {
-      updateDestination(destination)
-      ToastHelper.success(t('updateSuccess'))
+      updateDestinationMutation.mutate(
+        { id: editingDestination.id, ...data },
+        {
+          onSuccess: result => {
+            if (result.success) {
+              ToastHelper.success(t('updateSuccess'))
+              setModalOpen(false)
+            } else {
+              ToastHelper.error(t('saveError'))
+            }
+          },
+          onError: () => ToastHelper.error(t('saveError')),
+        }
+      )
     } else {
-      addDestination(destination)
-      ToastHelper.success(t('addSuccess'))
+      addDestinationMutation.mutate(data, {
+        onSuccess: result => {
+          if (result.success) {
+            ToastHelper.success(t('addSuccess'))
+            setModalOpen(false)
+          } else {
+            ToastHelper.error(t('saveError'))
+          }
+        },
+        onError: () => ToastHelper.error(t('saveError')),
+      })
     }
   }
 
   const handleDeleteConfirm = () => {
     if (!deleteConfirmId) return
 
-    deleteDestination(deleteConfirmId)
-    setDeleteConfirmId(null)
-    ToastHelper.success(t('deleteSuccess'))
+    deleteDestinationMutation.mutate(deleteConfirmId, {
+      onSuccess: result => {
+        if (result.success) {
+          setDeleteConfirmId(null)
+          ToastHelper.success(t('deleteSuccess'))
+        }
+      },
+      onError: () => ToastHelper.error(t('deleteError')),
+    })
   }
 
   return (
@@ -169,6 +204,7 @@ export const DestinationsPage = () => {
         onOpenChange={setModalOpen}
         destination={editingDestination}
         onSave={handleSave}
+        isSaving={isSaving}
       />
 
       <Modal
@@ -182,7 +218,11 @@ export const DestinationsPage = () => {
           <Button variant="outline" onClick={() => setDeleteConfirmId(null)}>
             {t('cancel')}
           </Button>
-          <Button className="bg-red-500 hover:bg-red-600" onClick={handleDeleteConfirm}>
+          <Button
+            className="bg-red-500 hover:bg-red-600"
+            disabled={deleteDestinationMutation.isPending}
+            onClick={handleDeleteConfirm}
+          >
             {t('deleteConfirm')}
           </Button>
         </div>

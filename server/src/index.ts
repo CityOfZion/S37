@@ -9,6 +9,7 @@ import { isProduction } from './constants'
 import { EnvHelper } from './helpers/EnvHelper'
 import { authRoute } from './routes/auth-route'
 import { chatRoute } from './routes/chat-route'
+import { destinationsRoute } from './routes/destinations-route'
 import { etherfuseRoute } from './routes/etherfuse-route'
 import { healthRoute } from './routes/health-route'
 
@@ -45,7 +46,7 @@ async function bootstrap(): Promise<void> {
 
   await fastify.register(cors, {
     origin: EnvHelper.CORS_ORIGIN.split(',').map(origin => origin.trim()),
-    methods: ['GET', 'POST', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept-Language'],
   })
 
@@ -91,6 +92,7 @@ async function bootstrap(): Promise<void> {
 
   await fastify.register(healthRoute)
   await fastify.register(authRoute)
+  await fastify.register(destinationsRoute)
   await fastify.register(etherfuseRoute)
   await fastify.register(chatRoute)
 

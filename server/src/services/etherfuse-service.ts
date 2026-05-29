@@ -169,7 +169,7 @@ const mapPixInstructions = (fields: {
       fields.depositPixKey ||
       '00020126580014BR.GOV.BCB.PIX013656ff353d-3633-416a-87dc-7c81c272ec51520400005303986540585.305802BR5901N6001C62130509Etherfuse6304C20E',
     pixKey: fields.depositPixKey || '56ff353d-3633-416a-87dc-7c81c272ec51',
-    pixKeyType: fields.depositPixKeyType || 'evp',
+    pixKeyType: fields.depositPixKeyType || 'EVP',
     beneficiary: fields.beneficiary || 'Etherfuse',
     amount: fields.amount,
     currency: 'BRL',

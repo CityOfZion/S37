@@ -185,7 +185,7 @@ Each endpoint section uses the same layout:
   {
     "presignedUrl": "string",
     "pixKey": "string",
-    "pixKeyType": "evp | cpf | cnpj | email | phone",
+    "pixKeyType": "EVP | CPF | CNPJ | EMAIL | PHONE",
     "firstName": "string",
     "lastName": "string",
     "cpf": "string"

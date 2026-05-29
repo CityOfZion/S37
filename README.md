@@ -11,7 +11,7 @@
     <img src="https://img.shields.io/badge/Stellar-Horizon-blue?style=flat-square&logo=stellar" alt="Stellar" />
     <img src="https://img.shields.io/badge/Rust-Soroban-B7410E?style=flat-square&logo=rust" alt="Rust" />
     <img src="https://img.shields.io/badge/Gemini-AI-4285F4?style=flat-square&logo=google" alt="Gemini AI" />
-    <img src="https://img.shields.io/badge/Hackathon-Stellar%20×%20NearX-1F75FE?style=flat-square" alt="Hackathon" />
+    <img src="https://img.shields.io/badge/Hackathon-Stellar%20×%20NearX-blue?style=flat-square" alt="Hackathon" />
   </p>
 
   <p>

@@ -18,11 +18,10 @@
     "pixKeyPlaceholder": "Enter the PIX key",
     "pixKeyRequired": "PIX key is required",
     "pixKeyError": "Invalid PIX key for the selected type",
-    "nameAlreadyExists": "A recipient with this name already exists",
-    "pixKeyAlreadyExists": "This PIX key is already registered",
     "invalidPixKey": "Invalid PIX key",
     "cancel": "Cancel",
-    "save": "Save"
+    "save": "Save",
+    "saving": "Saving…"
   },
   "panel": {
     "close": "Close"

@@ -1,14 +1,11 @@
 import type { FastifyInstance } from 'fastify'
 
 import type {
-  TBankAccountPayload,
-  TBankAccountResult,
   TKycStatusResult,
   TOnboardingPayload,
   TOnboardingResult,
   TOrderPayload,
   TOrderResult,
-  TPixKeyType,
   TQuotePayload,
   TQuoteResult,
 } from 'fractapay-shared'
@@ -21,7 +18,6 @@ import {
   findCustomerByPublicKey,
   getKycStatus,
   getOrder,
-  registerBankAccount,
   simulateFiatReceived,
 } from '../services/etherfuse-service'
 import {
@@ -40,8 +36,6 @@ const WEBHOOK_EVENTS: TEtherfuseWebhookEvent[] = [
 ]
 
 type TErrorResponse = { success: false; error: ErrorCode }
-
-const PIX_KEY_TYPES: TPixKeyType[] = ['evp', 'cpf', 'cnpj', 'email', 'phone']
 
 const sendError = (
   status: number,
@@ -116,32 +110,6 @@ export const etherfuseRoute = async (fastify: FastifyInstance): Promise<void> =>
       return reply.status(502).send({ success: false, error: mapError(error) })
     }
   })
-
-  fastify.post<{ Body: TBankAccountPayload; Reply: TBankAccountResult | TErrorResponse }>(
-    '/etherfuse/bank-account',
-    async (request, reply) => {
-      const body = request.body
-
-      if (
-        !body?.presignedUrl ||
-        !body.pixKey ||
-        !body.pixKeyType ||
-        !PIX_KEY_TYPES.includes(body.pixKeyType) ||
-        !body.firstName ||
-        !body.lastName ||
-        !body.cpf
-      ) {
-        return reply.status(400).send({ success: false, error: ErrorCode.INVALID_PAYLOAD })
-      }
-
-      try {
-        const result = await registerBankAccount(body)
-        return reply.status(200).send(result)
-      } catch (error) {
-        return reply.status(502).send({ success: false, error: mapError(error) })
-      }
-    }
-  )
 
   fastify.post<{ Body: TQuotePayload; Reply: TQuoteResult | TErrorResponse }>(
     '/etherfuse/quote',
