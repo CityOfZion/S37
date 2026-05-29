@@ -89,6 +89,8 @@
     "updateSuccess": "Recipient updated",
     "deleteSuccess": "Recipient removed",
     "saveError": "Could not save. Please try again.",
+    "DESTINATION_NAME_EXISTS": "A recipient with this name already exists.",
+    "DESTINATION_PIX_KEY_EXISTS": "A recipient with this PIX key already exists.",
     "deleteError": "Could not delete. Please try again.",
     "editAria": "Edit {{name}}",
     "deleteAria": "Delete {{name}}",

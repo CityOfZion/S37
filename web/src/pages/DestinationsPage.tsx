@@ -1,6 +1,8 @@
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { isAxiosError } from 'axios'
+
 import type { TDestination } from 'fractapay-shared'
 import { TOKEN } from 'fractapay-shared'
 
@@ -67,7 +69,13 @@ export const DestinationsPage = () => {
               ToastHelper.error(t('saveError'))
             }
           },
-          onError: () => ToastHelper.error(t('saveError')),
+          onError: error => {
+            const code: string | undefined = isAxiosError(error)
+              ? error.response?.data?.error
+              : undefined
+
+            ToastHelper.error(t(code || 'saveError', { defaultValue: t('saveError') }))
+          },
         }
       )
     } else {
@@ -80,7 +88,13 @@ export const DestinationsPage = () => {
             ToastHelper.error(t('saveError'))
           }
         },
-        onError: () => ToastHelper.error(t('saveError')),
+        onError: error => {
+          const code: string | undefined = isAxiosError(error)
+            ? error.response?.data?.error
+            : undefined
+
+          ToastHelper.error(t(code || 'saveError', { defaultValue: t('saveError') }))
+        },
       })
     }
   }
@@ -125,10 +139,6 @@ export const DestinationsPage = () => {
             <p className="text-neutral-500 font-medium">{t('empty')}</p>
             <p className="text-neutral-400 text-sm mt-1">{t('emptyHint')}</p>
           </div>
-          <Button size="sm" variant="tertiary" onClick={handleAdd}>
-            <AddIcon className="size-4" aria-hidden="true" />
-            {t('add')}
-          </Button>
         </div>
       ) : (
         <div className="rounded-2xl border border-neutral-200 bg-white overflow-x-auto shadow-sm">

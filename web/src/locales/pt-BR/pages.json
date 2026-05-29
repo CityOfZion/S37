@@ -89,6 +89,8 @@
     "updateSuccess": "Destinatário atualizado",
     "deleteSuccess": "Destinatário removido",
     "saveError": "Não foi possível salvar. Tente novamente.",
+    "DESTINATION_NAME_EXISTS": "Já existe um destinatário com esse nome.",
+    "DESTINATION_PIX_KEY_EXISTS": "Já existe um destinatário com essa chave PIX.",
     "deleteError": "Não foi possível excluir. Tente novamente.",
     "editAria": "Editar {{name}}",
     "deleteAria": "Excluir {{name}}",

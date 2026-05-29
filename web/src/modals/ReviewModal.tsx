@@ -84,6 +84,7 @@ export const ReviewModal = ({
   const [quoteReady, setQuoteReady] = useState(false)
   const [quote, setQuote] = useState<TQuoteResult | null>(null)
   const [isQuotePending, setIsQuotePending] = useState(false)
+  const feePercent = FEE_PERCENTAGE.times(100).toFixed(0)
 
   const handlePaymentDone = () => {
     if (!order) return
@@ -327,9 +328,9 @@ export const ReviewModal = ({
             <p>{t('reviewWarning')}</p>
           </div>
 
-          <section aria-label={t('recipientsTitle')} className="space-y-2">
+          <section aria-label={t('summaryTitle')} className="space-y-2">
             <h3 className="text-xs font-medium text-neutral-500 uppercase tracking-wider">
-              {t('recipientsTitle')}
+              {t('summaryTitle')}
             </h3>
 
             <div className="rounded-xl border border-neutral-200 overflow-x-auto">
@@ -347,7 +348,7 @@ export const ReviewModal = ({
                     </th>
                   </tr>
                 </thead>
-                <tbody className="text-xs">
+                <tbody className="text-xs divide-y divide-neutral-200">
                   {allocations.map(allocation => {
                     const allocationAmount = StringHelper.formatAmount(
                       new BigNumber(totalAmount).times(allocation.percentage / 100)
@@ -367,12 +368,60 @@ export const ReviewModal = ({
                       </tr>
                     )
                   })}
+                  <tr>
+                    <td className="px-4 py-2 text-neutral-500">
+                      <div className="flex items-center gap-1">
+                        {t('feeLabel')}
+                        <Tooltip
+                          content={t('feeTooltip', { fee: feePercent })}
+                          open={feeTooltipOpen}
+                          onOpenChange={setFeeTooltipOpen}
+                        >
+                          <span
+                            tabIndex={0}
+                            className="inline-flex cursor-pointer"
+                            aria-label={t('feeTooltip', {
+                              fee: feePercent,
+                            })}
+                            onClick={() => setFeeTooltipOpen(previous => !previous)}
+                            onKeyDown={event =>
+                              event.key === 'Enter' && setFeeTooltipOpen(previous => !previous)
+                            }
+                          >
+                            <InfoIcon className="size-3 text-neutral-400" aria-hidden="true" />
+                          </span>
+                        </Tooltip>
+                      </div>
+                    </td>
+                    <td className="px-4 py-2 text-right text-neutral-500">
+                      {feePercent}%
+                    </td>
+                    <td className="px-4 py-2 text-right text-neutral-900 whitespace-nowrap">
+                      {!quoteReady ? (
+                        <Skeleton className="h-3 w-20 ml-auto" />
+                      ) : (
+                        StringHelper.formatCurrencyAmount(feeAmount, token)
+                      )}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td colSpan={2} className="px-4 py-2 font-bold text-neutral-900">
+                      {t('total')}
+                    </td>
+                    <td className="px-4 py-2 text-right font-bold text-neutral-900 whitespace-nowrap">
+                      {!quoteReady ? (
+                        <Skeleton className="h-3 w-24 ml-auto" />
+                      ) : (
+                        StringHelper.formatCurrencyAmount(totalToPay, token)
+                      )}
+                    </td>
+                  </tr>
                 </tbody>
               </table>
             </div>
           </section>
 
-          <Accordion defaultOpen value="fees" trigger={<span>{t('feesTitle')}</span>}>
+          <Accordion value="fees" trigger={<span>{t('technicalDetailsTitle')}</span>}>
             <dl className="text-xs text-neutral-700">
               <div className="flex items-center justify-between pb-1.5 border-b border-neutral-100">
                 <dt className="text-neutral-500">{t('coinLabel')}</dt>
@@ -405,50 +454,11 @@ export const ReviewModal = ({
                 </div>
               )}
               {recipientAddress && (
-                <div className="flex items-center justify-between py-1.5 border-b border-neutral-100">
+                <div className="flex items-center justify-between pt-1.5">
                   <dt className="text-neutral-500">{t('address')}</dt>
                   <TruncatedAddress address={recipientAddress} />
                 </div>
               )}
-              <div className="flex items-center justify-between py-1.5 border-b border-neutral-100">
-                <dt className="text-neutral-500">{t('subtotal')}</dt>
-                <dd>{StringHelper.formatCurrencyAmount(recipientAmount, token)}</dd>
-              </div>
-              <div className="flex items-center justify-between py-1.5 border-b border-neutral-100">
-                <dt className="flex items-center gap-1 text-neutral-500">
-                  {t('feeLabel')}
-                  <Tooltip
-                    content={t('feeTooltip', { fee: FEE_PERCENTAGE.times(100).toFixed(0) })}
-                    open={feeTooltipOpen}
-                    onOpenChange={setFeeTooltipOpen}
-                  >
-                    <span
-                      tabIndex={0}
-                      className="inline-flex cursor-pointer"
-                      aria-label={t('feeTooltip', { fee: FEE_PERCENTAGE.times(100).toFixed(0) })}
-                      onClick={() => setFeeTooltipOpen(previous => !previous)}
-                      onKeyDown={event =>
-                        event.key === 'Enter' && setFeeTooltipOpen(previous => !previous)
-                      }
-                    >
-                      <InfoIcon className="size-3 text-neutral-400" aria-hidden="true" />
-                    </span>
-                  </Tooltip>
-                </dt>
-                <dd>
-                  {!quoteReady ? <Skeleton /> : StringHelper.formatCurrencyAmount(feeAmount, token)}
-                </dd>
-              </div>
-              <div className="flex items-center justify-between pt-1.5">
-                <dt className="font-bold text-neutral-900">{t('total')}</dt>
-                <dd className="font-bold text-neutral-900">
-                  {!quoteReady ? (
-                    <Skeleton className="h-3 w-24" />
-                  ) : (
-                    StringHelper.formatCurrencyAmount(totalToPay, token)
-                  )}
-                </dd>
-              </div>
             </dl>
           </Accordion>
 
