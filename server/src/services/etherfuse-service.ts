@@ -5,20 +5,26 @@ import * as uuid from 'uuid'
 import type {
   TBankAccountPayload,
   TBankAccountResult,
+  TKycIdentity,
   TKycStatus,
   TKycStatusResult,
   TOnboardingResult,
   TOrderPayload,
   TOrderResult,
   TOrderStatus,
+  TOrganizationPayload,
+  TOrganizationResult,
   TPixInstructions,
   TQuotePayload,
   TQuoteResult,
+  TSubmitKycPayload,
+  TSubmitKycResult,
   TToken,
 } from 'fractapay-shared'
 import { ErrorCode, FEE_PERCENTAGE, StringHelper, TOKEN } from 'fractapay-shared'
 
 import { EnvHelper } from '../helpers/EnvHelper'
+import { upsertEtherfuseCustomer } from './etherfuse-customer-service'
 
 const BLOCKCHAIN = 'stellar'
 const HORIZON_TESTNET_URL = 'https://horizon-testnet.stellar.org'
@@ -40,6 +46,22 @@ const ensureAccountFunded = async (publicKey: string): Promise<void> => {
   } catch (error) {
     console.error('[Stellar] friendbot request error', error)
   }
+}
+
+const SANDBOX_KYC_IDENTITY: TKycIdentity = {
+  id: 'PUBLIC KEY',
+  email: 'test.user@example.com',
+  phoneNumber: '+5511999999999',
+  occupation: 'Software Engineer',
+  name: { givenName: 'Test', familyName: 'User' },
+  dateOfBirth: '1990-01-01',
+  address: {
+    street: 'Avenida Paulista 1000',
+    city: 'São Paulo',
+    region: 'SP',
+    postalCode: '01310-100',
+    country: 'BR',
+  },
 }
 
 const TOKEN_ASSET: Record<TToken, string> = {
@@ -94,11 +116,21 @@ type TKycRawResponse = {
   status: TKycRawStatus
 }
 
+type TOrganizationResponse = {
+  organizationId: string
+  displayName: string
+  accountType: string
+  wallets: { id: string; publicKey: string; blockchain: string }[]
+  bankAccount: unknown
+}
+
 type TBankAccountResponse = {
   bankAccountId: string
   pixKey?: string
   status: string
 }
+
+type TSubmitKycResponse = { status: string; message: string }
 
 const etherfuse: AxiosInstance = axios.create({
   baseURL: EnvHelper.ETHERFUSE_BASE_URL,
@@ -127,7 +159,19 @@ const request = async <T>(method: 'GET' | 'POST', endpoint: string, body?: unkno
       }
 
       if (status === 409 && endpoint === '/ramp/onboarding-url') {
-        throw new Error(ErrorCode.CUSTOMER_ALREADY_EXISTS)
+        // 409 body carries the existing org/customer id, e.g.
+        // "…already added user with this address, see org: <uuid>".
+        const raw =
+          typeof error.response?.data === 'string'
+            ? error.response.data
+            : JSON.stringify(error.response?.data ?? '')
+        const match = raw.match(/see org:\s*([0-9a-fA-F-]{36})/)
+        const conflict = new Error(ErrorCode.CUSTOMER_ALREADY_EXISTS) as Error & {
+          organizationId?: string
+        }
+        if (match) conflict.organizationId = match[1]
+
+        throw conflict
       }
 
       console.error(
@@ -176,13 +220,22 @@ const mapPixInstructions = (fields: {
   }
 }
 
-type TWalletListItem = { publicKey: string; customerId: string }
-type TWalletListResponse = {
-  items: TWalletListItem[]
+type TCustomersListResponse = {
+  items: { customerId: string }[]
   totalPages: number
   pageNumber: number
 }
+type TWalletsResponse = { items: { publicKey: string }[] }
 type TBankAccountListResponse = { items: { bankAccountId: string }[] }
+
+export const getCustomerBankAccountId = async (customerId: string): Promise<string | null> => {
+  const banks = await request<TBankAccountListResponse>(
+    'GET',
+    `/ramp/customer/${encodeURIComponent(customerId)}/bank-accounts`
+  )
+
+  return banks.items[0]?.bankAccountId ?? null
+}
 
 export const findCustomerByPublicKey = async (
   publicKey: string
@@ -191,47 +244,50 @@ export const findCustomerByPublicKey = async (
     const pageSize = 100
     let pageNumber = 0
     let totalPages = 1
-    let customerId: string | null = null
+    let matchedCustomerId: string | null = null
 
-    while (pageNumber < totalPages && !customerId) {
-      const wallets = await request<TWalletListResponse>('POST', '/ramp/wallets', {
+    while (pageNumber < totalPages && !matchedCustomerId) {
+      const customers = await request<TCustomersListResponse>('POST', '/ramp/customers', {
         pageSize,
         pageNumber,
       })
+      totalPages = customers.totalPages
 
-      totalPages = wallets.totalPages
+      for (const customer of customers.items) {
+        const wallets = await request<TWalletsResponse>(
+          'GET',
+          `/ramp/customer/${encodeURIComponent(customer.customerId)}/wallets`
+        )
 
-      const match = wallets.items.find(wallet => wallet.publicKey === publicKey)
-      if (match) {
-        customerId = match.customerId
+        if (wallets.items.some(wallet => wallet.publicKey === publicKey)) {
+          matchedCustomerId = customer.customerId
+          break
+        }
       }
 
       pageNumber += 1
     }
 
-    if (!customerId) {
-      console.warn('[Etherfuse] recovery: publicKey not found in any wallet page', publicKey)
+    if (!matchedCustomerId) {
+      console.warn('[Etherfuse] recovery: publicKey not found in any customer wallet', publicKey)
       return null
     }
 
-    const banks = await request<TBankAccountListResponse>(
-      'GET',
-      `/ramp/customer/${encodeURIComponent(customerId)}/bank-accounts`
-    )
-
-    const bankAccountId = banks.items[0]?.bankAccountId
+    const bankAccountId = await getCustomerBankAccountId(matchedCustomerId)
     if (!bankAccountId) {
       return null
     }
 
-    return { customerId, bankAccountId, presignedUrl: '' }
+    return { customerId: matchedCustomerId, bankAccountId, presignedUrl: '' }
   } catch {
     return null
   }
 }
 
-export const createOnboarding = async (publicKey: string): Promise<TOnboardingResult> => {
-  const customerId = uuid.v4()
+export const createOnboarding = async (
+  publicKey: string,
+  customerId: string = uuid.v4()
+): Promise<TOnboardingResult> => {
   const bankAccountId = uuid.v4()
 
   try {
@@ -242,15 +298,85 @@ export const createOnboarding = async (publicKey: string): Promise<TOnboardingRe
       blockchain: BLOCKCHAIN,
     })
 
+    // TODO: Remove this when Etherfuse resolves correctly.
+    if (EnvHelper.IS_ETHERFUSE_SANDBOX) {
+      try {
+        console.info('[Etherfuse] sandbox auto-KYC submitting mock identity', { customerId })
+        await submitKyc(customerId, {
+          publicKey,
+          identity: { ...SANDBOX_KYC_IDENTITY, id: publicKey },
+        })
+      } catch (error) {
+        console.error('[Etherfuse] sandbox auto-KYC failed', error)
+      }
+    }
+
     return { customerId, bankAccountId, presignedUrl: response.presigned_url }
   } catch (error) {
     if ((error as Error).message !== ErrorCode.CUSTOMER_ALREADY_EXISTS) throw error
+
+    // The address already belongs to an org/customer — retry the onboarding-url with
+    // that existing id as the customerId so Etherfuse returns its presigned URL.
+    const existingCustomerId = (error as { organizationId?: string }).organizationId
+    if (existingCustomerId) {
+      const retry = await createOnboarding(publicKey, existingCustomerId)
+
+      // Retry succeeded — sync the database row so its customerId matches the real one.
+      try {
+        await upsertEtherfuseCustomer({ publicKey, customerId: existingCustomerId })
+      } catch (persistError) {
+        console.error('[Etherfuse] failed to update customerId in database', persistError)
+      }
+
+      return { customerId: existingCustomerId, bankAccountId, presignedUrl: retry.presignedUrl }
+    }
 
     const recovered = await findCustomerByPublicKey(publicKey)
     if (recovered) return recovered
 
     throw error
   }
+}
+
+export const createOrganization = async (
+  payload: TOrganizationPayload
+): Promise<TOrganizationResult> => {
+  const organizationId = uuid.v4()
+  const walletId = uuid.v4()
+
+  const response = await request<TOrganizationResponse>('POST', '/ramp/organization', {
+    id: organizationId,
+    displayName: payload.displayName,
+    accountType: payload.accountType,
+    userInfo: {
+      email: payload.email,
+      displayName: payload.userDisplayName,
+    },
+    wallets: [{ id: walletId, publicKey: payload.publicKey, blockchain: BLOCKCHAIN }],
+  })
+
+  return {
+    organizationId: response.organizationId,
+    displayName: response.displayName,
+    accountType: response.accountType,
+    wallets: response.wallets,
+  }
+}
+
+export const submitKyc = async (
+  customerId: string,
+  payload: TSubmitKycPayload
+): Promise<TSubmitKycResult> => {
+  const response = await request<TSubmitKycResponse>(
+    'POST',
+    `/ramp/customer/${encodeURIComponent(customerId)}/kyc`,
+    {
+      pubkey: payload.publicKey,
+      identity: payload.identity,
+    }
+  )
+
+  return { status: response.status, message: response.message }
 }
 
 export const getKycStatus = async (

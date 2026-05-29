@@ -4,11 +4,12 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams, useRouterState } from '@tanstack/react-router'
 
 import type { TLanguage, TUser } from 'fractapay-shared'
-import { DEFAULT_LANGUAGE } from 'fractapay-shared'
+import { DEFAULT_LANGUAGE, StringHelper, TOKEN } from 'fractapay-shared'
 
 import logoUrl from '../assets/logos/logo.svg'
 import { APP_NAME, LANGUAGE_NAMES } from '../constants'
 import { StyleHelper } from '../helpers/StyleHelper'
+import { useBalanceQuery } from '../hooks/use-balance-query'
 import { useChatStore } from '../hooks/use-chat-store'
 import { useLanguageStore } from '../hooks/use-language-store'
 import { useLogoutMutation } from '../hooks/use-logout-mutation'
@@ -17,6 +18,7 @@ import { useUserQuery } from '../hooks/use-user-query'
 import { ConversationWarningModal } from '../modals/ConversationWarningModal'
 import { Button } from './Button'
 import { NavLink } from './NavLink'
+import { Skeleton } from './Skeleton'
 import { Tooltip } from './Tooltip'
 import { UserAvatar } from './UserAvatar'
 
@@ -63,6 +65,12 @@ const NavContent = ({
 }: TNavContentProps) => {
   const { t } = useTranslation('components', { keyPrefix: 'sidebar' })
   const { language } = useLanguageStore()
+  const stellarAddress = user?.stellarAddress ?? ''
+  const isUserLoading = user === undefined
+  const { data: balance, isLoading: isBalanceLoading } = useBalanceQuery({
+    publicKey: stellarAddress,
+    enabled: !!stellarAddress,
+  })
 
   return (
     <nav className="flex flex-col h-full" aria-label={t('label')}>
@@ -108,6 +116,21 @@ const NavContent = ({
       </div>
 
       <div className="px-2 py-4 border-t border-white/10 space-y-1">
+        {(isUserLoading || (stellarAddress && (isBalanceLoading || balance))) && (
+          <section className="px-3 py-2.5 mb-1 rounded-xl bg-white/5" aria-label={t('balance')}>
+            <p className="text-[10px] font-bold tracking-widest uppercase text-neutral-500 select-none">
+              {t('balance')}
+            </p>
+            {balance ? (
+              <p className="text-white font-extrabold text-lg">
+                {StringHelper.formatCurrencyAmount(balance.balanceInFiat, TOKEN.TESOURO)}
+              </p>
+            ) : (
+              <Skeleton className="h-5 w-24 mt-1 bg-white/10" />
+            )}
+          </section>
+        )}
+
         {user && (
           <NavLink
             to="/profile"

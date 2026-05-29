@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useParams } from '@tanstack/react-router'
 
 import { StringHelper, TOKEN } from 'fractapay-shared'
@@ -25,6 +26,7 @@ export const PaymentPage = () => {
   const { orderId } = useParams({ from: '/auth/payments/$orderId' })
   const { data, isLoading, isError } = useOrderQuery(orderId)
   const { conversations, updateConversation } = useConversationStore()
+  const queryClient = useQueryClient()
   const [copiedTx, setCopiedTx] = useState(false)
 
   useEffect(() => {
@@ -35,6 +37,17 @@ export const PaymentPage = () => {
     if (!conversation || conversation.orderStatus === data.status) return
 
     updateConversation(conversation.id, { orderStatus: data.status })
+  }, [data?.status]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Once the order settles, the on-chain TESOURO delivery lands a few seconds later.
+  // Re-fetch the sidebar balance a few times across that window so it picks up the new value.
+  useEffect(() => {
+    if (!data?.status || !TERMINAL_STATUSES.has(data.status)) return
+
+    const refresh = () => void queryClient.invalidateQueries({ queryKey: ['balance'] })
+    const timers = [0, 4000, 12000].map(delay => window.setTimeout(refresh, delay))
+
+    return () => timers.forEach(window.clearTimeout)
   }, [data?.status]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const copyTx = async (hash: string) => {
