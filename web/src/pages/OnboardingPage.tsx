@@ -319,7 +319,7 @@ export const OnboardingPage = () => {
               <Button
                 disabled={isWalletDisabled}
                 onClick={() => void handleUseExistingWallet()}
-                className="text-sm font-medium text-primary transition-opacity hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary rounded-md"
+                className="text-sm font-medium transition-opacity hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary rounded-md"
               >
                 {connectWalletMutation.isPending ? t('walletConnecting') : t('walletUseExisting')}
               </Button>
