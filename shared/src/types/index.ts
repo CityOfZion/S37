@@ -29,6 +29,14 @@ export enum ErrorCode {
   INVALID_AUTH_CODE = 'INVALID_AUTH_CODE',
   NOT_IMPLEMENTED = 'NOT_IMPLEMENTED',
   ONBOARDING_ALREADY_COMPLETED = 'ONBOARDING_ALREADY_COMPLETED',
+  EMAIL_ALREADY_REGISTERED = 'EMAIL_ALREADY_REGISTERED',
+  EMAIL_LINKED_TO_OAUTH = 'EMAIL_LINKED_TO_OAUTH',
+  INVALID_VERIFICATION_CODE = 'INVALID_VERIFICATION_CODE',
+  VERIFICATION_EXPIRED = 'VERIFICATION_EXPIRED',
+  TOO_MANY_VERIFICATION_ATTEMPTS = 'TOO_MANY_VERIFICATION_ATTEMPTS',
+  RESEND_TOO_SOON = 'RESEND_TOO_SOON',
+  EMAIL_SEND_FAILED = 'EMAIL_SEND_FAILED',
+  WALLET_NOT_REGISTERED = 'WALLET_NOT_REGISTERED',
   UNKNOWN = 'UNKNOWN',
 }
 
@@ -57,6 +65,32 @@ export type TExchangePayload = {
 
 export type TExchangeResult =
   | { success: true; token: string }
+  | { success: false; error: ErrorCode }
+
+export type TSignupRequestPayload = {
+  fullName: string
+  email: string
+}
+
+export type TSignupRequestResult =
+  | { success: true; expiresAt: string; cooldownEndsAt: string }
+  | { success: false; error: ErrorCode; cooldownEndsAt?: string }
+
+export type TSignupVerifyPayload = {
+  email: string
+  code: string
+}
+
+export type TSignupVerifyResult =
+  | { success: true; token: string; user: TUser }
+  | { success: false; error: ErrorCode }
+
+export type TPasskeyLoginPayload = {
+  stellarAddress: string
+}
+
+export type TPasskeyLoginResult =
+  | { success: true; token: string; user: TUser }
   | { success: false; error: ErrorCode }
 
 export type TPayment = {
