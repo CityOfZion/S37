@@ -37,6 +37,7 @@ export enum ErrorCode {
   RESEND_TOO_SOON = 'RESEND_TOO_SOON',
   EMAIL_SEND_FAILED = 'EMAIL_SEND_FAILED',
   WALLET_NOT_REGISTERED = 'WALLET_NOT_REGISTERED',
+  BALANCE_FETCH_FAILED = 'BALANCE_FETCH_FAILED',
   UNKNOWN = 'UNKNOWN',
 }
 
@@ -120,6 +121,66 @@ export type TOnboardingResult = {
 
 export type TKycStatusResult = {
   status: TKycStatus
+}
+
+export type TBalanceResult = {
+  token: TToken
+  balance: string
+  balanceInFiat: string
+}
+
+export type TOrganizationPayload = {
+  displayName: string
+  accountType: 'personal' | 'business'
+  email: string
+  userDisplayName: string
+  publicKey: string
+}
+
+export type TOrganizationWallet = {
+  id: string
+  publicKey: string
+  blockchain: string
+}
+
+export type TOrganizationResult = {
+  organizationId: string
+  displayName: string
+  accountType: string
+  wallets: TOrganizationWallet[]
+}
+
+export type TKycName = { givenName: string; familyName: string }
+
+export type TKycAddress = {
+  street: string
+  city: string
+  region: string
+  postalCode: string
+  country: string
+}
+
+export type TKycIdNumber = { value: string; type: string }
+
+export type TKycIdentity = {
+  id: string
+  email: string
+  phoneNumber: string
+  occupation: string
+  name: TKycName
+  dateOfBirth: string
+  address: TKycAddress
+  idNumbers?: TKycIdNumber[]
+}
+
+export type TSubmitKycPayload = {
+  publicKey: string
+  identity: TKycIdentity
+}
+
+export type TSubmitKycResult = {
+  status: string
+  message: string
 }
 
 export type TBankAccountPayload = {

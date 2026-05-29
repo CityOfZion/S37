@@ -8,21 +8,32 @@ import type {
   TOnboardingResult,
   TOrderPayload,
   TOrderResult,
+  TOrganizationPayload,
+  TOrganizationResult,
   TPixKeyType,
   TQuotePayload,
   TQuoteResult,
+  TSubmitKycPayload,
+  TSubmitKycResult,
 } from 'fractapay-shared'
 import { ErrorCode, StellarHelper, SUPPORTED_TOKENS } from 'fractapay-shared'
 
 import {
+  findEtherfuseCustomerByPublicKey,
+  upsertEtherfuseCustomer,
+} from '../services/etherfuse-customer-service'
+import {
   createOnboarding,
   createOrder,
+  createOrganization,
   createQuote,
   findCustomerByPublicKey,
+  getCustomerBankAccountId,
   getKycStatus,
   getOrder,
   registerBankAccount,
   simulateFiatReceived,
+  submitKyc,
 } from '../services/etherfuse-service'
 import {
   recordWebhookEvent,
@@ -76,6 +87,31 @@ export const etherfuseRoute = async (fastify: FastifyInstance): Promise<void> =>
     }
   )
 
+  fastify.post<{ Body: TOrganizationPayload; Reply: TOrganizationResult | TErrorResponse }>(
+    '/etherfuse/organization',
+    async (request, reply) => {
+      const body = request.body
+
+      if (
+        !body?.displayName ||
+        !body.accountType ||
+        !body.email ||
+        !body.userDisplayName ||
+        !body.publicKey ||
+        !StellarHelper.isValidStellarDestination(body.publicKey)
+      ) {
+        return reply.status(400).send({ success: false, error: ErrorCode.INVALID_PAYLOAD })
+      }
+
+      try {
+        const result = await createOrganization(body)
+        return reply.status(200).send(result)
+      } catch (error) {
+        return reply.status(502).send({ success: false, error: mapError(error) })
+      }
+    }
+  )
+
   fastify.get<{
     Params: { publicKey: string }
     Reply: TOnboardingResult | TErrorResponse
@@ -87,6 +123,19 @@ export const etherfuseRoute = async (fastify: FastifyInstance): Promise<void> =>
     }
 
     try {
+      const cached = await findEtherfuseCustomerByPublicKey(publicKey)
+
+      if (cached) {
+        const bankAccountId =
+          cached.bankAccountId ?? (await getCustomerBankAccountId(cached.customerId))
+
+        if (bankAccountId) {
+          return reply
+            .status(200)
+            .send({ customerId: cached.customerId, bankAccountId, presignedUrl: '' })
+        }
+      }
+
       const result = await findCustomerByPublicKey(publicKey)
 
       if (!result) {
@@ -111,6 +160,55 @@ export const etherfuseRoute = async (fastify: FastifyInstance): Promise<void> =>
 
     try {
       const result = await getKycStatus(customerId, publicKey)
+
+      if (result.status === 'approved') {
+        try {
+          await upsertEtherfuseCustomer({ publicKey, customerId })
+        } catch (error) {
+          request.log.error({ error, publicKey, customerId }, '[Etherfuse] customer persist failed')
+        }
+      }
+
+      return reply.status(200).send(result)
+    } catch (error) {
+      return reply.status(502).send({ success: false, error: mapError(error) })
+    }
+  })
+
+  fastify.post<{
+    Params: { customerId: string }
+    Body: TSubmitKycPayload
+    Reply: TSubmitKycResult | TErrorResponse
+  }>('/etherfuse/customer/:customerId/kyc', async (request, reply) => {
+    const { customerId } = request.params
+    const body = request.body
+    const identity = body?.identity
+
+    if (
+      !body?.publicKey ||
+      !StellarHelper.isValidStellarDestination(body.publicKey) ||
+      !identity?.id ||
+      !identity.email ||
+      !identity.phoneNumber ||
+      !identity.occupation ||
+      !identity.name?.givenName ||
+      !identity.name?.familyName ||
+      !identity.dateOfBirth ||
+      !identity.address?.street ||
+      !identity.address?.city ||
+      !identity.address?.region ||
+      !identity.address?.postalCode ||
+      !identity.address?.country ||
+      (identity.idNumbers !== undefined &&
+        (!Array.isArray(identity.idNumbers) ||
+          identity.idNumbers.length === 0 ||
+          identity.idNumbers.some(idNumber => !idNumber?.value || !idNumber?.type)))
+    ) {
+      return reply.status(400).send({ success: false, error: ErrorCode.INVALID_PAYLOAD })
+    }
+
+    try {
+      const result = await submitKyc(customerId, body)
       return reply.status(200).send(result)
     } catch (error) {
       return reply.status(502).send({ success: false, error: mapError(error) })
