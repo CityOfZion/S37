@@ -222,10 +222,6 @@ export const etherfuseRoute = async (fastify: FastifyInstance): Promise<void> =>
       }
 
       recordWebhookEvent(body)
-      request.log.info(
-        { event: body.event, id: body.data.id, status: body.data.status },
-        '[Etherfuse] webhook received'
-      )
 
       return reply.status(200).send({ success: true })
     }

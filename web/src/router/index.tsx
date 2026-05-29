@@ -99,14 +99,15 @@ const loginRoute = createRoute({
 const onboardingRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/onboarding',
+  validateSearch: (search: Record<string, unknown>): { source?: 'signup' } => {
+    const source = search.source
+
+    return source === 'signup' ? { source } : {}
+  },
   beforeLoad: async () => {
     const user = await queryClient.ensureQueryData(userQueryOptions)
 
-    if (!user) {
-      throw redirect({ to: '/login' })
-    }
-
-    if (user.onboardingCompletedAt) {
+    if (user?.onboardingCompletedAt) {
       throw redirect({ to: '/chat' })
     }
   },

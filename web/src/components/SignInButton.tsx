@@ -8,17 +8,11 @@ import { Button } from './Button'
 
 import GoogleIcon from '../assets/icons/google-icon.svg?react'
 
-type TVariant = 'outline' | 'solid-white'
-
 type TProps = {
-  variant?: TVariant
   className?: string
 }
 
-const SOLID_WHITE_CLASSES =
-  'bg-white text-neutral-900 hover:bg-neutral-100 active:bg-neutral-200 focus-visible:ring-2 focus-visible:ring-white/50 font-semibold rounded-xl shadow-lg shadow-neutral-900/10 transition-colors'
-
-export const SignInButton = ({ variant = 'outline', className }: TProps) => {
+export const SignInButton = ({ className }: TProps) => {
   const { t } = useTranslation('pages', { keyPrefix: 'auth' })
 
   const handleClick = async () => {
@@ -30,19 +24,6 @@ export const SignInButton = ({ variant = 'outline', className }: TProps) => {
     window.location.href = `${EnvHelper.API_URL}/auth/google?cc=${encodeURIComponent(challenge)}`
   }
 
-  if (variant === 'solid-white') {
-    return (
-      <Button
-        size="lg"
-        onClick={handleClick}
-        className={StyleHelper.merge(SOLID_WHITE_CLASSES, 'w-full', className)}
-      >
-        <GoogleIcon className="size-5 shrink-0" aria-hidden="true" />
-        <span>{t('signInWithGoogle')}</span>
-      </Button>
-    )
-  }
-
   return (
     <Button
       variant="outline"
@@ -51,7 +32,7 @@ export const SignInButton = ({ variant = 'outline', className }: TProps) => {
       className={StyleHelper.merge('w-full', className)}
     >
       <GoogleIcon className="size-5 shrink-0" aria-hidden="true" />
-      <span>{t('signInWithGoogle')}</span>
+      <span>{t('continueWithGoogle')}</span>
     </Button>
   )
 }

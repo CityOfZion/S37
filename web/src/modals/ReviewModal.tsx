@@ -12,6 +12,7 @@ import type {
   TQuoteResult,
 } from 'fractapay-shared'
 import { FEE_PERCENTAGE, FIAT_BY_TOKEN, QUOTE_EXPIRY_SECONDS, StringHelper } from 'fractapay-shared'
+import { APP_NAME } from 'fractapay-shared'
 
 import { Accordion } from '../components/Accordion'
 import { Button } from '../components/Button'
@@ -20,7 +21,6 @@ import { Modal } from '../components/Modal'
 import { PixInstructions } from '../components/PixInstructions'
 import { Skeleton } from '../components/Skeleton'
 import { Tooltip } from '../components/Tooltip'
-import { APP_NAME } from '../constants'
 import { TOKEN_ICON_URL } from '../constants/token-icons'
 import { ToastHelper } from '../helpers/ToastHelper'
 import { useCountdown } from '../hooks/use-countdown'

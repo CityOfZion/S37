@@ -7,15 +7,17 @@ const envSchema = z.object({
   PORT: z.string().default('3000'),
   GEMINI_API_KEY: z.string().min(1, 'GEMINI_API_KEY is required'),
   ETHERFUSE_API_KEY: z.string().min(1, 'ETHERFUSE_API_KEY is required'),
-  ETHERFUSE_BASE_URL: z.string().url().default('https://api.sand.etherfuse.com'),
+  ETHERFUSE_BASE_URL: z.url().default('https://api.sand.etherfuse.com'),
   CORS_ORIGIN: z.string().default('http://localhost:5173'),
   GOOGLE_CLIENT_ID: z.string().min(1, 'GOOGLE_CLIENT_ID is required'),
   GOOGLE_CLIENT_SECRET: z.string().min(1, 'GOOGLE_CLIENT_SECRET is required'),
-  OAUTH_CALLBACK_URL: z.string().url().default('http://localhost:3000/auth/google/callback'),
-  WEB_BASE_URL: z.string().url().default('http://localhost:5173'),
+  OAUTH_CALLBACK_URL: z.url().default('http://localhost:3000/auth/google/callback'),
+  WEB_BASE_URL: z.url().default('http://localhost:5173'),
   SESSION_SECRET: z.string().min(32, 'SESSION_SECRET must be at least 32 characters'),
-  WEB_LOGIN_SUCCESS_URL: z.string().url().optional(),
-  WEB_LOGIN_FAILURE_URL: z.string().url().optional(),
+  WEB_LOGIN_SUCCESS_URL: z.url().optional(),
+  WEB_LOGIN_FAILURE_URL: z.url().optional(),
+  RESEND_API_KEY: z.string().min(1, 'RESEND_API_KEY is required'),
+  RESEND_EMAIL: z.email(),
 })
 
 const parsed = envSchema.safeParse(process.env)
@@ -41,4 +43,6 @@ export class EnvHelper {
   static readonly WEB_LOGIN_SUCCESS_URL = data.WEB_LOGIN_SUCCESS_URL ?? data.WEB_BASE_URL
   static readonly WEB_LOGIN_FAILURE_URL =
     data.WEB_LOGIN_FAILURE_URL ?? `${data.WEB_BASE_URL}/?login=failed`
+  static readonly RESEND_API_KEY = data.RESEND_API_KEY
+  static readonly RESEND_EMAIL = data.RESEND_EMAIL
 }

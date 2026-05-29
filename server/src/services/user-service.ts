@@ -16,6 +16,45 @@ export const findUserById = async (id: string): Promise<User | null> => {
   return prisma.user.findUnique({ where: { id } })
 }
 
+export type TUserWithOAuth = User & { accounts: { provider: string }[] }
+
+export const findUserByEmail = async (email: string): Promise<TUserWithOAuth | null> => {
+  return prisma.user.findUnique({
+    where: { email: email.toLowerCase() },
+    include: { accounts: { select: { provider: true } } },
+  })
+}
+
+export const findUserByStellarAddress = async (stellarAddress: string): Promise<User | null> => {
+  return prisma.user.findUnique({ where: { stellarAddress } })
+}
+
+type TUpsertEmailVerifiedUserInput = {
+  email: string
+  fullName: string
+}
+
+// Upsert (not create) so an abandoned signup — a passkey-less row left behind when the user verified their email but never finished onboarding — is reused on retry instead of colliding with the unique email constraint. Callers must guard against overwriting a completed account (onboarding finished) or an OAuth-linked one before calling this.
+export const upsertEmailVerifiedUser = async ({
+  email,
+  fullName,
+}: TUpsertEmailVerifiedUserInput): Promise<User> => {
+  const normalizedEmail = email.toLowerCase()
+
+  return prisma.user.upsert({
+    where: { email: normalizedEmail },
+    update: {
+      name: fullName,
+      emailVerified: new Date(),
+    },
+    create: {
+      email: normalizedEmail,
+      name: fullName,
+      emailVerified: new Date(),
+    },
+  })
+}
+
 type TGoogleProfile = {
   sub: string
   email: string
