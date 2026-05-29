@@ -5,6 +5,7 @@ import { useQueryClient } from '@tanstack/react-query'
 
 import { Button } from '../components/Button'
 import { Input } from '../components/Input'
+import { ClipboardHelper } from '../helpers/ClipboardHelper'
 import { ToastHelper } from '../helpers/ToastHelper'
 import { usePageTitle } from '../hooks/use-page-title'
 import { USER_QUERY_KEY, useUserQuery } from '../hooks/use-user-query'
@@ -110,6 +111,36 @@ export const ProfilePage = () => {
             </Button>
           </div>
         </form>
+
+        {user?.stellarAddress ? (
+          <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4 flex flex-col gap-2">
+            <span className="text-xs uppercase tracking-wide text-neutral-500">
+              {t('walletLabel')}
+            </span>
+            <div className="flex items-center justify-between gap-3">
+              <span
+                className="font-mono text-sm text-neutral-900 truncate"
+                title={user.stellarAddress}
+              >
+                {user.stellarAddress}
+              </span>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={async () => {
+                  try {
+                    await ClipboardHelper.copy(user.stellarAddress ?? '')
+                    ToastHelper.success(t('walletCopied'))
+                  } catch {
+                    ToastHelper.error(t('saveError'))
+                  }
+                }}
+              >
+                {t('walletCopy')}
+              </Button>
+            </div>
+          </div>
+        ) : null}
       </div>
     </main>
   )

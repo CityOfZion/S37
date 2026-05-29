@@ -9,7 +9,11 @@ import logoUrl from '../assets/logos/logo.svg'
 import { Button } from '../components/Button'
 import { Input } from '../components/Input'
 import { APP_NAME } from '../constants'
+import { ToastHelper } from '../helpers/ToastHelper'
 import { useCompleteOnboardingMutation } from '../hooks/use-complete-onboarding-mutation'
+import { useConnectExistingWalletMutation } from '../hooks/use-connect-existing-wallet-mutation'
+import { useCreateWalletMutation } from '../hooks/use-create-wallet-mutation'
+import { useUserQuery } from '../hooks/use-user-query'
 import { onboardingSchema, type TOnboardingFormValues } from '../schemas/onboarding-schema'
 
 import ArrowRightIcon from '../assets/icons/arrow-right-icon.svg?react'
@@ -19,6 +23,8 @@ const SUCCESS_TRANSITION_MS = 1200
 
 const GRADIENT_CTA_CLASS =
   'w-full bg-linear-to-br from-primary to-accent-500 text-white font-semibold rounded-xl shadow-lg shadow-primary/20 transition-[filter] hover:brightness-110 active:brightness-95'
+
+type TStep = 'company' | 'wallet'
 
 const HeroPanel = () => {
   const { t } = useTranslation('pages', { keyPrefix: 'onboarding' })
@@ -103,6 +109,12 @@ export const OnboardingPage = () => {
   const { t } = useTranslation('pages', { keyPrefix: 'onboarding' })
   const navigate = useNavigate()
   const completeMutation = useCompleteOnboardingMutation()
+  const createWalletMutation = useCreateWalletMutation()
+  const connectWalletMutation = useConnectExistingWalletMutation()
+  const { data: user } = useUserQuery()
+  const [step, setStep] = useState<TStep>('company')
+  const [companyName, setCompanyName] = useState('')
+  const [walletAddress, setWalletAddress] = useState<string | null>(null)
   const [isCelebrating, setIsCelebrating] = useState(false)
 
   const {
@@ -118,15 +130,58 @@ export const OnboardingPage = () => {
     mode: 'onChange',
   })
 
-  const onSubmit = async (values: TOnboardingFormValues) => {
-    await completeMutation.mutateAsync({ companyName: values.companyName })
+  const handleCompanySubmit = (values: TOnboardingFormValues) => {
+    setCompanyName(values.companyName)
+    setStep('wallet')
+  }
+
+  const finishOnboarding = async (contractId: string, credentialId: string) => {
+    setWalletAddress(contractId)
+
+    await completeMutation.mutateAsync({
+      companyName,
+      stellarAddress: contractId,
+      passkeyCredentialId: credentialId,
+    })
+
     setIsCelebrating(true)
     window.setTimeout(() => {
       void navigate({ to: '/chat' })
     }, SUCCESS_TRANSITION_MS)
   }
 
-  const isDisabled = !isValid || isSubmitting || completeMutation.isPending || isCelebrating
+  const handleCreateWallet = async () => {
+    try {
+      const userName = user?.email || user?.name
+      if (!userName) throw new Error()
+
+      const { contractId, credentialId } = await createWalletMutation.mutateAsync({ userName })
+
+      await finishOnboarding(contractId, credentialId)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : t('walletError')
+      ToastHelper.error(message)
+    }
+  }
+
+  const handleUseExistingWallet = async () => {
+    try {
+      const { contractId, credentialId } = await connectWalletMutation.mutateAsync()
+
+      await finishOnboarding(contractId, credentialId)
+    } catch (error) {
+      const code = error instanceof Error ? error.message : ''
+      const message = code === 'NO_SMART_ACCOUNT' ? t('walletNoExisting') : t('walletConnectError')
+      ToastHelper.error(message)
+    }
+  }
+
+  const isCompanyDisabled = !isValid || isSubmitting
+  const isWalletDisabled =
+    createWalletMutation.isPending ||
+    connectWalletMutation.isPending ||
+    completeMutation.isPending ||
+    isCelebrating
 
   return (
     <main className="min-h-screen w-full lg:flex bg-white lg:bg-neutral-50">
@@ -156,7 +211,7 @@ export const OnboardingPage = () => {
               </h1>
               <p className="text-sm text-neutral-500 leading-relaxed">{t('successMessage')}</p>
             </div>
-          ) : (
+          ) : step === 'company' ? (
             <>
               <header className="flex flex-col gap-2">
                 <h1
@@ -168,7 +223,7 @@ export const OnboardingPage = () => {
                 <p className="text-sm text-neutral-500 leading-relaxed">{t('subtitle')}</p>
               </header>
 
-              <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
+              <form onSubmit={handleSubmit(handleCompanySubmit)} className="flex flex-col gap-5">
                 <Controller
                   name="companyName"
                   control={control}
@@ -191,8 +246,6 @@ export const OnboardingPage = () => {
                   )}
                 />
 
-                {/* TODO: Implement CNPJ input mask */}
-
                 <Controller
                   name="cnpj"
                   control={control}
@@ -212,17 +265,64 @@ export const OnboardingPage = () => {
                 <Button
                   type="submit"
                   size="lg"
-                  disabled={isDisabled}
+                  disabled={isCompanyDisabled}
                   className={GRADIENT_CTA_CLASS}
-                  icon={
-                    isSubmitting || completeMutation.isPending ? undefined : (
-                      <ArrowRightIcon className="size-5 shrink-0" aria-hidden="true" />
-                    )
-                  }
+                  icon={<ArrowRightIcon className="size-5 shrink-0" aria-hidden="true" />}
                 >
-                  {isSubmitting || completeMutation.isPending ? t('saving') : t('continue')}
+                  {t('continue')}
                 </Button>
               </form>
+            </>
+          ) : (
+            <>
+              <header className="flex flex-col gap-2">
+                <h1
+                  id="onboarding-title"
+                  className="text-2xl lg:text-3xl font-extrabold text-neutral-900 tracking-tight"
+                >
+                  {t('walletTitle')}
+                </h1>
+                <p className="text-sm text-neutral-500 leading-relaxed">{t('walletSubtitle')}</p>
+              </header>
+
+              {walletAddress ? (
+                <div
+                  role="status"
+                  aria-live="polite"
+                  className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4 flex flex-col gap-1"
+                >
+                  <p className="text-xs uppercase tracking-wide text-neutral-500">
+                    {t('walletCreatedSubtitle')}
+                  </p>
+                  <p className="font-mono text-sm text-neutral-900 break-all">{walletAddress}</p>
+                </div>
+              ) : null}
+
+              <Button
+                size="lg"
+                disabled={isWalletDisabled}
+                className={GRADIENT_CTA_CLASS}
+                onClick={() => void handleCreateWallet()}
+                icon={
+                  createWalletMutation.isPending || completeMutation.isPending ? undefined : (
+                    <ArrowRightIcon className="size-5 shrink-0" aria-hidden="true" />
+                  )
+                }
+              >
+                {createWalletMutation.isPending
+                  ? t('walletCreating')
+                  : completeMutation.isPending
+                    ? t('saving')
+                    : t('walletCreate')}
+              </Button>
+
+              <Button
+                disabled={isWalletDisabled}
+                onClick={() => void handleUseExistingWallet()}
+                className="text-sm font-medium transition-opacity hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary rounded-md"
+              >
+                {connectWalletMutation.isPending ? t('walletConnecting') : t('walletUseExisting')}
+              </Button>
             </>
           )}
         </div>

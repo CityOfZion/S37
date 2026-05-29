@@ -28,6 +28,7 @@ export enum ErrorCode {
   OAUTH_FAILED = 'OAUTH_FAILED',
   INVALID_AUTH_CODE = 'INVALID_AUTH_CODE',
   NOT_IMPLEMENTED = 'NOT_IMPLEMENTED',
+  ONBOARDING_ALREADY_COMPLETED = 'ONBOARDING_ALREADY_COMPLETED',
   UNKNOWN = 'UNKNOWN',
 }
 
@@ -37,12 +38,16 @@ export type TUser = {
   name: string | null
   picture: string | null
   onboardingCompletedAt: string | null
+  stellarAddress: string | null
+  passkeyCredentialId: string | null
 }
 
 export type TAuthMeResult = { success: true; user: TUser } | { success: false; error: ErrorCode }
 
 export type TCompleteOnboardingPayload = {
   companyName: string
+  stellarAddress: string
+  passkeyCredentialId: string
 }
 
 export type TExchangePayload = {

@@ -62,7 +62,7 @@ export const etherfuseRoute = async (fastify: FastifyInstance): Promise<void> =>
     async (request, reply) => {
       const { publicKey } = request.body ?? {}
 
-      if (!publicKey || !StellarHelper.isValidAddress(publicKey)) {
+      if (!publicKey || !StellarHelper.isValidStellarDestination(publicKey)) {
         const { statusCode, body } = sendError(400, ErrorCode.INVALID_ADDRESS)
         return reply.status(statusCode).send(body)
       }
@@ -82,7 +82,7 @@ export const etherfuseRoute = async (fastify: FastifyInstance): Promise<void> =>
   }>('/etherfuse/customer/:publicKey', async (request, reply) => {
     const { publicKey } = request.params
 
-    if (!StellarHelper.isValidAddress(publicKey)) {
+    if (!StellarHelper.isValidStellarDestination(publicKey)) {
       return reply.status(400).send({ success: false, error: ErrorCode.INVALID_ADDRESS })
     }
 
@@ -105,7 +105,7 @@ export const etherfuseRoute = async (fastify: FastifyInstance): Promise<void> =>
   }>('/etherfuse/kyc/:customerId/:publicKey', async (request, reply) => {
     const { customerId, publicKey } = request.params
 
-    if (!StellarHelper.isValidAddress(publicKey)) {
+    if (!StellarHelper.isValidStellarDestination(publicKey)) {
       return reply.status(400).send({ success: false, error: ErrorCode.INVALID_ADDRESS })
     }
 
@@ -154,7 +154,7 @@ export const etherfuseRoute = async (fastify: FastifyInstance): Promise<void> =>
         !body.token ||
         !SUPPORTED_TOKENS.includes(body.token) ||
         !body.publicKey ||
-        !StellarHelper.isValidAddress(body.publicKey)
+        !StellarHelper.isValidStellarDestination(body.publicKey)
       ) {
         return reply.status(400).send({ success: false, error: ErrorCode.INVALID_PAYLOAD })
       }
@@ -178,7 +178,7 @@ export const etherfuseRoute = async (fastify: FastifyInstance): Promise<void> =>
         !body.customerId ||
         !body.bankAccountId ||
         !body.publicKey ||
-        !StellarHelper.isValidAddress(body.publicKey)
+        !StellarHelper.isValidStellarDestination(body.publicKey)
       ) {
         return reply.status(400).send({ success: false, error: ErrorCode.INVALID_PAYLOAD })
       }

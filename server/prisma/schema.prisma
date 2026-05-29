@@ -23,6 +23,8 @@ model User {
   avatarUrl             String?        @db.Text
   companyName           String?
   onboardingCompletedAt DateTime?
+  stellarAddress        String?        @unique
+  passkeyCredentialId   String?        @db.Text
   createdAt             DateTime       @default(now())
   updatedAt             DateTime       @updatedAt
 
