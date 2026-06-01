@@ -1,18 +1,30 @@
 import { useTranslation } from 'react-i18next'
 
+import { useNavigate } from '@tanstack/react-router'
+
+import { ErrorCode } from 'fractapay-shared'
+
 import logoUrl from '../assets/logos/logo.svg'
 import { Button } from '../components/Button'
 import { SignInButton } from '../components/SignInButton'
 import { APP_NAME } from '../constants'
 import { ToastHelper } from '../helpers/ToastHelper'
 import { usePageTitle } from '../hooks/use-page-title'
-import { useSignupMutation } from '../hooks/use-signup-mutation'
+import { usePasskeyLoginMutation } from '../hooks/use-passkey-login-mutation'
+
+import ArrowRightIcon from '../assets/icons/arrow-right-icon.svg?react'
 
 type TFeatureKey = 'ai' | 'pix' | 'audit'
 
 const FEATURE_KEYS: TFeatureKey[] = ['ai', 'pix', 'audit']
 
-const HeroPanel = () => {
+type TAuthActionProps = {
+  onBiometric: () => void
+  onSignup: () => void
+  isBiometricPending: boolean
+}
+
+const HeroPanel = ({ onBiometric, onSignup, isBiometricPending }: TAuthActionProps) => {
   const { t } = useTranslation('pages', { keyPrefix: 'auth' })
 
   return (
@@ -63,40 +75,41 @@ const HeroPanel = () => {
         </ul>
       </div>
 
-      <div className="lg:hidden relative mt-4">
-        <SignInButton variant="solid-white" />
+      <div className="lg:hidden relative flex flex-col gap-3 mt-4">
+        <SignInButton />
+
+        <Button
+          size="lg"
+          onClick={onBiometric}
+          disabled={isBiometricPending}
+          className="w-full bg-linear-to-r from-primary to-primary-300 text-white font-semibold rounded-xl shadow-lg shadow-primary/20 transition-[filter] hover:brightness-110 active:brightness-95"
+        >
+          <span aria-hidden="true">🔒</span>
+          <span>{isBiometricPending ? t('signingIn') : t('signInWithBiometrics')}</span>
+        </Button>
+
+        <Button
+          variant="ghost"
+          onClick={onSignup}
+          icon={<ArrowRightIcon className="size-4 shrink-0" aria-hidden="true" />}
+          className="text-white/90 hover:text-white hover:bg-transparent font-medium text-sm"
+        >
+          {t('signUpPrompt')}
+        </Button>
       </div>
     </section>
   )
 }
 
-const SignInCard = () => {
+const SignInCard = ({ onBiometric, onSignup, isBiometricPending }: TAuthActionProps) => {
   const { t } = useTranslation('pages', { keyPrefix: 'auth' })
-  const signupMutation = useSignupMutation()
-
-  const handleSignup = () => {
-    signupMutation.mutate(undefined, {
-      onSuccess: result => {
-        if (result.kind === 'not-implemented') {
-          ToastHelper.success(t('signupComingSoon'))
-
-          return
-        }
-
-        ToastHelper.error(t('signupError'))
-      },
-      onError: () => {
-        ToastHelper.error(t('signupError'))
-      },
-    })
-  }
 
   return (
     <section
-      className="hidden lg:flex lg:w-1/2 bg-[#F8F7FB] items-center justify-center px-10 py-12 min-h-screen"
+      className="hidden lg:flex lg:w-1/2 items-center justify-center bg-[#F8F7FB] px-10 py-12 min-h-screen"
       aria-labelledby="signin-card-title"
     >
-      <div className="bg-white rounded-3xl shadow-[0_16px_40px_rgba(26,24,50,0.12)] p-10 w-full max-w-md flex flex-col gap-7">
+      <div className="bg-white rounded-3xl shadow-[0_16px_40px_rgba(26,24,50,0.12)] p-10 w-full max-w-md flex flex-col gap-6">
         <header className="flex flex-col gap-2">
           <h2
             id="signin-card-title"
@@ -107,19 +120,39 @@ const SignInCard = () => {
           <p className="text-sm text-neutral-500">{t('signInSubtitle')}</p>
         </header>
 
-        <SignInButton variant="outline" />
+        <SignInButton />
 
-        <div className="flex flex-col gap-2 items-center">
-          <p className="text-xs text-neutral-500">{t('newHere')}</p>
-          <Button
-            variant="ghost"
-            onClick={handleSignup}
-            disabled={signupMutation.isPending}
-            className="w-full bg-brand-50 text-brand-700 hover:bg-brand-100 hover:text-brand-800 font-semibold text-sm py-3"
-          >
-            {t('signUp')}
-          </Button>
+        <div className="flex items-center gap-3">
+          <span aria-hidden="true" className="h-px flex-1 bg-neutral-200" />
+          <span className="text-xs font-medium uppercase tracking-wide text-neutral-400">
+            {t('or')}
+          </span>
+          <span aria-hidden="true" className="h-px flex-1 bg-neutral-200" />
         </div>
+
+        <div className="flex flex-col gap-3">
+          <Button
+            size="lg"
+            onClick={onBiometric}
+            disabled={isBiometricPending}
+            className="w-full bg-linear-to-r from-primary to-accent-500 text-white font-semibold rounded-xl shadow-lg shadow-primary/20 transition-[filter] hover:brightness-110 active:brightness-95"
+          >
+            <span aria-hidden="true">🔒</span>
+            <span>{isBiometricPending ? t('signingIn') : t('signInWithBiometrics')}</span>
+          </Button>
+          <p className="text-sm text-neutral-500 text-center leading-relaxed">
+            {t('biometricsHint')}
+          </p>
+        </div>
+
+        <Button
+          variant="ghost"
+          onClick={onSignup}
+          icon={<ArrowRightIcon className="size-4 shrink-0" aria-hidden="true" />}
+          className="w-full bg-brand-50 text-brand-700 hover:bg-brand-100 hover:text-brand-800 font-semibold text-sm py-3"
+        >
+          {t('signUpPrompt')}
+        </Button>
       </div>
     </section>
   )
@@ -127,12 +160,55 @@ const SignInCard = () => {
 
 export const LoginPage = () => {
   const { t } = useTranslation('pages', { keyPrefix: 'auth' })
+  const navigate = useNavigate()
+  const passkeyLoginMutation = usePasskeyLoginMutation()
   usePageTitle(t('signInTitle'))
+
+  const handleSignup = () => {
+    void navigate({ to: '/onboarding', search: { source: 'signup' } })
+  }
+
+  const handleBiometric = async () => {
+    try {
+      const result = await passkeyLoginMutation.mutateAsync()
+
+      if (!result.success) {
+        const message =
+          result.error === ErrorCode.WALLET_NOT_REGISTERED
+            ? t('biometricNoAccount')
+            : t('biometricFailed')
+        ToastHelper.error(message)
+
+        return
+      }
+
+      // Router guard routes to /onboarding when onboarding is incomplete, /chat otherwise.
+      void navigate({ to: '/chat' })
+    } catch (error) {
+      // User dismissed the passkey prompt — not an error worth surfacing.
+      if (error instanceof DOMException && error.name === 'NotAllowedError') return
+
+      const code = error instanceof Error ? error.message : ''
+      const message = code === 'NO_SMART_ACCOUNT' ? t('biometricNoAccount') : t('biometricFailed')
+      ToastHelper.error(message)
+    }
+  }
+
+  const onBiometric = () => void handleBiometric()
+  const isBiometricPending = passkeyLoginMutation.isPending
 
   return (
     <main className="min-h-screen w-full lg:flex bg-neutral-50">
-      <HeroPanel />
-      <SignInCard />
+      <HeroPanel
+        onBiometric={onBiometric}
+        onSignup={handleSignup}
+        isBiometricPending={isBiometricPending}
+      />
+      <SignInCard
+        onBiometric={onBiometric}
+        onSignup={handleSignup}
+        isBiometricPending={isBiometricPending}
+      />
     </main>
   )
 }

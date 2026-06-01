@@ -16,6 +16,8 @@ const envSchema = z.object({
   SESSION_SECRET: z.string().min(32, 'SESSION_SECRET must be at least 32 characters'),
   WEB_LOGIN_SUCCESS_URL: z.string().url().optional(),
   WEB_LOGIN_FAILURE_URL: z.string().url().optional(),
+  RESEND_API_KEY: z.string().optional(),
+  EMAIL_FROM: z.string().default('FractaPay <onboarding@fractapay.local>'),
 })
 
 const parsed = envSchema.safeParse(process.env)
@@ -41,4 +43,6 @@ export class EnvHelper {
   static readonly WEB_LOGIN_SUCCESS_URL = data.WEB_LOGIN_SUCCESS_URL ?? data.WEB_BASE_URL
   static readonly WEB_LOGIN_FAILURE_URL =
     data.WEB_LOGIN_FAILURE_URL ?? `${data.WEB_BASE_URL}/?login=failed`
+  static readonly RESEND_API_KEY = data.RESEND_API_KEY
+  static readonly EMAIL_FROM = data.EMAIL_FROM
 }
