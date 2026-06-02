@@ -8,5 +8,8 @@
   },
   "fiatBySymbol": {
     "BRL": "Real"
-  }
+  },
+  "paymentTitle": "{{date}} | {{amount}} | {{recipients}} recipient",
+  "paymentTitle_other": "{{date}} | {{amount}} | {{recipients}} recipients",
+  "rateValue": "1 {{fiat}} ≈ {{rate}} {{token}}"
 }

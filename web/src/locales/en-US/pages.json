@@ -23,22 +23,21 @@
     "heroHeadline": "Let's personalize.",
     "heroSubtitle": "A few details about your business so we can shape the experience.",
     "companyNameLabel": "Company name",
-    "companyNamePlaceholder": "Example Corp",
+    "companyNamePlaceholder": "Fill the company name",
     "companyNameRequired": "Enter the company name",
     "cnpjLabel": "CNPJ (optional)",
     "cnpjPlaceholder": "00.000.000/0001-00",
     "continue": "Continue",
     "saving": "Saving…",
     "successHeadline": "All set!",
-    "successMessage": "Redirecting…",
-    "homeAria": "Back to the home screen"
+    "successMessage": "Redirecting…"
   },
   "payments": {
     "title": "Payments",
     "subtitle": "History of all payments made via FractaPay.",
     "empty": "No payments yet. Start a conversation.",
     "mobileSummary": "{{payments}} payments | {{recipients}} recipients",
-    "recurrent": "Recurring",
+    "recurrence": "Recurrence",
     "columns": {
       "date": "Date",
       "paymentsCount": "Payments",
@@ -60,12 +59,12 @@
   },
   "chat": {
     "title": "Chat",
-    "greeting": "Hello! I'm FractaPay's payment assistant. Describe what you need or attach a file, I identify the amounts and propose the distribution. You review, confirm, and pay. How can I help?",
+    "greeting": "Hello, {{name}}! I'm FractaPay's payment assistant. Describe what you need or attach a file, I identify the amounts and propose the distribution. You review, confirm, and pay. How can I help?",
     "dropFile": "Drop the file here",
     "error": "Error processing message. Please try again.",
     "total": "Total",
-    "fileParseError": "Could not process the file \"{{filename}}\". Please check it is a valid format (CSV, XLS, XLSX, PDF or TXT) and try again.",
-    "noPaymentsFound": "No payments found in \"{{filename}}\". Make sure the file contains BRL values and try again.",
+    "fileParseError": "Could not process the file \"{{fileName}}\". Please check it is a valid format (CSV, XLS, XLSX, PDF or TXT) and try again.",
+    "noPaymentsFound": "No payments found in \"{{fileName}}\". Make sure the file contains BRL values and try again.",
     "unsupportedFile": "Unsupported format. Use CSV, XLS, XLSX, PDF or TXT.",
     "navigatingWhileLoading": "Please wait for the assistant to finish before navigating.",
     "suggestion1": "Distribute royalties from a file",
@@ -73,10 +72,8 @@
     "suggestion3": "Send payroll",
     "pendingPaymentError": "You have a payment in progress. Go to Payments to complete it before starting a new one.",
     "paymentsTitle": "Payments",
-    "allocationsTitle": "Recipients",
+    "destinationsTitle": "Recipients",
     "goToPayment": "Go to payment",
-    "conversationTitle": "{{date}} | {{amount}} | {{recipients}} recipient",
-    "conversationTitle_other": "{{date}} | {{amount}} | {{recipients}} recipients",
     "conversationTitleEmpty": "{{date}}"
   },
   "destinations": {
@@ -106,26 +103,31 @@
     }
   },
   "payment": {
-    "title": "Payment receipt",
+    "title": "Payment",
     "error": "Could not load the order.",
     "status": "Status",
-    "orderId": "Payment ID",
+    "externalId": "External ID",
+    "address": "Address",
+    "rate": "Quote",
+    "feeAmount": "Fee amount",
+    "feeAmountTooltip": "FractaPay fee ({{fee}}%) + provider fee",
     "amount": "Amount",
+    "totalAmount": "Total amount",
     "amountInTokens": "Tokens",
     "txHash": "Transaction",
     "copyTx": "Copy transaction hash",
     "copiedTx": "Copied!",
     "technicalDetails": "Technical details",
     "viewPayments": "View payments",
-    "allocationsTitle": "Recipients",
+    "destinationsTitle": "Recipients",
     "noPayments": "No payments found",
     "statuses": {
-      "created": "Created",
-      "funded": "Funded",
-      "completed": "Completed",
-      "failed": "Failed",
-      "refunded": "Refunded",
-      "canceled": "Canceled"
+      "CREATED": "Created",
+      "FUNDED": "Funded",
+      "COMPLETED": "Completed",
+      "FAILED": "Failed",
+      "REFUNDED": "Refunded",
+      "CANCELED": "Canceled"
     }
   }
 }

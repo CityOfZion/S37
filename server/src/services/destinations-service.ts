@@ -1,5 +1,5 @@
 import type { TDestination } from 'fractapay-shared'
-import { ErrorCode } from 'fractapay-shared'
+import { EErrorCode } from 'fractapay-shared'
 
 import { EncryptionHelper } from '../helpers/EncryptionHelper'
 import type {
@@ -54,7 +54,7 @@ export const createDestination = async ({
     where: { userId, name: trimmedName },
   })
 
-  if (existingWithName) throw new Error(ErrorCode.DESTINATION_NAME_EXISTS)
+  if (existingWithName) throw new Error(EErrorCode.DESTINATION_NAME_EXISTS)
 
   const pixKeyHash = EncryptionHelper.hmac(userId, data.pixKey)
 
@@ -73,7 +73,7 @@ export const createDestination = async ({
     return mapToDestination(row)
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
-      throw new Error(ErrorCode.DESTINATION_PIX_KEY_EXISTS)
+      throw new Error(EErrorCode.DESTINATION_PIX_KEY_EXISTS)
     }
 
     throw error
@@ -93,7 +93,7 @@ export const updateDestination = async ({
 }: TUpdateDestinationsParams): Promise<TDestination> => {
   const existing = await prisma.destination.findFirst({ where: { id, userId } })
 
-  if (!existing) throw new Error(ErrorCode.DESTINATION_NOT_FOUND)
+  if (!existing) throw new Error(EErrorCode.DESTINATION_NOT_FOUND)
 
   const trimmedName = data.name?.trim()
 
@@ -102,7 +102,7 @@ export const updateDestination = async ({
       where: { userId, name: trimmedName, NOT: { id } },
     })
 
-    if (existingWithName) throw new Error(ErrorCode.DESTINATION_NAME_EXISTS)
+    if (existingWithName) throw new Error(EErrorCode.DESTINATION_NAME_EXISTS)
   }
 
   try {
@@ -124,7 +124,7 @@ export const updateDestination = async ({
     return mapToDestination(row)
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
-      throw new Error(ErrorCode.DESTINATION_PIX_KEY_EXISTS)
+      throw new Error(EErrorCode.DESTINATION_PIX_KEY_EXISTS)
     }
 
     throw error
@@ -142,7 +142,7 @@ export const deleteDestination = async ({
 }: TDeleteDestinationsParams): Promise<void> => {
   const existing = await prisma.destination.findFirst({ where: { id, userId } })
 
-  if (!existing) throw new Error(ErrorCode.DESTINATION_NOT_FOUND)
+  if (!existing) throw new Error(EErrorCode.DESTINATION_NOT_FOUND)
 
   await prisma.destination.delete({ where: { id } })
 }

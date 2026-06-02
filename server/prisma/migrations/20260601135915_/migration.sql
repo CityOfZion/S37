@@ -1,0 +1,3 @@
+-- No-op: superseded by 20260601000003_rename_order_id_to_external_id which already
+-- handles externalId (formerly orderId) as non-nullable. tokenAmount is managed
+-- by 20260601000002_make_payment_amounts_non_nullable.

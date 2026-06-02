@@ -3,20 +3,16 @@ import BigNumber from 'bignumber.js'
 import * as uuid from 'uuid'
 
 import type {
-  TBankAccountPayload,
-  TBankAccountResult,
   TKycStatus,
   TKycStatusResult,
   TOnboardingResult,
-  TOrderPayload,
-  TOrderResult,
-  TOrderStatus,
-  TPixInstructions,
+  TPaymentPix,
+  TPaymentStatus,
   TQuotePayload,
   TQuoteResult,
   TToken,
 } from 'fractapay-shared'
-import { ErrorCode, FEE_PERCENTAGE, StringHelper, TOKEN } from 'fractapay-shared'
+import { EErrorCode, FEE_PERCENTAGE, StringHelper, TOKEN } from 'fractapay-shared'
 
 import { EnvHelper } from '../helpers/EnvHelper'
 
@@ -24,21 +20,19 @@ const BLOCKCHAIN = 'stellar'
 const HORIZON_TESTNET_URL = 'https://horizon-testnet.stellar.org'
 const FRIENDBOT_URL = 'https://friendbot.stellar.org'
 
-const ensureAccountFunded = async (publicKey: string): Promise<void> => {
+const ensureAccountFunded = async (address: string): Promise<void> => {
   try {
-    const accountResponse = await fetch(`${HORIZON_TESTNET_URL}/accounts/${publicKey}`)
-    if (accountResponse.ok) return
+    const response = await fetch(`${HORIZON_TESTNET_URL}/accounts/${address}`)
+
+    if (response.ok) return
   } catch {
-    // ignore — proceed to fund
+    return
   }
 
   try {
-    const friendbotResponse = await fetch(`${FRIENDBOT_URL}?addr=${encodeURIComponent(publicKey)}`)
-    if (!friendbotResponse.ok) {
-      console.error('[Stellar] friendbot fund failed', await friendbotResponse.text())
-    }
-  } catch (error) {
-    console.error('[Stellar] friendbot request error', error)
+    await fetch(`${FRIENDBOT_URL}?addr=${encodeURIComponent(address)}`)
+  } catch {
+    return
   }
 }
 
@@ -53,7 +47,22 @@ type TKycRawStatus =
   | 'approved_chain_deploying'
   | 'rejected'
 
-type TEtherfuseError = { error?: { code?: string; message?: string } }
+type TCreateOrderPayload = {
+  quoteId: string
+  customerId: string
+  bankAccountId: string
+  address: string
+}
+
+type TOrderResult = {
+  orderId: string
+  status: TPaymentStatus
+  pix?: TPaymentPix
+  confirmedTxSignature?: string
+  amountInFiat?: string
+  amountInTokens?: string
+  isRecovered?: boolean
+}
 
 type TOnboardingResponse = { presigned_url: string }
 
@@ -81,7 +90,7 @@ type TCreateOrderResponse = {
 
 type TOrderResponse = {
   orderId: string
-  status: TOrderStatus
+  status: TPaymentStatus
   amountInFiat?: string
   amountInTokens?: string
   confirmedTxSignature?: string
@@ -92,12 +101,6 @@ type TOrderResponse = {
 
 type TKycRawResponse = {
   status: TKycRawStatus
-}
-
-type TBankAccountResponse = {
-  bankAccountId: string
-  pixKey?: string
-  status: string
 }
 
 const etherfuse: AxiosInstance = axios.create({
@@ -116,50 +119,41 @@ const request = async <T>(method: 'GET' | 'POST', endpoint: string, body?: unkno
   } catch (error) {
     if (isAxiosError(error)) {
       const status = error.response?.status
-      const data = error.response?.data as TEtherfuseError | undefined
 
       if (status === 404 && endpoint.startsWith('/ramp/order/')) {
-        throw new Error(ErrorCode.ORDER_NOT_FOUND)
+        throw new Error(EErrorCode.ORDER_NOT_FOUND)
       }
 
       if (status === 409 && endpoint === '/ramp/order') {
-        throw new Error(ErrorCode.PENDING_ORDER_EXISTS)
+        throw new Error(EErrorCode.PENDING_ORDER_EXISTS)
       }
 
       if (status === 409 && endpoint === '/ramp/onboarding-url') {
-        throw new Error(ErrorCode.CUSTOMER_ALREADY_EXISTS)
+        throw new Error(EErrorCode.CUSTOMER_ALREADY_EXISTS)
       }
-
-      console.error(
-        `[Etherfuse] ${status ?? 'NETWORK'} ${method} ${endpoint}`,
-        JSON.stringify({
-          request: body,
-          response: error.response?.data,
-          message: data?.error?.message || error.message,
-        })
-      )
-    } else {
-      console.error('[Etherfuse] unexpected error', error)
     }
 
-    throw new Error(ErrorCode.ETHERFUSE_REQUEST_FAILED)
+    throw new Error(EErrorCode.ETHERFUSE_REQUEST_FAILED)
   }
 }
 
-const mapKycStatus = (status: TKycRawStatus): TKycStatus => {
-  if (status === 'proposed') return 'pending'
-  if (status === 'approved_chain_deploying') return 'approved'
-
-  return status
+const KYC_STATUS_MAP: Record<TKycRawStatus, TKycStatus> = {
+  not_started: 'NOT_STARTED',
+  proposed: 'PENDING',
+  approved: 'APPROVED',
+  approved_chain_deploying: 'APPROVED',
+  rejected: 'REJECTED',
 }
 
-const mapPixInstructions = (fields: {
+const mapKycStatus = (status: TKycRawStatus): TKycStatus => KYC_STATUS_MAP[status] || 'NOT_STARTED'
+
+const mapPix = (fields: {
   depositPixCode?: string
   depositPixKey?: string
   depositPixKeyType?: string
   beneficiary?: string
   amount: string
-}): TPixInstructions | undefined => {
+}): TPaymentPix | null => {
   // TODO: remove comment in Mainnet
   // if (!fields.depositPixCode && !fields.depositPixKey) return undefined
 
@@ -170,7 +164,7 @@ const mapPixInstructions = (fields: {
       '00020126580014BR.GOV.BCB.PIX013656ff353d-3633-416a-87dc-7c81c272ec51520400005303986540585.305802BR5901N6001C62130509Etherfuse6304C20E',
     pixKey: fields.depositPixKey || '56ff353d-3633-416a-87dc-7c81c272ec51',
     pixKeyType: fields.depositPixKeyType || 'EVP',
-    beneficiary: fields.beneficiary || 'Etherfuse',
+    beneficiary: fields.beneficiary,
     amount: fields.amount,
     currency: 'BRL',
   }
@@ -184,9 +178,7 @@ type TWalletListResponse = {
 }
 type TBankAccountListResponse = { items: { bankAccountId: string }[] }
 
-export const findCustomerByPublicKey = async (
-  publicKey: string
-): Promise<TOnboardingResult | null> => {
+export const findCustomerByAddress = async (address: string): Promise<TOnboardingResult | null> => {
   try {
     const pageSize = 100
     let pageNumber = 0
@@ -201,7 +193,7 @@ export const findCustomerByPublicKey = async (
 
       totalPages = wallets.totalPages
 
-      const match = wallets.items.find(wallet => wallet.publicKey === publicKey)
+      const match = wallets.items.find(wallet => wallet.publicKey === address)
       if (match) {
         customerId = match.customerId
       }
@@ -210,7 +202,6 @@ export const findCustomerByPublicKey = async (
     }
 
     if (!customerId) {
-      console.warn('[Etherfuse] recovery: publicKey not found in any wallet page', publicKey)
       return null
     }
 
@@ -230,7 +221,7 @@ export const findCustomerByPublicKey = async (
   }
 }
 
-export const createOnboarding = async (publicKey: string): Promise<TOnboardingResult> => {
+export const createOnboarding = async (address: string): Promise<TOnboardingResult> => {
   const customerId = uuid.v4()
   const bankAccountId = uuid.v4()
 
@@ -238,15 +229,15 @@ export const createOnboarding = async (publicKey: string): Promise<TOnboardingRe
     const response = await request<TOnboardingResponse>('POST', '/ramp/onboarding-url', {
       customerId,
       bankAccountId,
-      publicKey,
+      publicKey: address,
       blockchain: BLOCKCHAIN,
     })
 
     return { customerId, bankAccountId, presignedUrl: response.presigned_url }
   } catch (error) {
-    if ((error as Error).message !== ErrorCode.CUSTOMER_ALREADY_EXISTS) throw error
+    if ((error as Error).message !== EErrorCode.CUSTOMER_ALREADY_EXISTS) throw error
 
-    const recovered = await findCustomerByPublicKey(publicKey)
+    const recovered = await findCustomerByAddress(address)
     if (recovered) return recovered
 
     throw error
@@ -255,35 +246,14 @@ export const createOnboarding = async (publicKey: string): Promise<TOnboardingRe
 
 export const getKycStatus = async (
   customerId: string,
-  publicKey: string
+  address: string
 ): Promise<TKycStatusResult> => {
   const response = await request<TKycRawResponse>(
     'GET',
-    `/ramp/customer/${encodeURIComponent(customerId)}/kyc/${encodeURIComponent(publicKey)}`
+    `/ramp/customer/${encodeURIComponent(customerId)}/kyc/${encodeURIComponent(address)}`
   )
 
   return { status: mapKycStatus(response.status) }
-}
-
-export const registerBankAccount = async (
-  payload: TBankAccountPayload
-): Promise<TBankAccountResult> => {
-  const response = await request<TBankAccountResponse>('POST', '/ramp/bank-account', {
-    presignedUrl: payload.presignedUrl,
-    account: {
-      pixKey: payload.pixKey,
-      pixKeyType: payload.pixKeyType,
-      firstName: payload.firstName,
-      lastName: payload.lastName,
-      cpf: payload.cpf,
-    },
-  })
-
-  return {
-    bankAccountId: response.bankAccountId,
-    pixKey: response.pixKey,
-    status: response.status,
-  }
 }
 
 export const createQuote = async (payload: TQuotePayload): Promise<TQuoteResult> => {
@@ -296,7 +266,7 @@ export const createQuote = async (payload: TQuotePayload): Promise<TQuoteResult>
     blockchain: BLOCKCHAIN,
     quoteAssets: { type: 'onramp', sourceAsset: 'BRL', targetAsset },
     sourceAmount: payload.sourceAmount,
-    walletAddress: payload.publicKey,
+    walletAddress: payload.address,
   })
 
   const etherfuseFee = new BigNumber(response.feeAmount || '0')
@@ -318,7 +288,7 @@ export const createQuote = async (payload: TQuotePayload): Promise<TQuoteResult>
 
 type TOrderListItem = {
   orderId: string
-  status: TOrderStatus
+  status: TPaymentStatus
   bankAccountId?: string
   customerId?: string
 }
@@ -339,7 +309,7 @@ const findPendingOrder = async (
 
     const match = response.items.find(
       item =>
-        item.status === 'created' && (!item.bankAccountId || item.bankAccountId === bankAccountId)
+        item.status === 'CREATED' && (!item.bankAccountId || item.bankAccountId === bankAccountId)
     )
 
     if (!match) return null
@@ -350,35 +320,35 @@ const findPendingOrder = async (
   }
 }
 
-export const createOrder = async (payload: TOrderPayload): Promise<TOrderResult> => {
+export const createOrder = async (payload: TCreateOrderPayload): Promise<TOrderResult> => {
   const orderId = uuid.v4()
 
-  await ensureAccountFunded(payload.publicKey)
+  await ensureAccountFunded(payload.address)
 
   try {
     const response = await request<TCreateOrderResponse>('POST', '/ramp/order', {
       orderId,
       bankAccountId: payload.bankAccountId,
-      publicKey: payload.publicKey,
+      publicKey: payload.address,
       quoteId: payload.quoteId,
-      memo: payload.memo || undefined,
     })
 
     const { onramp } = response
 
     return {
       orderId: onramp.orderId,
-      status: 'created',
-      pix: mapPixInstructions({
-        depositPixCode: onramp.depositPixCode,
-        depositPixKey: onramp.depositPixKey,
-        depositPixKeyType: onramp.depositPixKeyType,
-        beneficiary: onramp.beneficiary,
-        amount: onramp.depositAmount,
-      }),
+      status: 'CREATED',
+      pix:
+        mapPix({
+          depositPixCode: onramp.depositPixCode,
+          depositPixKey: onramp.depositPixKey,
+          depositPixKeyType: onramp.depositPixKeyType,
+          beneficiary: onramp.beneficiary,
+          amount: onramp.depositAmount,
+        }) ?? undefined,
     }
   } catch (error) {
-    if ((error as Error).message !== ErrorCode.PENDING_ORDER_EXISTS) throw error
+    if ((error as Error).message !== EErrorCode.PENDING_ORDER_EXISTS) throw error
 
     const existing = await findPendingOrder(payload.customerId, payload.bankAccountId)
     if (existing) return { ...existing, isRecovered: true }
@@ -399,12 +369,13 @@ export const getOrder = async (orderId: string): Promise<TOrderResult> => {
     amountInFiat: response.amountInFiat,
     amountInTokens: response.amountInTokens,
     confirmedTxSignature: response.confirmedTxSignature,
-    pix: mapPixInstructions({
-      depositPixCode: response.depositPixCode,
-      depositPixKey: response.depositPixKey,
-      depositPixKeyType: response.depositPixKeyType,
-      amount: response.amountInFiat || '',
-    }),
+    pix:
+      mapPix({
+        depositPixCode: response.depositPixCode,
+        depositPixKey: response.depositPixKey,
+        depositPixKeyType: response.depositPixKeyType,
+        amount: response.amountInFiat || '',
+      }) ?? undefined,
   }
 }
 

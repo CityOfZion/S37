@@ -1,6 +1,9 @@
-import type { TLanguage } from 'fractapay-shared'
+import type { TLanguage, TPaymentStatus, TToken } from 'fractapay-shared'
+import { TOKEN } from 'fractapay-shared'
 
-export const APP_NAME = 'FractaPay'
+import tesouroIconUrl from '../assets/icons/tesouro-icon.webp'
+
+export { APP_NAME } from 'fractapay-shared'
 
 export const AUTH_TOKEN_STORAGE_KEY = 'fractapay.token'
 
@@ -14,3 +17,18 @@ export const LANGUAGE_NAMES: Record<TLanguage, string> = {
   'en-US': 'English',
   'pt-BR': 'Português',
 }
+
+export const TOKEN_ICON_URL: Partial<Record<TToken, string>> = {
+  [TOKEN.TESOURO]: tesouroIconUrl,
+}
+
+export const PAYMENT_STATUS_CLASSES: Record<TPaymentStatus, string> = {
+  CREATED: 'bg-blue-100 text-blue-700',
+  FUNDED: 'bg-yellow-100 text-yellow-700',
+  COMPLETED: 'bg-green-100 text-green-700',
+  FAILED: 'bg-red-100 text-red-700',
+  REFUNDED: 'bg-orange-100 text-orange-700',
+  CANCELED: 'bg-neutral-100 text-neutral-600',
+}
+
+export const EMPTY_VALUE = '—'

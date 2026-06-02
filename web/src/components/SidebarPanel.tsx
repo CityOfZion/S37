@@ -1,6 +1,7 @@
 import { type ReactNode, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { ScrollLockHelper } from '../helpers/ScrollLockHelper'
 import { StyleHelper } from '../helpers/StyleHelper'
 import { Button } from './Button'
 import { Tooltip } from './Tooltip'
@@ -82,6 +83,7 @@ export const SidebarPanel = ({
     }
 
     document.addEventListener('keydown', handleEscape)
+    ScrollLockHelper.lock()
 
     return () => {
       siblings.forEach(sibling => sibling.removeAttribute('inert'))
@@ -90,6 +92,7 @@ export const SidebarPanel = ({
         navSidebar?.removeAttribute('inert')
       }
       document.removeEventListener('keydown', handleEscape)
+      ScrollLockHelper.unlock()
     }
   }, [open, onClose, staticOnDesktop])
 

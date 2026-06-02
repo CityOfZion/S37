@@ -42,17 +42,19 @@
     "summaryAmount": "Valor",
     "summaryFee": "Taxa",
     "summaryFeeTooltip": "Taxa de {{fee}}% aplicada sobre a soma dos valores de todos os destinatários. Essa taxa pode aumentar um pouco somando com a taxa do provedor na tela de revisão.",
-    "summaryTotal": "Total a pagar"
+    "summaryTotal": "Total a pagar",
+    "senderMe": "Eu",
+    "senderAssistant": "Assistente"
   },
   "chatPaymentsBar": {
     "paymentsCount": "{{count}} pagamento",
     "paymentsCount_other": "{{count}} pagamentos",
-    "allocationsCount": "{{count}} destinatário",
-    "allocationsCount_other": "{{count}} destinatários",
+    "destinationsCount": "{{count}} destinatário",
+    "destinationsCount_other": "{{count}} destinatários",
     "paymentsPanel": "Ver pagamento",
     "paymentsPanel_other": "Ver pagamentos",
-    "allocationsPanel": "Ver destinatário",
-    "allocationsPanel_other": "Ver destinatários"
+    "destinationsPanel": "Ver destinatário",
+    "destinationsPanel_other": "Ver destinatários"
   },
   "pix": {
     "qrLabel": "QR code PIX",

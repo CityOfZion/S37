@@ -1,6 +1,13 @@
 import BigNumber from 'bignumber.js'
 
-import type { TFiatCurrency, TLanguage, TPixKeyType, TToken } from '../types'
+import type {
+  TFiatCurrency,
+  TLanguage,
+  TPaymentMessageRole,
+  TPaymentStatus,
+  TPixKeyType,
+  TToken,
+} from '../types'
 
 export const ALLOWED_EXTENSIONS = ['csv', 'xls', 'xlsx', 'pdf', 'txt'] as const
 
@@ -51,3 +58,20 @@ export const RECIPIENT_PERCENTAGE = new BigNumber('0.15')
 export const FEE_PERCENTAGE = new BigNumber('0.02')
 
 export const QUOTE_EXPIRY_SECONDS = 60
+
+export const APP_NAME = 'FractaPay'
+
+export const TOKENS: TToken[] = Object.values(TOKEN) as TToken[]
+
+export const PIX_KEY_TYPES: TPixKeyType[] = Object.values(PIX_KEY) as TPixKeyType[]
+
+export const PAYMENT_MESSAGE_ROLES: TPaymentMessageRole[] = ['USER', 'ASSISTANT']
+
+export const PAYMENT_STATUSES: TPaymentStatus[] = [
+  'CREATED',
+  'FUNDED',
+  'COMPLETED',
+  'FAILED',
+  'REFUNDED',
+  'CANCELED',
+]

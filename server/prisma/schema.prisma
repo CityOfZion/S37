@@ -27,6 +27,24 @@ enum PixKeyType {
   PHONE
 }
 
+enum PaymentMessageRole {
+  ASSISTANT
+  USER
+}
+
+enum PaymentStatus {
+  CREATED
+  FUNDED
+  COMPLETED
+  FAILED
+  REFUNDED
+  CANCELED
+}
+
+enum PaymentMethod {
+  PIX
+}
+
 model User {
   id                    String        @id @default(cuid())
   email                 String        @unique
@@ -40,6 +58,7 @@ model User {
 
   accounts     OAuthAccount[]
   destinations Destination[]
+  payments     Payment[]
 }
 
 model Destination {
@@ -53,10 +72,84 @@ model Destination {
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user                User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  paymentDestinations PaymentDestination[]
 
   @@unique([userId, pixKeyHash])
   @@index([userId])
+}
+
+model Payment {
+  id                  String        @id @default(cuid())
+  userId              String        @db.VarChar(500)
+  status              PaymentStatus @default(CREATED)
+  token               Token
+  method              PaymentMethod @default(PIX)
+  amount              String        @db.VarChar(50)
+  feeAmount           String        @db.VarChar(50)
+  feePercentage       String        @db.VarChar(2)
+  tokenAmount         String        @db.VarChar(50)
+  externalId String       @db.VarChar(500)
+  customerId String       @db.VarChar(500)
+  address      String      @db.VarChar(200)
+  exchangeRate String      @db.VarChar(50)
+  transactionSignature         String?       @db.VarChar(500)
+  pixData             String?       @db.VarChar(2000)
+  isRecurring         Boolean       @default(false)
+  errorMessage        String?       @db.VarChar(5000)
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+
+  user         User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items        PaymentItem[]
+  destinations PaymentDestination[]
+  messages     PaymentMessage[]
+
+  @@index([userId])
+  @@index([userId, status])
+  @@index([userId, createdAt(sort: Desc)])
+}
+
+model PaymentItem {
+  id          String   @id @default(cuid())
+  paymentId   String   @db.VarChar(500)
+  amount      String   @db.VarChar(50)
+  description String?  @db.VarChar(400)
+  createdAt   DateTime @default(now())
+
+  payment Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+
+  @@index([paymentId])
+}
+
+model PaymentDestination {
+  id            String     @id @default(cuid())
+  paymentId     String     @db.VarChar(500)
+  destinationId String?    @db.VarChar(500)
+  name          String     @db.VarChar(200)
+  token         Token
+  pixKey        String     @db.VarChar(2000)
+  pixKeyType    PixKeyType
+  percentage    Int
+  amount        String     @db.VarChar(50)
+  createdAt     DateTime   @default(now())
+
+  payment     Payment      @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  destination Destination? @relation(fields: [destinationId], references: [id], onDelete: SetNull)
+
+  @@index([paymentId])
+}
+
+model PaymentMessage {
+  id        String   @id @default(cuid())
+  paymentId String   @db.VarChar(500)
+  role      PaymentMessageRole
+  text      String   @db.VarChar(5000)
+  createdAt DateTime @default(now())
+
+  payment Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+
+  @@index([paymentId])
 }
 
 model OAuthAccount {

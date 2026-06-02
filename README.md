@@ -40,10 +40,10 @@ KYC is mandatory before the first payment. The first time you confirm, FractaPay
 ```
 root/
 ├── server/       # Node.js + Fastify + TypeScript + Prisma  →  chat, AI, prices, auth, DB
+│   └── prisma/   # Prisma schema + migrations               →  MariaDB via Docker or Fly.io
 ├── web/          # React + Vite + TailwindCSS                →  user interface
 ├── contracts/    # Rust + Soroban                            →  Stellar smart contract
-├── shared/       # TypeScript types and helpers              →  shared between server and web
-└── db/           # Prisma schema + migrations                →  MariaDB via Docker or Fly.io
+└── shared/       # TypeScript types and helpers              →  shared between server and web
 ```
 
 ---
@@ -121,18 +121,22 @@ make deploy-testnet  # Deploy to testnet
 │  [Chat with AI at /chat: type amounts or upload a payment file]│
 │        ↓                                                       │
 │  [AI extracts payments + proposes allocations per destination] │
+│  [No price in chat — accurate rate comes from Etherfuse quote] │
 │        ↓                                                       │
 │  [AI requests confirmation → summary table in chat bubble]     │
 │        ↓                                                       │
-│  [Review modal for all allocations: combined quote + 2% fee]   │
+│  [Review modal: live Etherfuse quote + 2% fee + countdown]     │
 │        ↓                                                       │
 │  [First time only: Etherfuse KYC embedded flow]                │
 │        ↓                                                       │
-│  [Confirm → Etherfuse onramp order → PIX QR + copy-paste]      │
+│  [Confirm → POST /payments → Etherfuse order + DB record]      │
+│  [feeAmount + feePercentage saved with payment]                │
 │        ↓                                                       │
-│  [User pays PIX → TESOURO delivered to address on Stellar]     │
+│  [PIX QR + copy-paste → user pays]                             │
 │        ↓                                                       │
-│  [Conversation saved with title → visible in /payments history]│
+│  [TESOURO delivered to destination address on Stellar]         │
+│        ↓                                                       │
+│  [Conversation saved → visible in /payments history]           │
 └────────────────────────────────────────────────────────────────┘
 ```
 
@@ -168,19 +172,18 @@ make deploy-testnet  # Deploy to testnet
 
 ## Etherfuse Ramp Integration
 
-FractaPay uses [Etherfuse](https://docs.etherfuse.com/initial-setup) for the BRL ↔ TESOURO PIX onramp/offramp. The server exposes the following endpoints under `/etherfuse/*`:
+FractaPay uses [Etherfuse](https://docs.etherfuse.com/initial-setup) for the BRL ↔ TESOURO PIX onramp/offramp. The server exposes the following endpoints (all require authentication except the webhook receiver):
 
 | Method + Path | Purpose |
 |---|---|
-| `POST /etherfuse/onboarding` | Create customer + return presigned KYC URL |
-| `GET  /etherfuse/kyc/:customerId/:publicKey` | Read KYC status (polled by the web app) |
-| `POST /etherfuse/bank-account` | Register a PIX bank account |
-| `POST /etherfuse/quote` | Quote BRL → TESOURO with `feeAmount` and `expiresAt` |
-| `POST /etherfuse/order` | Create an onramp order; response contains the PIX code |
-| `GET  /etherfuse/order/:orderId` | Read order status (polled until completed) |
-| `POST /etherfuse/order/:orderId/simulate` | **Sandbox only** — simulate the PIX deposit |
-| `POST /etherfuse/webhook` | Receives Etherfuse webhook events (`order_updated`, `kyc_updated`, etc.) and caches the latest status in memory |
+| `POST /onboarding` | Create customer + return presigned KYC URL |
+| `GET  /kyc/:customerId/:address` | Read KYC status (polled by the web app) |
+| `POST /quote` | Quote BRL → TESOURO with `feeAmount` and `expiresAt` |
+| `POST /payments` | Create an onramp order + persist payment to DB; response contains the PIX code |
+| `GET  /payments/:id` | Read payment + sync order status from Etherfuse (polled until terminal) |
+| `POST /payments/:id/simulate` | **Sandbox only** — simulate the PIX deposit |
+| `POST /webhook` | Receives Etherfuse webhook events (`order_updated`, `kyc_updated`, etc.) and caches the latest status in memory |
 
 The Etherfuse API key never reaches the browser — all calls are proxied through the server, which uses `axios` (same version as the web client) for outbound requests.
 
-Point the Etherfuse dashboard's webhook URL at `<public-host>/etherfuse/webhook` so order/KYC state changes are pushed to the server in real time. The cache lives in process memory (`src/services/etherfuse-webhook-store.ts`) — fine for a single-instance hackathon deployment; swap in Redis or a DB before going multi-instance.
+Point the Etherfuse dashboard's webhook URL at `<public-host>/webhook` so order/KYC state changes are pushed to the server in real time. The cache lives in process memory (`src/services/etherfuse-webhook-store.ts`) — fine for a single-instance hackathon deployment; swap in Redis or a DB before going multi-instance.

@@ -4,7 +4,17 @@ export type TLanguage = 'en-US' | 'pt-BR'
 
 export type TPixKeyType = 'EVP' | 'CPF' | 'CNPJ' | 'EMAIL' | 'PHONE'
 
-export enum ErrorCode {
+export type TFiatCurrency = 'BRL'
+
+export type TPaymentStatus = 'CREATED' | 'FUNDED' | 'COMPLETED' | 'FAILED' | 'REFUNDED' | 'CANCELED'
+
+export type TPaymentMethod = 'PIX'
+
+export type TPaymentMessageRole = 'ASSISTANT' | 'USER'
+
+export type TKycStatus = 'NOT_STARTED' | 'PENDING' | 'APPROVED' | 'REJECTED'
+
+export enum EErrorCode {
   NO_FILE = 'NO_FILE',
   UNSUPPORTED_FILE_TYPE = 'UNSUPPORTED_FILE_TYPE',
   INVALID_TOKEN = 'INVALID_TOKEN',
@@ -31,7 +41,14 @@ export enum ErrorCode {
   DESTINATION_NOT_FOUND = 'DESTINATION_NOT_FOUND',
   DESTINATION_PIX_KEY_EXISTS = 'DESTINATION_PIX_KEY_EXISTS',
   DESTINATION_NAME_EXISTS = 'DESTINATION_NAME_EXISTS',
+  PAYMENT_NOT_FOUND = 'PAYMENT_NOT_FOUND',
+  PAYMENT_CREATE_FAILED = 'PAYMENT_CREATE_FAILED',
+  PAYMENT_PENDING = 'PAYMENT_PENDING',
   UNKNOWN = 'UNKNOWN',
+}
+
+export type TErrorResponse = {
+  error: EErrorCode
 }
 
 export type TUser = {
@@ -42,7 +59,9 @@ export type TUser = {
   onboardingCompletedAt: string | null
 }
 
-export type TAuthMeResult = { success: true; user: TUser } | { success: false; error: ErrorCode }
+export type TAuthToken = {
+  token: string
+}
 
 export type TCompleteOnboardingPayload = {
   companyName: string
@@ -53,27 +72,8 @@ export type TExchangePayload = {
   verifier: string
 }
 
-export type TExchangeResult =
-  | { success: true; token: string }
-  | { success: false; error: ErrorCode }
-
-export type TPayment = {
-  id: string
-  amount: string
-  description?: string
-}
-
-export type TPaymentResponse = {
-  payments: TPayment[]
-  price: string
-}
-
-export type TFiatCurrency = 'BRL'
-
-export type TKycStatus = 'not_started' | 'pending' | 'approved' | 'rejected'
-
 export type TOnboardingPayload = {
-  publicKey: string
+  address: string
 }
 
 export type TOnboardingResult = {
@@ -86,26 +86,11 @@ export type TKycStatusResult = {
   status: TKycStatus
 }
 
-export type TBankAccountPayload = {
-  presignedUrl: string
-  pixKey: string
-  pixKeyType: TPixKeyType
-  firstName: string
-  lastName: string
-  cpf: string
-}
-
-export type TBankAccountResult = {
-  bankAccountId: string
-  pixKey?: string
-  status: string
-}
-
 export type TQuotePayload = {
   customerId: string
   sourceAmount: string
   token: TToken
-  publicKey: string
+  address: string
 }
 
 export type TQuoteResult = {
@@ -118,35 +103,6 @@ export type TQuoteResult = {
   fractapayFeeAmount: string
   expiresAt: string
   createdAt: string
-}
-
-export type TOrderPayload = {
-  quoteId: string
-  customerId: string
-  bankAccountId: string
-  publicKey: string
-  memo?: string
-}
-
-export type TPixInstructions = {
-  pixCode: string
-  pixKey?: string
-  pixKeyType?: string
-  beneficiary?: string
-  amount: string
-  currency: TFiatCurrency
-}
-
-export type TOrderStatus = 'created' | 'funded' | 'completed' | 'failed' | 'refunded' | 'canceled'
-
-export type TOrderResult = {
-  orderId: string
-  status: TOrderStatus
-  pix?: TPixInstructions
-  confirmedTxSignature?: string
-  amountInFiat?: string
-  amountInTokens?: string
-  isRecovered?: boolean
 }
 
 export type TDestination = {
@@ -171,23 +127,111 @@ export type TUpdateDestinationPayload = {
   pixKeyType?: TPixKeyType
 }
 
-export type TListDestinationsResult =
-  | { success: true; destinations: TDestination[] }
-  | { success: false; error: ErrorCode }
+export type TPaymentPix = {
+  pixCode: string
+  pixKey?: string
+  pixKeyType?: string
+  beneficiary?: string
+  amount: string
+  currency: TFiatCurrency
+}
 
-export type TCreateDestinationResult =
-  | { success: true; destination: TDestination }
-  | { success: false; error: ErrorCode }
-
-export type TUpdateDestinationResult =
-  | { success: true; destination: TDestination }
-  | { success: false; error: ErrorCode }
-
-export type TDeleteDestinationResult = { success: true } | { success: false; error: ErrorCode }
-
-export type TDestinationAllocation = {
-  destination: TDestination
+export type TPaymentDestination = {
+  id: string
+  destinationId: string | null
+  name: string
+  token: TToken
+  pixKey: string
+  pixKeyType: TPixKeyType
   percentage: number
+  amount: string
+}
+
+export type TPaymentItem = {
+  id: string
+  amount: string
+  description: string | null
+}
+
+export type TPaymentMessage = {
+  id: string
+  role: TPaymentMessageRole
+  text: string
+  createdAt: string
+}
+
+export type TPayment = {
+  id: string
+  externalId: string
+  transactionSignature: string | null
+  status: TPaymentStatus
+  token: TToken
+  method: TPaymentMethod
+  amount: string
+  feeAmount: string
+  feePercentage: string
+  tokenAmount: string
+  exchangeRate: string
+  address: string
+  isRecurring: boolean
+  errorMessage: string | null
+  createdAt: string
+  updatedAt: string
+  items: TPaymentItem[]
+  destinations: TPaymentDestination[]
+  messages: TPaymentMessage[]
+  pix: TPaymentPix | null
+}
+
+export type TCreatePaymentItem = {
+  amount: string
+  description: string | null
+}
+
+export type TCreatePaymentDestination = {
+  id: string
+  name: string
+  token: TToken
+  pixKey: string
+  pixKeyType: TPixKeyType
+  amount: string
+  percentage: number
+}
+
+export type TCreatePaymentMessage = {
+  role: TPaymentMessageRole
+  text: string
+}
+
+export type TCreatePaymentPayload = {
+  quoteId: string
+  customerId: string
+  bankAccountId: string
+  address: string
+  amount: string
+  feeAmount: string
+  feePercentage: string
+  exchangeRate: string
+  token: TToken
+  tokenAmount: string
+  items: TCreatePaymentItem[]
+  destinations: TCreatePaymentDestination[]
+  messages: TCreatePaymentMessage[]
+}
+
+export type TGetPaymentsParams = {
+  page?: number
+  pageSize?: number
+  status?: TPaymentStatus
+  dateFrom?: string
+  dateTo?: string
+}
+
+export type TGetPaymentsResponse = {
+  data: TPayment[]
+  total: number
+  page: number
+  pageSize: number
 }
 
 export type TPaymentSummaryItem = {
@@ -199,36 +243,45 @@ export type TPaymentSummaryItem = {
   totalAmount?: string
 }
 
-export type TChatRole = 'user' | 'assistant'
-
-export type TChatHistoryMessage = { role: TChatRole; content: string }
+export type TChatMessageHistory = {
+  role: TPaymentMessageRole
+  text: string
+}
 
 export type TChatMessage = {
   id: string
-  role: TChatRole
-  content: string
-  type: 'text' | 'file-import' | 'summary'
-  payments?: TPayment[]
+  role: TPaymentMessageRole
+  text: string
+  type: 'text' | 'file' | 'summary'
+  payments?: TPaymentItem[]
   summary?: TPaymentSummaryItem[]
   timestamp: string
 }
 
 export type TChatAction =
-  | 'none'
-  | 'add_payments'
-  | 'update_payments'
-  | 'set_allocations'
-  | 'request_confirmation'
-  | 'execute'
-  | 'clear'
+  | 'NONE'
+  | 'ADD_PAYMENTS'
+  | 'UPDATE_PAYMENTS'
+  | 'SET_DESTINATIONS'
+  | 'REQUEST_CONFIRMATION'
+  | 'EXECUTE'
+  | 'CLEAR'
+
+export type TChatDestination = {
+  destination: TDestination
+  percentage: number
+}
+
+export type TChatPayment = {
+  payments: TPaymentItem[]
+}
 
 export type TChatResponse = {
-  message: string
+  text: string
   action: TChatAction
-  payments?: TPayment[]
-  price?: string
-  allocations?: TDestinationAllocation[]
+  payments?: TChatPayment[]
+  destinations?: TChatDestination[]
   summary?: TPaymentSummaryItem[]
-  errorCode?: ErrorCode
-  filename?: string
+  error?: EErrorCode
+  fileName?: string
 }

@@ -9,9 +9,14 @@ import { isProduction } from './constants'
 import { EnvHelper } from './helpers/EnvHelper'
 import { authRoute } from './routes/auth-route'
 import { chatRoute } from './routes/chat-route'
+import { customersRoute } from './routes/customers-route'
 import { destinationsRoute } from './routes/destinations-route'
-import { etherfuseRoute } from './routes/etherfuse-route'
 import { healthRoute } from './routes/health-route'
+import { kycRoute } from './routes/kyc-route'
+import { onboardingRoute } from './routes/onboarding-route'
+import { paymentsRoute } from './routes/payments-route'
+import { quotesRoute } from './routes/quotes-route'
+import { webhooksRoute } from './routes/webhooks-route'
 
 const fastify = Fastify({
   logger: isProduction
@@ -24,12 +29,12 @@ const fastify = Fastify({
       },
 })
 
+const iss = 'fractapay-server'
+
 async function bootstrap(): Promise<void> {
   await fastify.register(cookie, {
     secret: EnvHelper.SESSION_SECRET,
   })
-
-  const iss = 'fractapay-server'
 
   await fastify.register(jwt, {
     secret: EnvHelper.SESSION_SECRET,
@@ -92,9 +97,14 @@ async function bootstrap(): Promise<void> {
 
   await fastify.register(healthRoute)
   await fastify.register(authRoute)
-  await fastify.register(destinationsRoute)
-  await fastify.register(etherfuseRoute)
+  await fastify.register(onboardingRoute)
   await fastify.register(chatRoute)
+  await fastify.register(paymentsRoute)
+  await fastify.register(destinationsRoute)
+  await fastify.register(customersRoute)
+  await fastify.register(kycRoute)
+  await fastify.register(quotesRoute)
+  await fastify.register(webhooksRoute)
 
   await fastify.listen({ port: EnvHelper.PORT, host: '0.0.0.0' })
 

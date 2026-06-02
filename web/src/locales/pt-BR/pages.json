@@ -23,22 +23,21 @@
     "heroHeadline": "Vamos personalizar.",
     "heroSubtitle": "Algumas informações sobre seu negócio para a gente moldar a experiência.",
     "companyNameLabel": "Nome da empresa",
-    "companyNamePlaceholder": "Empresa Exemplo",
+    "companyNamePlaceholder": "Insira o nome da empresa",
     "companyNameRequired": "Informe o nome da empresa",
     "cnpjLabel": "CNPJ (opcional)",
     "cnpjPlaceholder": "00.000.000/0001-00",
     "continue": "Continuar",
     "saving": "Salvando…",
     "successHeadline": "Tudo certo!",
-    "successMessage": "Redirecionando…",
-    "homeAria": "Voltar para a tela inicial"
+    "successMessage": "Redirecionando…"
   },
   "payments": {
     "title": "Pagamentos",
     "subtitle": "Histórico de todos os pagamentos realizados pelo FractaPay.",
     "empty": "Nenhum pagamento ainda. Inicie uma conversa.",
     "mobileSummary": "{{payments}} pagamentos | {{recipients}} destinatários",
-    "recurrent": "Recorrente",
+    "recurrence": "Recorrência",
     "columns": {
       "date": "Data",
       "paymentsCount": "Pagamentos",
@@ -60,12 +59,12 @@
   },
   "chat": {
     "title": "Chat",
-    "greeting": "Olá! Sou o assistente de pagamentos da FractaPay. Você descreve o que precisa ou anexa um arquivo, eu identifico os valores e proponho a distribuição. Você revisa, confirma e paga. Como posso ajudar?",
+    "greeting": "Olá, {{name}}! Sou o assistente de pagamentos do FractaPay. Você descreve o que precisa ou anexa um arquivo, eu identifico os valores e proponho a distribuição. Você revisa, confirma e paga. Como posso ajudar?",
     "dropFile": "Solte o arquivo aqui",
     "error": "Erro ao processar mensagem. Tente novamente.",
     "total": "Total",
-    "fileParseError": "Não consegui processar o arquivo \"{{filename}}\". Verifique se está no formato correto (CSV, XLS, XLSX, PDF ou TXT) e tente novamente.",
-    "noPaymentsFound": "Nenhum pagamento encontrado em \"{{filename}}\". Verifique se o arquivo contém valores em BRL e tente novamente.",
+    "fileParseError": "Não consegui processar o arquivo \"{{fileName}}\". Verifique se está no formato correto (CSV, XLS, XLSX, PDF ou TXT) e tente novamente.",
+    "noPaymentsFound": "Nenhum pagamento encontrado em \"{{fileName}}\". Verifique se o arquivo contém valores em BRL e tente novamente.",
     "unsupportedFile": "Formato não suportado. Use CSV, XLS, XLSX, PDF ou TXT.",
     "navigatingWhileLoading": "Aguarde o assistente terminar antes de navegar.",
     "suggestion1": "Distribuir royalties a partir de um arquivo",
@@ -73,10 +72,8 @@
     "suggestion3": "Enviar folha de pagamento",
     "pendingPaymentError": "Você tem um pagamento em andamento. Acesse Pagamentos para concluí-lo antes de iniciar um novo.",
     "paymentsTitle": "Pagamentos",
-    "allocationsTitle": "Destinatários",
+    "destinationsTitle": "Destinatários",
     "goToPayment": "Ir para o pagamento",
-    "conversationTitle": "{{date}} | {{amount}} | {{recipients}} destinatário",
-    "conversationTitle_other": "{{date}} | {{amount}} | {{recipients}} destinatários",
     "conversationTitleEmpty": "{{date}}"
   },
   "destinations": {
@@ -106,26 +103,31 @@
     }
   },
   "payment": {
-    "title": "Recibo de pagamento",
+    "title": "Pagamento",
     "error": "Não foi possível carregar o pedido.",
     "status": "Status",
-    "orderId": "ID do pagamento",
+    "externalId": "ID externo",
+    "address": "Endereço",
+    "feeAmount": "Valor da taxa",
+    "feeAmountTooltip": "Taxa do FractaPay ({{fee}}%) + taxa do provedor",
     "amount": "Valor",
+    "totalAmount": "Valor total",
     "amountInTokens": "Tokens",
     "txHash": "Transação",
     "copyTx": "Copiar hash da transação",
     "copiedTx": "Copiado!",
     "technicalDetails": "Detalhes técnicos",
     "viewPayments": "Ver pagamentos",
-    "allocationsTitle": "Destinatários",
+    "destinationsTitle": "Destinatários",
     "noPayments": "Nenhum pagamento encontrado",
     "statuses": {
-      "created": "Criado",
-      "funded": "Recebido",
-      "completed": "Concluído",
-      "failed": "Falhou",
-      "refunded": "Reembolsado",
-      "canceled": "Cancelado"
-    }
+      "CREATED": "Criado",
+      "FUNDED": "Recebido",
+      "COMPLETED": "Concluído",
+      "FAILED": "Falhou",
+      "REFUNDED": "Reembolsado",
+      "CANCELED": "Cancelado"
+    },
+    "rate": "Cotação"
   }
 }

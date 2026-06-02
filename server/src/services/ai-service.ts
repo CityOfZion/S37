@@ -2,11 +2,10 @@ import { GoogleGenAI } from '@google/genai'
 import BigNumber from 'bignumber.js'
 import * as uuid from 'uuid'
 
-import type { TLanguage, TPaymentResponse, TToken } from 'fractapay-shared'
-import { ErrorCode, FIAT_BY_TOKEN, StringHelper } from 'fractapay-shared'
+import type { TLanguage, TPaymentItem, TToken } from 'fractapay-shared'
+import { EErrorCode, FIAT_BY_TOKEN, StringHelper } from 'fractapay-shared'
 
 import { EnvHelper } from '../helpers/EnvHelper'
-import { fetchTesouroPerUsdcPrice, fetchUsdPerBrlPrice } from './prices-service'
 
 type TRawPayment = { amount: number; description?: string }
 type TRawResponse = { payments: TRawPayment[] }
@@ -15,6 +14,8 @@ type TAnalyzeOptions = {
   token: TToken
   language: TLanguage
 }
+
+type TAnalyzeResponse = { payments: TPaymentItem[] }
 
 const ai = new GoogleGenAI({ apiKey: EnvHelper.GEMINI_API_KEY })
 
@@ -76,21 +77,10 @@ ${fileContent}
 ---`
 }
 
-const computePrice = async (): Promise<string> => {
-  const [tesouroPerUsdc, usdPerBrl] = await Promise.all([
-    fetchTesouroPerUsdcPrice(),
-    fetchUsdPerBrlPrice(),
-  ])
-
-  return StringHelper.formatAmount(tesouroPerUsdc.multipliedBy(usdPerBrl))
-}
-
 export async function analyze(
   fileContent: string,
   options: TAnalyzeOptions
-): Promise<TPaymentResponse> {
-  const price = await computePrice()
-
+): Promise<TAnalyzeResponse> {
   const response = await ai.models.generateContent({
     model: 'gemini-3.1-flash-lite',
     config: {
@@ -108,7 +98,7 @@ export async function analyze(
   const jsonMatch = text.match(/\{[\s\S]*}/)
 
   if (!jsonMatch) {
-    throw new Error(ErrorCode.AI_PARSE_FAILED)
+    throw new Error(EErrorCode.AI_PARSE_FAILED)
   }
 
   const parsed: TRawResponse = JSON.parse(jsonMatch[0])
@@ -118,8 +108,8 @@ export async function analyze(
     .map(payment => ({
       id: uuid.v4(),
       amount: StringHelper.formatAmount(payment.amount),
-      description: payment.description,
+      description: payment.description || null,
     }))
 
-  return { payments: validPayments, price }
+  return { payments: validPayments }
 }

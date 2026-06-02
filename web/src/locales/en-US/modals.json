@@ -53,7 +53,6 @@
     "feeLabel": "Fee",
     "total": "Total to pay",
     "rate": "Quote",
-    "rateValue": "1 {{fiat}} ≈ {{rate}} {{token}}",
     "lookingUpCustomer": "Checking your account…",
     "kycRequired": "We need to verify your identity before your first payment.",
     "kycPending": "Identity verification in progress…",
@@ -65,7 +64,7 @@
     "confirm": "Confirm",
     "confirming": "Generating payment…",
     "orderCreated": "Order created. Pay to continue.",
-    "orderError": "Could not create the order, please, try again.",
+    "paymentError": "Could not create the payment, please, try again.",
     "onboardingError": "Could not start identity verification, please try again.",
     "reviewWarning": "Review carefully before confirming. Once confirmed, payments will be scheduled and processed automatically."
   }

@@ -2,27 +2,27 @@ import { useTranslation } from 'react-i18next'
 
 import BigNumber from 'bignumber.js'
 
-import type { TDestinationAllocation, TPayment, TToken } from 'fractapay-shared'
+import type { TChatDestination, TPaymentItem, TToken } from 'fractapay-shared'
 import { StringHelper } from 'fractapay-shared'
 
 import { Button } from './Button'
 import { Tooltip } from './Tooltip'
 
 type TProps = {
-  payments: TPayment[]
-  allocations: TDestinationAllocation[]
+  payments: TPaymentItem[]
+  destinations: TChatDestination[]
   token: TToken
   onOpenPayments: () => void
-  onOpenAllocations: () => void
+  onOpenDestinations: () => void
   orderExecuted: boolean
 }
 
 export const ChatPaymentsBar = ({
   payments,
-  allocations,
+  destinations,
   token,
   onOpenPayments,
-  onOpenAllocations,
+  onOpenDestinations,
   orderExecuted,
 }: TProps) => {
   const { t } = useTranslation('components', { keyPrefix: 'chatPaymentsBar' })
@@ -55,15 +55,15 @@ export const ChatPaymentsBar = ({
             </Button>
           </Tooltip>
 
-          {allocations.length > 0 && (
-            <Tooltip content={t('allocationsPanel', { count: allocations.length })}>
+          {destinations.length > 0 && (
+            <Tooltip content={t('destinationsPanel', { count: destinations.length })}>
               <Button
                 variant="ghost"
                 size="xs"
                 className="text-xs font-semibold text-primary px-0 h-auto min-h-0 hover:text-primary/70 hover:bg-transparent active:bg-transparent active:opacity-70 rounded"
-                onClick={onOpenAllocations}
+                onClick={onOpenDestinations}
               >
-                {t('allocationsCount', { count: allocations.length })}
+                {t('destinationsCount', { count: destinations.length })}
               </Button>
             </Tooltip>
           )}

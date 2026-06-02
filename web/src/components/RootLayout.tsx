@@ -16,8 +16,8 @@ export const RootLayout = () => {
   const toolbarRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (destinationsData?.success) {
-      setDestinations(destinationsData.destinations)
+    if (destinationsData) {
+      setDestinations(destinationsData)
     }
   }, [destinationsData, setDestinations])
 

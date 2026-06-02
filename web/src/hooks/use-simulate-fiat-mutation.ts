@@ -2,11 +2,11 @@ import { useMutation } from '@tanstack/react-query'
 
 import { server } from '../services/server'
 
-export function useSimulateFiatMutation() {
+export function usePaymentSimulateMutation() {
   return useMutation<{ success: boolean }, Error, string>({
-    mutationFn: async orderId => {
+    mutationFn: async (id: string) => {
       const { data } = await server.post<{ success: boolean }>(
-        `/etherfuse/order/${encodeURIComponent(orderId)}/simulate`
+        `/payments/${encodeURIComponent(id)}/simulate`
       )
 
       return data

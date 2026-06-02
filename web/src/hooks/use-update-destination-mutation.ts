@@ -1,29 +1,27 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
-import type { TUpdateDestinationPayload, TUpdateDestinationResult } from 'fractapay-shared'
+import type { TDestination, TUpdateDestinationPayload } from 'fractapay-shared'
 
 import { server } from '../services/server'
+import { DESTINATIONS_QUERY_KEY } from './use-destinations-query'
 import { useDestinationsStore } from './use-destinations-store'
 
-type TParams = {
-  id: string
-} & TUpdateDestinationPayload
+type TUpdateDestinationParams = { id: string } & TUpdateDestinationPayload
 
 export function useUpdateDestinationMutation() {
   const updateDestination = useDestinationsStore(state => state.updateDestination)
   const queryClient = useQueryClient()
 
-  return useMutation({
-    mutationFn: async ({ id, ...payload }: TParams) => {
-      const response = await server.patch<TUpdateDestinationResult>(`/destinations/${id}`, payload)
+  return useMutation<TDestination, Error, TUpdateDestinationParams>({
+    mutationFn: async ({ id, ...payload }) => {
+      const { data } = await server.patch<TDestination>(`/destinations/${id}`, payload)
 
-      return response.data
+      return data
     },
-    onSuccess: data => {
-      if (data.success) {
-        updateDestination(data.destination)
-        void queryClient.invalidateQueries({ queryKey: ['destinations'] })
-      }
+    onSuccess: destination => {
+      updateDestination(destination)
+
+      void queryClient.invalidateQueries({ queryKey: [DESTINATIONS_QUERY_KEY] })
     },
   })
 }

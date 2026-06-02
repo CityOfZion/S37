@@ -12,7 +12,7 @@ import { Input } from '../components/Input'
 import { Modal } from '../components/Modal'
 import { Select } from '../components/Select'
 import { InputHelper } from '../helpers/InputHelper'
-import { destinationSchema, type TDestinationFormValues } from '../schemas/destination-schema'
+import { destinationsSchema, type TDestinationFormValues } from '../schemas/destinations-schema'
 
 import BrazilFlagIcon from '../assets/icons/brazil-flag-icon.svg?react'
 
@@ -54,27 +54,27 @@ export const DestinationModal = ({ open, onOpenChange, destination, onSave, isSa
     clearErrors,
     formState: { errors, isValid },
   } = useForm<TDestinationFormValues>({
-    resolver: zodResolver(destinationSchema),
+    resolver: zodResolver(destinationsSchema),
     defaultValues: {
-      name: destination?.name ?? '',
-      token: destination?.token ?? TOKEN.TESOURO,
+      name: destination?.name || '',
+      token: destination?.token || TOKEN.TESOURO,
       pixKey: InputHelper.applyPixKeyMask(
-        destination?.pixKey ?? '',
-        destination?.pixKeyType ?? 'EVP'
+        destination?.pixKey || '',
+        destination?.pixKeyType || 'EVP'
       ),
-      pixKeyType: destination?.pixKeyType ?? 'EVP',
+      pixKeyType: destination?.pixKeyType || 'EVP',
     },
     mode: 'onChange',
   })
 
   useEffect(() => {
     if (open) {
-      const pixKeyType = destination?.pixKeyType ?? 'EVP'
+      const pixKeyType = destination?.pixKeyType || 'EVP'
 
       reset({
-        name: destination?.name ?? '',
-        token: destination?.token ?? TOKEN.TESOURO,
-        pixKey: InputHelper.applyPixKeyMask(destination?.pixKey ?? '', pixKeyType),
+        name: destination?.name || '',
+        token: destination?.token || TOKEN.TESOURO,
+        pixKey: InputHelper.applyPixKeyMask(destination?.pixKey || '', pixKeyType),
         pixKeyType,
       })
     }

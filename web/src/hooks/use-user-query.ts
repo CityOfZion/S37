@@ -1,10 +1,10 @@
 import { queryOptions, useQuery } from '@tanstack/react-query'
 
-import type { TAuthMeResult, TUser } from 'fractapay-shared'
+import type { TUser } from 'fractapay-shared'
 
 import { server } from '../services/server'
 
-export const USER_QUERY_KEY = ['auth', 'me'] as const
+export const USER_QUERY_KEY = ['user'] as const
 
 export const userQueryOptions = queryOptions<TUser | null>({
   queryKey: USER_QUERY_KEY,
@@ -12,9 +12,9 @@ export const userQueryOptions = queryOptions<TUser | null>({
   retry: false,
   queryFn: async () => {
     try {
-      const { data } = await server.get<TAuthMeResult>('/auth/me')
+      const { data } = await server.get<TUser>('/auth/me')
 
-      return data.success ? data.user : null
+      return data
     } catch {
       return null
     }

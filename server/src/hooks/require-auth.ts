@@ -1,8 +1,8 @@
 import type { preHandlerHookHandler } from 'fastify'
 
-import { ErrorCode, type TUser } from 'fractapay-shared'
+import { EErrorCode, type TUser } from 'fractapay-shared'
 
-import { findUserById, mapUserToTUser } from '../services/user-service'
+import { findUserById, mapUserToTUser } from '../services/users-service'
 
 type TJwtPayload = {
   sub: string
@@ -21,9 +21,7 @@ const verifyToken = async (
 ): Promise<TJwtPayload | null> => {
   try {
     return await request.jwtVerify<TJwtPayload>()
-  } catch (error) {
-    request.log.info({ error: (error as Error).message }, '[Auth] jwtVerify failed')
-
+  } catch {
     return null
   }
 }
@@ -32,13 +30,13 @@ export const requireAuth: preHandlerHookHandler = async (request, reply) => {
   const payload = await verifyToken(request)
 
   if (!payload) {
-    return reply.status(401).send({ success: false, error: ErrorCode.UNAUTHORIZED })
+    return reply.status(401).send({ error: EErrorCode.UNAUTHORIZED })
   }
 
   const user = await findUserById(payload.sub)
 
   if (!user) {
-    return reply.status(401).send({ success: false, error: ErrorCode.SESSION_EXPIRED })
+    return reply.status(401).send({ error: EErrorCode.SESSION_EXPIRED })
   }
 
   request.user = mapUserToTUser(user)

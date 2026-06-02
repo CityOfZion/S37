@@ -6,9 +6,11 @@ import BigNumber from 'bignumber.js'
 import { match } from 'ts-pattern'
 
 import type {
-  TDestinationAllocation,
+  TChatDestination,
+  TChatMessage,
   TKycStatus,
-  TOrderResult,
+  TPayment,
+  TPaymentItem,
   TQuoteResult,
 } from 'fractapay-shared'
 import { FEE_PERCENTAGE, FIAT_BY_TOKEN, QUOTE_EXPIRY_SECONDS, StringHelper } from 'fractapay-shared'
@@ -16,19 +18,19 @@ import { FEE_PERCENTAGE, FIAT_BY_TOKEN, QUOTE_EXPIRY_SECONDS, StringHelper } fro
 import { Accordion } from '../components/Accordion'
 import { Button } from '../components/Button'
 import { CountdownRing } from '../components/CountdownRing'
+import { FeeIcon } from '../components/FeeIcon'
 import { Modal } from '../components/Modal'
-import { PixInstructions } from '../components/PixInstructions'
+import { PixContent } from '../components/PixContent'
 import { Skeleton } from '../components/Skeleton'
+import { TokenIcon } from '../components/TokenIcon'
 import { Tooltip } from '../components/Tooltip'
-import { APP_NAME } from '../constants'
-import { TOKEN_ICON_URL } from '../constants/token-icons'
 import { ToastHelper } from '../helpers/ToastHelper'
 import { useCountdown } from '../hooks/use-countdown'
+import { useCreatePaymentMutation } from '../hooks/use-create-payment-mutation'
 import { useCustomerLookupQuery } from '../hooks/use-customer-lookup-query'
-import { useEtherfuseStore } from '../hooks/use-etherfuse-store'
 import { useKycStatusQuery } from '../hooks/use-kyc-status-query'
+import { useKycStore } from '../hooks/use-kyc-store'
 import { useOnboardingMutation } from '../hooks/use-onboarding-mutation'
-import { useOrderMutation } from '../hooks/use-order-mutation'
 import { usePaymentsStore } from '../hooks/use-payments-store'
 import { useQuoteMutation } from '../hooks/use-quote-mutation'
 
@@ -58,44 +60,45 @@ type TProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
   recipientAddress: string
-  allocations: TDestinationAllocation[]
-  onPaymentCompleted?: (orderId?: string) => void
+  destinations: TChatDestination[]
+  payments: TPaymentItem[]
+  messages: TChatMessage[]
+  onPaymentCompleted?: (payment: TPayment) => void
 }
 
 export const ReviewModal = ({
   open,
   onOpenChange,
   recipientAddress,
-  allocations,
+  destinations,
+  payments,
+  messages,
   onPaymentCompleted,
 }: TProps) => {
   const { t } = useTranslation('modals', { keyPrefix: 'review' })
   const { t: tCommon } = useTranslation('common')
   const navigate = useNavigate()
-  const { payments, token, setPayments } = usePaymentsStore()
-  const account = useEtherfuseStore(state => state.accounts[recipientAddress])
-  const setAccount = useEtherfuseStore(state => state.setAccount)
-  const removeAccount = useEtherfuseStore(state => state.removeAccount)
+  const { token } = usePaymentsStore()
+  const account = useKycStore(state => state.accounts[recipientAddress])
+  const setAccount = useKycStore(state => state.setAccount)
   const onboardingMutation = useOnboardingMutation()
   const quoteMutation = useQuoteMutation()
-  const orderMutation = useOrderMutation()
-  const [order, setOrder] = useState<TOrderResult | null>(null)
-  const [feeTooltipOpen, setFeeTooltipOpen] = useState(false)
+  const createPaymentMutation = useCreatePaymentMutation()
+  const [payment, setPayment] = useState<TPayment | null>(null)
   const [quoteReady, setQuoteReady] = useState(false)
   const [quote, setQuote] = useState<TQuoteResult | null>(null)
   const [isQuotePending, setIsQuotePending] = useState(false)
   const feePercent = FEE_PERCENTAGE.times(100).toFixed(0)
 
   const handlePaymentDone = () => {
-    if (!order) return
+    if (!payment) return
 
     onOpenChange(false)
-    setPayments([])
-    void navigate({ to: '/payments/$orderId', params: { orderId: order.orderId } })
+    void navigate({ to: '/payments/$id', params: { id: payment.id } })
   }
 
   const customerLookupQuery = useCustomerLookupQuery({
-    publicKey: recipientAddress,
+    address: recipientAddress,
     enabled: open && !account?.customerId,
   })
 
@@ -113,7 +116,7 @@ export const ReviewModal = ({
 
   const kycQuery = useKycStatusQuery({
     customerId: account?.customerId || '',
-    publicKey: recipientAddress,
+    address: recipientAddress,
     enabled: open && !!account?.customerId,
   })
 
@@ -121,7 +124,7 @@ export const ReviewModal = ({
     () =>
       StringHelper.formatAmount(
         payments.reduce(
-          (accumulator, payment) => accumulator.plus(new BigNumber(payment.amount || '0')),
+          (accumulator, item) => accumulator.plus(new BigNumber(item.amount || '0')),
           new BigNumber('0')
         )
       ),
@@ -132,10 +135,10 @@ export const ReviewModal = ({
     () =>
       StringHelper.formatAmount(
         new BigNumber(totalAmount).times(
-          allocations.reduce((sum, allocation) => sum + allocation.percentage, 0) / 100
+          destinations.reduce((sum, destination) => sum + destination.percentage, 0) / 100
         )
       ),
-    [totalAmount, allocations]
+    [totalAmount, destinations]
   )
 
   const feeAmount = useMemo(
@@ -169,18 +172,18 @@ export const ReviewModal = ({
         customerId: account.customerId,
         sourceAmount: recipientAmount,
         token,
-        publicKey: recipientAddress,
+        address: recipientAddress,
       })
       setQuote(result)
       setQuoteReady(true)
     } catch {
-      removeAccount(recipientAddress)
-      ToastHelper.error(t('orderError'))
+      onOpenChange(false)
+      ToastHelper.error(t('paymentError'))
     } finally {
       inFlightRef.current = false
       setIsQuotePending(false)
     }
-  }, [account?.customerId, recipientAmount, token, recipientAddress, removeAccount, t])
+  }, [account?.customerId, recipientAmount, token, recipientAddress, onOpenChange, t])
 
   const { remainingSeconds, isExpired } = useCountdown(quote?.expiresAt || null)
 
@@ -189,22 +192,15 @@ export const ReviewModal = ({
   const isQuoteError = quoteMutation.isError
 
   useEffect(() => {
-    if (!open || !account?.customerId || kycStatusForEffect !== 'approved') return
+    if (!open || !account?.customerId || kycStatusForEffect !== 'APPROVED') return
     if (hasQuote && !isExpired) return
     if (isQuoteError) return
 
     void fetchQuote()
   }, [open, account?.customerId, kycStatusForEffect, hasQuote, isExpired, isQuoteError, fetchQuote])
 
-  const orderResetRef = useRef(orderMutation.reset)
-
-  orderResetRef.current = orderMutation.reset
-
-  useEffect(() => {
-    if (order?.pix) {
-      onPaymentCompleted?.(order.orderId)
-    }
-  }, [order?.pix]) // eslint-disable-line react-hooks/exhaustive-deps
+  const createPaymentResetRef = useRef(createPaymentMutation.reset)
+  createPaymentResetRef.current = createPaymentMutation.reset
 
   useEffect(() => {
     if (!open) {
@@ -213,14 +209,14 @@ export const ReviewModal = ({
       setQuoteReady(false)
       setIsQuotePending(false)
       quoteResetRef.current()
-      orderResetRef.current()
-      setOrder(null)
+      createPaymentResetRef.current()
+      setPayment(null)
     }
   }, [open])
 
   const startOnboarding = () => {
     onboardingMutation.mutate(
-      { publicKey: recipientAddress },
+      { address: recipientAddress },
       {
         onSuccess: result => {
           setAccount(recipientAddress, {
@@ -247,26 +243,49 @@ export const ReviewModal = ({
   const confirm = () => {
     if (!quote || isExpired || !account?.customerId || !account.bankAccountId) return
 
-    orderMutation.mutate(
+    const destinationPayloads = destinations.map(chatDestination => ({
+      id: chatDestination.destination.id,
+      name: chatDestination.destination.name,
+      token: chatDestination.destination.token,
+      pixKey: chatDestination.destination.pixKey,
+      pixKeyType: chatDestination.destination.pixKeyType,
+      percentage: chatDestination.percentage,
+      amount: StringHelper.formatAmount(
+        new BigNumber(totalAmount).times(chatDestination.percentage / 100)
+      ),
+    }))
+
+    createPaymentMutation.mutate(
       {
         quoteId: quote.quoteId,
         customerId: account.customerId,
         bankAccountId: account.bankAccountId,
-        publicKey: recipientAddress,
-        memo: `${APP_NAME} batch ${new Date().toISOString()}`,
+        address: recipientAddress,
+        token,
+        amount: recipientAmount,
+        feeAmount: quote.feeAmount,
+        feePercentage: FEE_PERCENTAGE.times(100).toString(),
+        exchangeRate: quote.exchangeRate,
+        tokenAmount: quote.destinationAmount,
+        destinations: destinationPayloads,
+        items: payments.map(item => ({ amount: item.amount, description: item.description })),
+        messages: messages.map(message => ({ role: message.role, text: message.text })),
       },
       {
-        onSuccess: result => {
-          setOrder(result)
+        onSuccess: payment => {
+          setPayment(payment)
+          onPaymentCompleted?.(payment)
           ToastHelper.success(t('orderCreated'))
         },
-        onError: () => ToastHelper.error(t('orderError')),
+        onError: () => {
+          ToastHelper.error(t('paymentError'))
+        },
       }
     )
   }
 
-  const kycStatus: TKycStatus = kycQuery.data?.status || 'not_started'
-  const isReadyForQuote = !!account?.customerId && kycStatus === 'approved'
+  const kycStatus: TKycStatus = kycQuery.data?.status || 'NOT_STARTED'
+  const isReadyForQuote = !!account?.customerId && kycStatus === 'APPROVED'
 
   const isLookingUpCustomer = customerLookupQuery.isFetching && !account?.customerId
 
@@ -290,12 +309,12 @@ export const ReviewModal = ({
           {t('kycRequired')}
         </div>
       ))
-      .with({ kycStatus: 'not_started' }, { kycStatus: 'pending' }, () => (
+      .with({ kycStatus: 'NOT_STARTED' }, { kycStatus: 'PENDING' }, () => (
         <div className="rounded-xl border border-info-500/30 bg-info-100 px-4 py-3 text-xs text-neutral-700">
           {t('kycPending')}
         </div>
       ))
-      .with({ kycStatus: 'rejected' }, () => (
+      .with({ kycStatus: 'REJECTED' }, () => (
         <div className="rounded-xl border border-danger-500/30 bg-danger-100 px-4 py-3 text-xs text-neutral-700">
           {t('kycRejected')}
         </div>
@@ -309,14 +328,14 @@ export const ReviewModal = ({
       title={t('title')}
       description={t('description')}
       closeLabel={t('close')}
-      isCloseDisabled={orderMutation.isPending}
+      isCloseDisabled={createPaymentMutation.isPending}
       preventClose
     >
-      {order?.pix ? (
-        <PixInstructions
-          pix={order.pix}
-          orderId={order.orderId}
-          isPendingOrder={order.isRecovered}
+      {payment?.pix ? (
+        <PixContent
+          pix={payment.pix}
+          paymentId={payment.id}
+          isPendingOrder={false}
           onPaid={handlePaymentDone}
         />
       ) : (
@@ -349,21 +368,21 @@ export const ReviewModal = ({
                   </tr>
                 </thead>
                 <tbody className="text-xs divide-y divide-neutral-200">
-                  {allocations.map(allocation => {
-                    const allocationAmount = StringHelper.formatAmount(
-                      new BigNumber(totalAmount).times(allocation.percentage / 100)
+                  {destinations.map(chatDestination => {
+                    const destinationAmount = StringHelper.formatAmount(
+                      new BigNumber(totalAmount).times(chatDestination.percentage / 100)
                     )
 
                     return (
-                      <tr key={allocation.destination.id}>
+                      <tr key={chatDestination.destination.id}>
                         <td className="px-4 py-2 text-neutral-900">
-                          {allocation.destination.name}
+                          {chatDestination.destination.name}
                         </td>
                         <td className="px-4 py-2 text-right text-neutral-900">
-                          {allocation.percentage}%
+                          {chatDestination.percentage}%
                         </td>
                         <td className="px-4 py-2 text-right font-bold text-neutral-900 whitespace-nowrap">
-                          {StringHelper.formatCurrencyAmount(allocationAmount, token)}
+                          {StringHelper.formatCurrencyAmount(destinationAmount, token)}
                         </td>
                       </tr>
                     )
@@ -372,30 +391,10 @@ export const ReviewModal = ({
                     <td className="px-4 py-2 text-neutral-500">
                       <div className="flex items-center gap-1">
                         {t('feeLabel')}
-                        <Tooltip
-                          content={t('feeTooltip', { fee: feePercent })}
-                          open={feeTooltipOpen}
-                          onOpenChange={setFeeTooltipOpen}
-                        >
-                          <span
-                            tabIndex={0}
-                            className="inline-flex cursor-pointer"
-                            aria-label={t('feeTooltip', {
-                              fee: feePercent,
-                            })}
-                            onClick={() => setFeeTooltipOpen(previous => !previous)}
-                            onKeyDown={event =>
-                              event.key === 'Enter' && setFeeTooltipOpen(previous => !previous)
-                            }
-                          >
-                            <InfoIcon className="size-3 text-neutral-400" aria-hidden="true" />
-                          </span>
-                        </Tooltip>
+                        <FeeIcon label={t('feeTooltip', { fee: feePercent })} />
                       </div>
                     </td>
-                    <td className="px-4 py-2 text-right text-neutral-500">
-                      {feePercent}%
-                    </td>
+                    <td className="px-4 py-2 text-right text-neutral-500">{feePercent}%</td>
                     <td className="px-4 py-2 text-right text-neutral-900 whitespace-nowrap">
                       {!quoteReady ? (
                         <Skeleton className="h-3 w-20 ml-auto" />
@@ -425,16 +424,11 @@ export const ReviewModal = ({
             <dl className="text-xs text-neutral-700">
               <div className="flex items-center justify-between pb-1.5 border-b border-neutral-100">
                 <dt className="text-neutral-500">{t('coinLabel')}</dt>
-                <dd className="flex items-center gap-1.5">
-                  {TOKEN_ICON_URL[token] && (
-                    <img
-                      src={TOKEN_ICON_URL[token]}
-                      alt=""
-                      aria-hidden="true"
-                      className="size-4 rounded-full object-cover"
-                    />
-                  )}
-                  <span>{token}</span>
+                <dd className="flex items-center gap-1">
+                  <TokenIcon token={token} className="size-4 object-cover" />
+                  <span className="font-medium">
+                    {StringHelper.formatAmount(quote?.destinationAmount || '0')} {token}
+                  </span>
                 </dd>
               </div>
               {isReadyForQuote && (
@@ -444,9 +438,9 @@ export const ReviewModal = ({
                     {!quoteReady ? (
                       <Skeleton />
                     ) : (
-                      t('rateValue', {
+                      tCommon('rateValue', {
                         fiat: tCommon(`fiatBySymbol.${FIAT_BY_TOKEN[token]}`).toLowerCase(),
-                        rate: StringHelper.formatAmount(quote?.exchangeRate ?? '0'),
+                        rate: StringHelper.formatAmount(quote?.exchangeRate || '0'),
                         token,
                       })
                     )}
@@ -486,17 +480,17 @@ export const ReviewModal = ({
                   {onboardingMutation.isPending ? t('startingKyc') : t('startKyc')}
                 </Button>
               ))
-              .with({ kycStatus: 'not_started' }, () => (
+              .with({ kycStatus: 'NOT_STARTED' }, () => (
                 <Button variant="outline" onClick={continueKyc}>
                   {t('continueKyc')}
                 </Button>
               ))
-              .with({ kycStatus: 'pending' }, () => (
+              .with({ kycStatus: 'PENDING' }, () => (
                 <Button variant="outline" onClick={continueKyc}>
                   {t('continueKyc')}
                 </Button>
               ))
-              .with({ kycStatus: 'rejected' }, () => (
+              .with({ kycStatus: 'REJECTED' }, () => (
                 <Button variant="outline" onClick={continueKyc}>
                   {t('retryKyc')}
                 </Button>
@@ -508,12 +502,12 @@ export const ReviewModal = ({
                     !quote ||
                     isExpired ||
                     isQuotePending ||
-                    orderMutation.isPending ||
+                    createPaymentMutation.isPending ||
                     !account?.bankAccountId
                   }
                   onClick={confirm}
                 >
-                  {orderMutation.isPending ? t('confirming') : t('confirm')}
+                  {createPaymentMutation.isPending ? t('confirming') : t('confirm')}
                 </Button>
               ))
               .otherwise(() => null)}

@@ -7,7 +7,7 @@ import { server } from '../services/server'
 export function useQuoteMutation() {
   return useMutation<TQuoteResult, Error, TQuotePayload>({
     mutationFn: async payload => {
-      const { data } = await server.post<TQuoteResult>('/etherfuse/quote', payload)
+      const { data } = await server.post<TQuoteResult>('/quote', payload)
 
       return data
     },

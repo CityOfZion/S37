@@ -1,16 +1,18 @@
 import { useQuery } from '@tanstack/react-query'
 
-import type { TListDestinationsResult } from 'fractapay-shared'
+import type { TDestination } from 'fractapay-shared'
 
 import { server } from '../services/server'
 
-export function useDestinationsQuery() {
-  return useQuery({
-    queryKey: ['destinations'],
-    queryFn: async () => {
-      const response = await server.get<TListDestinationsResult>('/destinations')
+export const DESTINATIONS_QUERY_KEY = 'destinations'
 
-      return response.data
+export function useDestinationsQuery() {
+  return useQuery<TDestination[]>({
+    queryKey: [DESTINATIONS_QUERY_KEY],
+    queryFn: async () => {
+      const { data } = await server.get<TDestination[]>('/destinations')
+
+      return data
     },
     staleTime: Infinity,
   })

@@ -30,10 +30,10 @@ const data = parsed.data
 
 export class EnvHelper {
   static readonly PORT = parseInt(data.PORT)
+  static readonly CORS_ORIGIN = data.CORS_ORIGIN
   static readonly GEMINI_API_KEY = data.GEMINI_API_KEY
   static readonly ETHERFUSE_API_KEY = data.ETHERFUSE_API_KEY
   static readonly ETHERFUSE_BASE_URL = data.ETHERFUSE_BASE_URL
-  static readonly CORS_ORIGIN = data.CORS_ORIGIN
   static readonly GOOGLE_CLIENT_ID = data.GOOGLE_CLIENT_ID
   static readonly GOOGLE_CLIENT_SECRET = data.GOOGLE_CLIENT_SECRET
   static readonly OAUTH_CALLBACK_URL = data.OAUTH_CALLBACK_URL

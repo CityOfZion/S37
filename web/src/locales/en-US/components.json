@@ -42,17 +42,19 @@
     "summaryAmount": "Amount",
     "summaryFee": "Fee",
     "summaryFeeTooltip": "{{fee}}% fee applied to the sum of all recipient amounts. This fee may increase slightly when added to the provider's fee shown on the review screen.",
-    "summaryTotal": "Total to pay"
+    "summaryTotal": "Total to pay",
+    "senderMe": "Me",
+    "senderAssistant": "Assistant"
   },
   "chatPaymentsBar": {
     "paymentsCount": "{{count}} payment",
     "paymentsCount_other": "{{count}} payments",
-    "allocationsCount": "{{count}} recipient",
-    "allocationsCount_other": "{{count}} recipients",
+    "destinationsCount": "{{count}} recipient",
+    "destinationsCount_other": "{{count}} recipients",
     "paymentsPanel": "View payment",
     "paymentsPanel_other": "View payments",
-    "allocationsPanel": "View recipient",
-    "allocationsPanel_other": "View recipients"
+    "destinationsPanel": "View recipient",
+    "destinationsPanel_other": "View recipients"
   },
   "pix": {
     "qrLabel": "PIX QR code",

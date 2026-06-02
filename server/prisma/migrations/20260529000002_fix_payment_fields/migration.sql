@@ -1,0 +1,2 @@
+-- No-op: pixData was already present in the initial migration (20260529000001_add_payments).
+-- pixCode never existed in this schema. This migration is kept only for deploy-history consistency.

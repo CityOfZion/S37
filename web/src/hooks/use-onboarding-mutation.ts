@@ -7,7 +7,7 @@ import { server } from '../services/server'
 export function useOnboardingMutation() {
   return useMutation<TOnboardingResult, Error, TOnboardingPayload>({
     mutationFn: async payload => {
-      const { data } = await server.post<TOnboardingResult>('/etherfuse/onboarding', payload)
+      const { data } = await server.post<TOnboardingResult>('/onboarding', payload)
 
       return data
     },

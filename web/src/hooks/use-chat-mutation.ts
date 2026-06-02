@@ -1,24 +1,30 @@
 import { useMutation } from '@tanstack/react-query'
 import { isAxiosError } from 'axios'
 
-import type { TChatHistoryMessage, TChatResponse } from 'fractapay-shared'
-import type { TDestination, TDestinationAllocation, TLanguage, TPayment } from 'fractapay-shared'
-import { ErrorCode } from 'fractapay-shared'
+import type {
+  TChatDestination,
+  TChatMessageHistory,
+  TChatResponse,
+  TDestination,
+  TLanguage,
+  TPaymentItem,
+} from 'fractapay-shared'
+import { EErrorCode } from 'fractapay-shared'
 
 import { server } from '../services/server'
 
-type TChatMutationInput = {
-  messages: TChatHistoryMessage[]
+type TChatInputMutation = {
+  messages: TChatMessageHistory[]
   destinations: TDestination[]
-  payments: TPayment[]
-  allocations: TDestinationAllocation[]
+  payments: TPaymentItem[]
+  chatDestinations: TChatDestination[]
   language: TLanguage
   file?: File
 }
 
 export function useChatMutation() {
-  return useMutation<TChatResponse, Error, TChatMutationInput>({
-    mutationFn: async (input: TChatMutationInput) => {
+  return useMutation<TChatResponse, Error, TChatInputMutation>({
+    mutationFn: async (input: TChatInputMutation) => {
       const formData = new FormData()
 
       formData.append('messages', JSON.stringify(input.messages))
@@ -27,7 +33,7 @@ export function useChatMutation() {
         JSON.stringify({
           destinations: input.destinations,
           payments: input.payments,
-          allocations: input.allocations,
+          chatDestinations: input.chatDestinations,
           language: input.language,
         })
       )
@@ -50,9 +56,9 @@ export function useChatMutation() {
         }
 
         return {
-          message: '',
-          action: 'none' as const,
-          error: ErrorCode.NETWORK_ERROR,
+          text: '',
+          action: 'NONE' as const,
+          errorCode: EErrorCode.NETWORK_ERROR,
         }
       }
     },
