@@ -21,7 +21,7 @@ User provides a destination address + selects a token + uploads a payment file (
 
 ## Monorepo Structure
 
-Five packages, each with its own `node_modules` / `Cargo.lock` (no root `package.json`):
+Five packages, each with its own `node_modules` / `Cargo.lock`. The root `package.json` exists only to install Husky (`prepare` script) — there is no workspace tooling; install and run commands per package.
 
 ```
 server/     Node.js + Fastify + TypeScript  (port 3000) — upload, AI, rate fetch, conversion, Prisma + MariaDB (port 3306)
