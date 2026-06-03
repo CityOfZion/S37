@@ -4,17 +4,17 @@ import { IndexedDBStorage, SmartAccountKit } from 'smart-account-kit'
 
 import { APP_NAME } from 'fractapay-shared'
 
-import { SMART_ACCOUNT_CONFIG } from '../constants'
+import { EnvHelper } from '../helpers/EnvHelper'
 
 let kitSingleton: SmartAccountKit | null = null
 
 const getKit = (): SmartAccountKit => {
   if (!kitSingleton) {
     kitSingleton = new SmartAccountKit({
-      rpcUrl: SMART_ACCOUNT_CONFIG.rpcUrl,
-      networkPassphrase: SMART_ACCOUNT_CONFIG.networkPassphrase,
-      accountWasmHash: SMART_ACCOUNT_CONFIG.accountWasmHash,
-      webauthnVerifierAddress: SMART_ACCOUNT_CONFIG.webauthnVerifierAddress,
+      rpcUrl: EnvHelper.VITE_SOROBAN_RPC_URL,
+      networkPassphrase: EnvHelper.VITE_STELLAR_NETWORK_PASSPHRASE,
+      accountWasmHash: EnvHelper.VITE_ACCOUNT_WASM_HASH,
+      webauthnVerifierAddress: EnvHelper.VITE_WEBAUTHN_VERIFIER_ADDRESS,
       storage: new IndexedDBStorage(),
     })
   }
@@ -34,7 +34,7 @@ export function useSmartAccount() {
     return {
       kit,
       createWallet: async (userName: string): Promise<TCreateWalletResult> => {
-        const nativeTokenContract = SMART_ACCOUNT_CONFIG.nativeTokenContract || undefined
+        const nativeTokenContract = EnvHelper.VITE_NATIVE_TOKEN_CONTRACT || undefined
         const result = await kit.createWallet(APP_NAME, userName, {
           autoSubmit: true,
           autoFund: Boolean(nativeTokenContract),
