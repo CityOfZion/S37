@@ -25,8 +25,8 @@ export const findUserByEmail = async (email: string): Promise<TUserWithOAuth | n
   })
 }
 
-export const findUserByStellarAddress = async (stellarAddress: string): Promise<User | null> => {
-  return prisma.user.findUnique({ where: { stellarAddress } })
+export const findUserByAddress = async (address: string): Promise<User | null> => {
+  return prisma.user.findUnique({ where: { address } })
 }
 
 type TUpsertEmailVerifiedUserInput = {

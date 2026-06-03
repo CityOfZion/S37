@@ -87,7 +87,7 @@ export type TSignupVerifyResult =
   | { success: false; error: ErrorCode }
 
 export type TPasskeyLoginPayload = {
-  stellarAddress: string
+  address: string
 }
 
 export type TPasskeyLoginResult =
