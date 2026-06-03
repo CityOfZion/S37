@@ -20,7 +20,7 @@ import type {
 import { ErrorCode, StellarHelper, SUPPORTED_TOKENS } from 'fractapay-shared'
 
 import {
-  findEtherfuseCustomerByPublicKey,
+  findEtherfuseCustomerByAddress,
   upsertEtherfuseCustomer,
 } from '../services/etherfuse-customer-service'
 import {
@@ -28,7 +28,7 @@ import {
   createOrder,
   createOrganization,
   createQuote,
-  findCustomerByPublicKey,
+  findCustomerByAddress,
   getCustomerBankAccountId,
   getKycStatus,
   getOrder,
@@ -55,10 +55,10 @@ type TErrorResponse = { success: false; error: ErrorCode }
 
 const PIX_KEY_TYPES: TPixKeyType[] = ['evp', 'cpf', 'cnpj', 'email', 'phone']
 
-const publicKeySchema = z.string().refine(StellarHelper.isValidStellarDestination)
+const addressSchema = z.string().refine(StellarHelper.isValidStellarDestination)
 
 const onboardingSchema = z.object({
-  publicKey: publicKeySchema,
+  address: addressSchema,
 })
 
 const organizationSchema = z.object({
@@ -66,16 +66,16 @@ const organizationSchema = z.object({
   accountType: z.enum(['personal', 'business']),
   email: z.string().min(1),
   userDisplayName: z.string().min(1),
-  publicKey: publicKeySchema,
+  address: addressSchema,
 })
 
-const publicKeyParamsSchema = z.object({
-  publicKey: publicKeySchema,
+const addressParamsSchema = z.object({
+  address: addressSchema,
 })
 
 const kycParamsSchema = z.object({
   customerId: z.string().min(1),
-  publicKey: publicKeySchema,
+  address: addressSchema,
 })
 
 const bankAccountSchema = z.object({
@@ -91,14 +91,14 @@ const quoteSchema = z.object({
   customerId: z.string().min(1),
   sourceAmount: z.string().min(1),
   token: z.enum(SUPPORTED_TOKENS as [string, ...string[]]),
-  publicKey: publicKeySchema,
+  address: addressSchema,
 })
 
 const orderSchema = z.object({
   quoteId: z.string().min(1),
   customerId: z.string().min(1),
   bankAccountId: z.string().min(1),
-  publicKey: publicKeySchema,
+  address: addressSchema,
   memo: z.string().optional(),
 })
 
@@ -116,7 +116,7 @@ const webhookSchema = z.object({
 })
 
 const submitKycSchema = z.object({
-  publicKey: z.string().refine(StellarHelper.isValidStellarDestination),
+  address: z.string().refine(StellarHelper.isValidStellarDestination),
   identity: z.object({
     id: z.string().min(1),
     email: z.string().min(1),
@@ -166,7 +166,7 @@ export const etherfuseRoute = async (fastify: FastifyInstance): Promise<void> =>
       }
 
       try {
-        const result = await createOnboarding(parsed.data.publicKey)
+        const result = await createOnboarding(parsed.data.address)
         return reply.status(200).send(result)
       } catch (error) {
         return reply.status(502).send({ success: false, error: mapError(error) })
@@ -193,19 +193,19 @@ export const etherfuseRoute = async (fastify: FastifyInstance): Promise<void> =>
   )
 
   fastify.get<{
-    Params: { publicKey: string }
+    Params: { address: string }
     Reply: TOnboardingResult | TErrorResponse
-  }>('/etherfuse/customer/:publicKey', async (request, reply) => {
-    const parsed = publicKeyParamsSchema.safeParse(request.params)
+  }>('/etherfuse/customer/:address', async (request, reply) => {
+    const parsed = addressParamsSchema.safeParse(request.params)
 
     if (!parsed.success) {
       return reply.status(400).send({ success: false, error: ErrorCode.INVALID_ADDRESS })
     }
 
-    const { publicKey } = parsed.data
+    const { address } = parsed.data
 
     try {
-      const cached = await findEtherfuseCustomerByPublicKey(publicKey)
+      const cached = await findEtherfuseCustomerByAddress(address)
 
       if (cached) {
         const bankAccountId =
@@ -218,7 +218,7 @@ export const etherfuseRoute = async (fastify: FastifyInstance): Promise<void> =>
         }
       }
 
-      const result = await findCustomerByPublicKey(publicKey)
+      const result = await findCustomerByAddress(address)
 
       if (!result) {
         return reply.status(404).send({ success: false, error: ErrorCode.CUSTOMER_NOT_FOUND })
@@ -231,25 +231,26 @@ export const etherfuseRoute = async (fastify: FastifyInstance): Promise<void> =>
   })
 
   fastify.get<{
-    Params: { customerId: string; publicKey: string }
+    Params: { customerId: string; address: string }
     Reply: TKycStatusResult | TErrorResponse
-  }>('/etherfuse/kyc/:customerId/:publicKey', async (request, reply) => {
+  }>('/etherfuse/kyc/:customerId/:address', async (request, reply) => {
     const parsed = kycParamsSchema.safeParse(request.params)
 
     if (!parsed.success) {
       return reply.status(400).send({ success: false, error: ErrorCode.INVALID_ADDRESS })
     }
 
-    const { customerId, publicKey } = parsed.data
+    const { customerId, address } = parsed.data
 
     try {
-      const result = await getKycStatus(customerId, publicKey)
+      const result = await getKycStatus(customerId, address)
 
       if (result.status === 'approved') {
         try {
-          await upsertEtherfuseCustomer({ publicKey, customerId })
-        } catch (error) {
-          request.log.error({ error, publicKey, customerId }, '[Etherfuse] customer persist failed')
+          await upsertEtherfuseCustomer({ address, customerId })
+        } catch {
+          // If caching fails, we don't want to fail the whole request since the main source of truth is Etherfuse and the onboarding can proceed regardless.
+          // The cache will be updated on the next webhook event for this customer.
         }
       }
 

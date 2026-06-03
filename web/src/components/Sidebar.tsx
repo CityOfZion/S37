@@ -68,7 +68,7 @@ const NavContent = ({
   const address = user?.address ?? ''
   const isUserLoading = user === undefined
   const { data: balance, isLoading: isBalanceLoading } = useBalanceQuery({
-    publicKey: address,
+    address,
     enabled: !!address,
   })
 

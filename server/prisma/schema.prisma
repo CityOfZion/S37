@@ -44,7 +44,7 @@ model EmailVerificationChallenge {
 
 model EtherfuseCustomer {
   id            String   @id @default(cuid())
-  publicKey     String   @unique
+  address       String   @unique
   customerId    String
   bankAccountId String?
   createdAt     DateTime @default(now())

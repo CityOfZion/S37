@@ -14,18 +14,18 @@ import BigNumber from 'bignumber.js'
 import type { TBalanceResult } from 'fractapay-shared'
 import { ErrorCode, STELLAR_DECIMALS, StringHelper, TOKEN } from 'fractapay-shared'
 
-import { isEtherfuseSandbox } from '../constants'
+import { isMainnet } from '../constants'
 import { fetchTesouroPerUsdcPrice, fetchUsdPerBrlPrice } from './prices-service'
 
-const SOROBAN_RPC_URL = isEtherfuseSandbox
-  ? 'https://soroban-testnet.stellar.org'
-  : 'https://mainnet.sorobanrpc.com'
+const SOROBAN_RPC_URL = isMainnet
+  ? 'https://mainnet.sorobanrpc.com'
+  : 'https://soroban-testnet.stellar.org'
 
-const NETWORK_PASSPHRASE = isEtherfuseSandbox ? Networks.TESTNET : Networks.PUBLIC
+const NETWORK_PASSPHRASE = isMainnet ? Networks.PUBLIC : Networks.TESTNET
 
-const TESOURO_ISSUER = isEtherfuseSandbox
-  ? 'GC3CW7EDYRTWQ635VDIGY6S4ZUF5L6TQ7AA4MWS7LEQDBLUSZXV7UPS4'
-  : 'GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC'
+const TESOURO_ISSUER = isMainnet
+  ? 'GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC'
+  : 'GC3CW7EDYRTWQ635VDIGY6S4ZUF5L6TQ7AA4MWS7LEQDBLUSZXV7UPS4'
 
 const TESOURO_ASSET = new Asset(TOKEN.TESOURO, TESOURO_ISSUER)
 const TESOURO_CONTRACT_ID = TESOURO_ASSET.contractId(NETWORK_PASSPHRASE)
@@ -75,9 +75,9 @@ const getTesouroBalance = async (address: string): Promise<string> => {
   return stroops.dividedBy(STROOP).toString()
 }
 
-export const getTesouroBalanceInBrl = async (publicKey: string): Promise<TBalanceResult> => {
+export const getTesouroBalanceInBrl = async (address: string): Promise<TBalanceResult> => {
   const [balance, tesouroPerUsdc, usdPerBrl] = await Promise.all([
-    getTesouroBalance(publicKey),
+    getTesouroBalance(address),
     fetchTesouroPerUsdcPrice(),
     fetchUsdPerBrlPrice(),
   ])

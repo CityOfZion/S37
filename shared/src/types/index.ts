@@ -110,7 +110,7 @@ export type TFiatCurrency = 'BRL'
 export type TKycStatus = 'not_started' | 'pending' | 'approved' | 'rejected'
 
 export type TOnboardingPayload = {
-  publicKey: string
+  address: string
 }
 
 export type TOnboardingResult = {
@@ -134,12 +134,12 @@ export type TOrganizationPayload = {
   accountType: 'personal' | 'business'
   email: string
   userDisplayName: string
-  publicKey: string
+  address: string
 }
 
 export type TOrganizationWallet = {
   id: string
-  publicKey: string
+  address: string
   blockchain: string
 }
 
@@ -174,7 +174,7 @@ export type TKycIdentity = {
 }
 
 export type TSubmitKycPayload = {
-  publicKey: string
+  address: string
   identity: TKycIdentity
 }
 
@@ -202,7 +202,7 @@ export type TQuotePayload = {
   customerId: string
   sourceAmount: string
   token: TToken
-  publicKey: string
+  address: string
 }
 
 export type TQuoteResult = {
@@ -221,7 +221,7 @@ export type TOrderPayload = {
   quoteId: string
   customerId: string
   bankAccountId: string
-  publicKey: string
+  address: string
   memo?: string
 }
 

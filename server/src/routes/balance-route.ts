@@ -14,17 +14,17 @@ const mapError = (error: unknown): ErrorCode => {
 }
 
 export const balanceRoute = async (fastify: FastifyInstance): Promise<void> => {
-  fastify.get<{ Params: { publicKey: string }; Reply: TBalanceResult | TErrorResponse }>(
-    '/balance/:publicKey',
+  fastify.get<{ Params: { address: string }; Reply: TBalanceResult | TErrorResponse }>(
+    '/balance/:address',
     async (request, reply) => {
-      const { publicKey } = request.params
+      const { address } = request.params
 
-      if (!StellarHelper.isValidStellarDestination(publicKey)) {
+      if (!StellarHelper.isValidStellarDestination(address)) {
         return reply.status(400).send({ success: false, error: ErrorCode.INVALID_ADDRESS })
       }
 
       try {
-        const result = await getTesouroBalanceInBrl(publicKey)
+        const result = await getTesouroBalanceInBrl(address)
 
         return reply.status(200).send(result)
       } catch (error) {

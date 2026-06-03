@@ -23,7 +23,7 @@ import type {
 } from 'fractapay-shared'
 import { ErrorCode, FEE_PERCENTAGE, StringHelper, TOKEN } from 'fractapay-shared'
 
-import { isEtherfuseSandbox } from '../constants'
+import { isMainnet } from '../constants'
 import { EnvHelper } from '../helpers/EnvHelper'
 import { upsertEtherfuseCustomer } from './etherfuse-customer-service'
 
@@ -31,16 +31,16 @@ const BLOCKCHAIN = 'stellar'
 const HORIZON_TESTNET_URL = 'https://horizon-testnet.stellar.org'
 const FRIENDBOT_URL = 'https://friendbot.stellar.org'
 
-const ensureAccountFunded = async (publicKey: string): Promise<void> => {
+const ensureAccountFunded = async (address: string): Promise<void> => {
   try {
-    const accountResponse = await fetch(`${HORIZON_TESTNET_URL}/accounts/${publicKey}`)
+    const accountResponse = await fetch(`${HORIZON_TESTNET_URL}/accounts/${address}`)
     if (accountResponse.ok) return
   } catch {
     // ignore — proceed to fund
   }
 
   try {
-    const friendbotResponse = await fetch(`${FRIENDBOT_URL}?addr=${encodeURIComponent(publicKey)}`)
+    const friendbotResponse = await fetch(`${FRIENDBOT_URL}?addr=${encodeURIComponent(address)}`)
     if (!friendbotResponse.ok) {
       console.error('[Stellar] friendbot fund failed', await friendbotResponse.text())
     }
@@ -51,10 +51,10 @@ const ensureAccountFunded = async (publicKey: string): Promise<void> => {
 
 const SANDBOX_KYC_IDENTITY: TKycIdentity = {
   id: 'PUBLIC KEY',
-  email: 'test.user@example.com',
+  email: 'test@coz.io',
   phoneNumber: '+5511999999999',
   occupation: 'Software Engineer',
-  name: { givenName: 'Test', familyName: 'User' },
+  name: { givenName: 'Test', familyName: 'COZ' },
   dateOfBirth: '1990-01-01',
   address: {
     street: 'Avenida Paulista 1000',
@@ -238,9 +238,7 @@ export const getCustomerBankAccountId = async (customerId: string): Promise<stri
   return banks.items[0]?.bankAccountId ?? null
 }
 
-export const findCustomerByPublicKey = async (
-  publicKey: string
-): Promise<TOnboardingResult | null> => {
+export const findCustomerByAddress = async (address: string): Promise<TOnboardingResult | null> => {
   try {
     const pageSize = 100
     let pageNumber = 0
@@ -260,7 +258,7 @@ export const findCustomerByPublicKey = async (
           `/ramp/customer/${encodeURIComponent(customer.customerId)}/wallets`
         )
 
-        if (wallets.items.some(wallet => wallet.publicKey === publicKey)) {
+        if (wallets.items.some(wallet => wallet.publicKey === address)) {
           matchedCustomerId = customer.customerId
           break
         }
@@ -270,7 +268,6 @@ export const findCustomerByPublicKey = async (
     }
 
     if (!matchedCustomerId) {
-      console.warn('[Etherfuse] recovery: publicKey not found in any customer wallet', publicKey)
       return null
     }
 
@@ -286,7 +283,7 @@ export const findCustomerByPublicKey = async (
 }
 
 export const createOnboarding = async (
-  publicKey: string,
+  address: string,
   customerId: string = uuid.v4()
 ): Promise<TOnboardingResult> => {
   const bankAccountId = uuid.v4()
@@ -295,16 +292,16 @@ export const createOnboarding = async (
     const response = await request<TOnboardingResponse>('POST', '/ramp/onboarding-url', {
       customerId,
       bankAccountId,
-      publicKey,
+      publicKey: address,
       blockchain: BLOCKCHAIN,
     })
 
     // TODO: Remove this when Etherfuse resolves correctly.
-    if (isEtherfuseSandbox) {
+    if (!isMainnet) {
       try {
         await submitKyc(customerId, {
-          publicKey,
-          identity: { ...SANDBOX_KYC_IDENTITY, id: publicKey },
+          address,
+          identity: { ...SANDBOX_KYC_IDENTITY, id: address },
         })
       } catch {
         // Ignore - if this fails, the customer just won't be auto-approved in the sandbox.
@@ -319,11 +316,11 @@ export const createOnboarding = async (
     // that existing id as the customerId so Etherfuse returns its presigned URL.
     const existingCustomerId = (error as { organizationId?: string }).organizationId
     if (existingCustomerId) {
-      const retry = await createOnboarding(publicKey, existingCustomerId)
+      const retry = await createOnboarding(address, existingCustomerId)
 
       // Retry succeeded — sync the database row so its customerId matches the real one.
       try {
-        await upsertEtherfuseCustomer({ publicKey, customerId: existingCustomerId })
+        await upsertEtherfuseCustomer({ address, customerId: existingCustomerId })
       } catch {
         // Ignore any errors here — the onboarding succeeded, so the user can proceed even if our database is out of sync.
         // We'll have another chance to fix it on their next onboarding attempt, or we can do it manually if needed.
@@ -332,7 +329,7 @@ export const createOnboarding = async (
       return { customerId: existingCustomerId, bankAccountId, presignedUrl: retry.presignedUrl }
     }
 
-    const recovered = await findCustomerByPublicKey(publicKey)
+    const recovered = await findCustomerByAddress(address)
     if (recovered) return recovered
 
     throw error
@@ -353,14 +350,18 @@ export const createOrganization = async (
       email: payload.email,
       displayName: payload.userDisplayName,
     },
-    wallets: [{ id: walletId, publicKey: payload.publicKey, blockchain: BLOCKCHAIN }],
+    wallets: [{ id: walletId, publicKey: payload.address, blockchain: BLOCKCHAIN }],
   })
 
   return {
     organizationId: response.organizationId,
     displayName: response.displayName,
     accountType: response.accountType,
-    wallets: response.wallets,
+    wallets: response.wallets.map(({ id, publicKey, blockchain }) => ({
+      id,
+      address: publicKey,
+      blockchain,
+    })),
   }
 }
 
@@ -372,7 +373,7 @@ export const submitKyc = async (
     'POST',
     `/ramp/customer/${encodeURIComponent(customerId)}/kyc`,
     {
-      pubkey: payload.publicKey,
+      pubkey: payload.address,
       identity: payload.identity,
     }
   )
@@ -382,11 +383,11 @@ export const submitKyc = async (
 
 export const getKycStatus = async (
   customerId: string,
-  publicKey: string
+  address: string
 ): Promise<TKycStatusResult> => {
   const response = await request<TKycRawResponse>(
     'GET',
-    `/ramp/customer/${encodeURIComponent(customerId)}/kyc/${encodeURIComponent(publicKey)}`
+    `/ramp/customer/${encodeURIComponent(customerId)}/kyc/${encodeURIComponent(address)}`
   )
 
   return { status: mapKycStatus(response.status) }
@@ -423,7 +424,7 @@ export const createQuote = async (payload: TQuotePayload): Promise<TQuoteResult>
     blockchain: BLOCKCHAIN,
     quoteAssets: { type: 'onramp', sourceAsset: 'BRL', targetAsset },
     sourceAmount: payload.sourceAmount,
-    walletAddress: payload.publicKey,
+    walletAddress: payload.address,
   })
 
   const etherfuseFee = new BigNumber(response.feeAmount || '0')
@@ -480,13 +481,13 @@ const findPendingOrder = async (
 export const createOrder = async (payload: TOrderPayload): Promise<TOrderResult> => {
   const orderId = uuid.v4()
 
-  await ensureAccountFunded(payload.publicKey)
+  await ensureAccountFunded(payload.address)
 
   try {
     const response = await request<TCreateOrderResponse>('POST', '/ramp/order', {
       orderId,
       bankAccountId: payload.bankAccountId,
-      publicKey: payload.publicKey,
+      publicKey: payload.address,
       quoteId: payload.quoteId,
       memo: payload.memo || undefined,
     })
