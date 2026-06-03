@@ -23,6 +23,7 @@ import type {
 } from 'fractapay-shared'
 import { ErrorCode, FEE_PERCENTAGE, StringHelper, TOKEN } from 'fractapay-shared'
 
+import { isEtherfuseSandbox } from '../constants'
 import { EnvHelper } from '../helpers/EnvHelper'
 import { upsertEtherfuseCustomer } from './etherfuse-customer-service'
 
@@ -299,15 +300,14 @@ export const createOnboarding = async (
     })
 
     // TODO: Remove this when Etherfuse resolves correctly.
-    if (EnvHelper.IS_ETHERFUSE_SANDBOX) {
+    if (isEtherfuseSandbox) {
       try {
-        console.info('[Etherfuse] sandbox auto-KYC submitting mock identity', { customerId })
         await submitKyc(customerId, {
           publicKey,
           identity: { ...SANDBOX_KYC_IDENTITY, id: publicKey },
         })
-      } catch (error) {
-        console.error('[Etherfuse] sandbox auto-KYC failed', error)
+      } catch {
+        // Ignore - if this fails, the customer just won't be auto-approved in the sandbox.
       }
     }
 
@@ -324,8 +324,9 @@ export const createOnboarding = async (
       // Retry succeeded — sync the database row so its customerId matches the real one.
       try {
         await upsertEtherfuseCustomer({ publicKey, customerId: existingCustomerId })
-      } catch (persistError) {
-        console.error('[Etherfuse] failed to update customerId in database', persistError)
+      } catch {
+        // Ignore any errors here — the onboarding succeeded, so the user can proceed even if our database is out of sync.
+        // We'll have another chance to fix it on their next onboarding attempt, or we can do it manually if needed.
       }
 
       return { customerId: existingCustomerId, bankAccountId, presignedUrl: retry.presignedUrl }

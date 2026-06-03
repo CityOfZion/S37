@@ -310,14 +310,14 @@ export const authRoute = async (fastify: FastifyInstance): Promise<void> => {
       }
 
       const companyName = request.body?.companyName?.trim()
-      const stellarAddress = request.body?.stellarAddress?.trim()
+      const address = request.body?.address?.trim()
       const passkeyCredentialId = request.body?.passkeyCredentialId?.trim()
 
-      if (!companyName || !stellarAddress || !passkeyCredentialId) {
+      if (!companyName || !address || !passkeyCredentialId) {
         return reply.status(400).send({ success: false, error: ErrorCode.INVALID_PAYLOAD })
       }
 
-      if (!StellarHelper.isValidContractAddress(stellarAddress)) {
+      if (!StellarHelper.isValidContractAddress(address)) {
         return reply.status(400).send({ success: false, error: ErrorCode.INVALID_ADDRESS })
       }
 
@@ -327,7 +327,7 @@ export const authRoute = async (fastify: FastifyInstance): Promise<void> => {
       // email↔passkey link is cryptographically enforced rather than a bare DB association.
       const updated = await markOnboardingCompleted(request.user!.id, {
         companyName,
-        stellarAddress,
+        address,
         passkeyCredentialId,
       })
 

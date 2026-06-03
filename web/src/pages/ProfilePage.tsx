@@ -112,24 +112,21 @@ export const ProfilePage = () => {
           </div>
         </form>
 
-        {user?.stellarAddress ? (
+        {user?.address ? (
           <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4 flex flex-col gap-2">
             <span className="text-xs uppercase tracking-wide text-neutral-500">
               {t('walletLabel')}
             </span>
             <div className="flex items-center justify-between gap-3">
-              <span
-                className="font-mono text-sm text-neutral-900 truncate"
-                title={user.stellarAddress}
-              >
-                {user.stellarAddress}
+              <span className="font-mono text-sm text-neutral-900 truncate" title={user.address}>
+                {user.address}
               </span>
               <Button
                 variant="secondary"
                 size="sm"
                 onClick={async () => {
                   try {
-                    await ClipboardHelper.copy(user.stellarAddress ?? '')
+                    await ClipboardHelper.copy(user.address ?? '')
                     ToastHelper.success(t('walletCopied'))
                   } catch {
                     ToastHelper.error(t('saveError'))

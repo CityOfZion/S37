@@ -380,7 +380,7 @@ export const OnboardingPage = () => {
   const finishOnboarding = async (contractId: string, credentialId: string) => {
     await completeMutation.mutateAsync({
       companyName: getValues('companyName').trim(),
-      stellarAddress: contractId,
+      address: contractId,
       passkeyCredentialId: credentialId,
     })
 

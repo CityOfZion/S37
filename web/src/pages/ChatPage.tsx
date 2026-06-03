@@ -99,10 +99,10 @@ export const ChatPage = () => {
   } = usePaymentsStore()
 
   useEffect(() => {
-    if (user?.stellarAddress && user.stellarAddress !== address) {
-      setAddress(user.stellarAddress)
+    if (user?.address && user.address !== address) {
+      setAddress(user.address)
     }
-  }, [user?.stellarAddress, address, setAddress])
+  }, [user?.address, address, setAddress])
   const { addConversation, conversations, lastConversationId, setLastConversationId } =
     useConversationStore()
   const { conversationId } = useParams({ strict: false })

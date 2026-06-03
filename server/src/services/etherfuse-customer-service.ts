@@ -26,9 +26,9 @@ export const upsertEtherfuseCustomer = async ({
       create: { publicKey, customerId, bankAccountId },
     }),
     // When a user owns this wallet, mirror the address onto their row so the
-    // stellarAddress stays in sync with the registered Etherfuse customer.
+    // address stays in sync with the registered Etherfuse customer.
     ...(userId
-      ? [prisma.user.update({ where: { id: userId }, data: { stellarAddress: publicKey } })]
+      ? [prisma.user.update({ where: { id: userId }, data: { address: publicKey } })]
       : []),
   ])
 
