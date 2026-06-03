@@ -38,6 +38,11 @@ jobs:
         working-directory: web
         env:
           VITE_API_URL: ${{ secrets.VITE_API_URL }}
+          VITE_SOROBAN_RPC_URL: ${{ secrets.VITE_SOROBAN_RPC_URL }}
+          VITE_STELLAR_NETWORK_PASSPHRASE: ${{ secrets.VITE_STELLAR_NETWORK_PASSPHRASE }}
+          VITE_ACCOUNT_WASM_HASH: ${{ secrets.VITE_ACCOUNT_WASM_HASH }}
+          VITE_WEBAUTHN_VERIFIER_ADDRESS: ${{ secrets.VITE_WEBAUTHN_VERIFIER_ADDRESS }}
+          VITE_NATIVE_TOKEN_CONTRACT: ${{ secrets.VITE_NATIVE_TOKEN_CONTRACT }}
         run: npm run build
 
       - name: Copy 404.html for GitHub Pages SPA routing
