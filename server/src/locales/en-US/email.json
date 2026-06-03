@@ -1,0 +1,9 @@
+{
+  "verification": {
+    "subject": "{{code}} is your {{appName}} verification code",
+    "greeting": "Hi {{firstName}},",
+    "textBody": "Your {{appName}} verification code is: {{code}}",
+    "htmlIntro": "Use the code below to finish creating your {{appName}} account.",
+    "expiry": "This code expires in 10 minutes. If you didn’t request it, you can ignore this email."
+  }
+}

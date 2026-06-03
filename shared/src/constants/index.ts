@@ -2,6 +2,8 @@ import BigNumber from 'bignumber.js'
 
 import type { TFiatCurrency, TLanguage, TToken } from '../types'
 
+export const APP_NAME = 'FractaPay'
+
 export const ALLOWED_EXTENSIONS = ['csv', 'xls', 'xlsx', 'pdf', 'txt'] as const
 
 export const ALLOWED_MIME_TYPES = [

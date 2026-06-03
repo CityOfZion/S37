@@ -4,10 +4,10 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams, useRouterState } from '@tanstack/react-router'
 
 import type { TLanguage, TUser } from 'fractapay-shared'
-import { DEFAULT_LANGUAGE } from 'fractapay-shared'
+import { APP_NAME, DEFAULT_LANGUAGE } from 'fractapay-shared'
 
 import logoUrl from '../assets/logos/logo.svg'
-import { APP_NAME, LANGUAGE_NAMES } from '../constants'
+import { LANGUAGE_NAMES } from '../constants'
 import { StyleHelper } from '../helpers/StyleHelper'
 import { useChatStore } from '../hooks/use-chat-store'
 import { useLanguageStore } from '../hooks/use-language-store'

@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 
-import { APP_NAME } from '../constants'
+import { APP_NAME } from 'fractapay-shared'
 
 export function usePageTitle(title: string) {
   useEffect(() => {

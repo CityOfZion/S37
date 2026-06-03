@@ -1,7 +1,5 @@
 import type { TLanguage } from 'fractapay-shared'
 
-export const APP_NAME = 'FractaPay'
-
 export const AUTH_TOKEN_STORAGE_KEY = 'fractapay.token'
 
 export const PKCE_VERIFIER_STORAGE_KEY = 'fractapay.pkce_verifier'

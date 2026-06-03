@@ -1,7 +1,8 @@
 import { useTranslation } from 'react-i18next'
 
+import { APP_NAME } from 'fractapay-shared'
+
 import logoUrl from '../assets/logos/logo.svg'
-import { APP_NAME } from '../constants'
 import { useSidebarStore } from '../hooks/use-sidebar-store'
 import { Button } from './Button'
 import { Tooltip } from './Tooltip'

@@ -22,7 +22,7 @@ const verifyToken = async (
   try {
     return await request.jwtVerify<TJwtPayload>()
   } catch (error) {
-    request.log.info({ error: (error as Error).message }, '[Auth] jwtVerify failed')
+    request.log.error({ error: (error as Error).message }, '[Auth] jwtVerify failed')
 
     return null
   }

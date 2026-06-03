@@ -2,7 +2,9 @@ import { useMemo } from 'react'
 
 import { IndexedDBStorage, SmartAccountKit } from 'smart-account-kit'
 
-import { APP_NAME, SMART_ACCOUNT_CONFIG } from '../constants'
+import { APP_NAME } from 'fractapay-shared'
+
+import { SMART_ACCOUNT_CONFIG } from '../constants'
 
 let kitSingleton: SmartAccountKit | null = null
 
