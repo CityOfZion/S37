@@ -9,9 +9,9 @@ export type TEtherfuseAccount = {
 
 type TEtherfuseStore = {
   accounts: Record<string, TEtherfuseAccount>
-  setAccount: (publicKey: string, account: TEtherfuseAccount) => void
-  updateAccount: (publicKey: string, account: Partial<TEtherfuseAccount>) => void
-  removeAccount: (publicKey: string) => void
+  setAccount: (address: string, account: TEtherfuseAccount) => void
+  updateAccount: (address: string, account: Partial<TEtherfuseAccount>) => void
+  removeAccount: (address: string) => void
   reset: () => void
 }
 
@@ -19,19 +19,19 @@ export const useEtherfuseStore = create<TEtherfuseStore>()(
   persist(
     set => ({
       accounts: {},
-      setAccount: (publicKey, account) =>
-        set(state => ({ accounts: { ...state.accounts, [publicKey]: account } })),
-      updateAccount: (publicKey, account) =>
+      setAccount: (address, account) =>
+        set(state => ({ accounts: { ...state.accounts, [address]: account } })),
+      updateAccount: (address, account) =>
         set(state => {
-          const existing = state.accounts[publicKey]
+          const existing = state.accounts[address]
           if (!existing) return state
 
-          return { accounts: { ...state.accounts, [publicKey]: { ...existing, ...account } } }
+          return { accounts: { ...state.accounts, [address]: { ...existing, ...account } } }
         }),
-      removeAccount: publicKey =>
+      removeAccount: address =>
         set(state => {
           const next = { ...state.accounts }
-          delete next[publicKey]
+          delete next[address]
 
           return { accounts: next }
         }),

@@ -5,20 +5,20 @@ import type { TOnboardingResult } from 'fractapay-shared'
 import { server } from '../services/server'
 
 type TParams = {
-  publicKey: string
+  address: string
   enabled?: boolean
 }
 
-export function useCustomerLookupQuery({ publicKey, enabled = true }: TParams) {
+export function useCustomerLookupQuery({ address, enabled = true }: TParams) {
   return useQuery<TOnboardingResult | null>({
-    queryKey: ['etherfuse-customer', publicKey],
-    enabled: enabled && !!publicKey,
+    queryKey: ['etherfuse-customer', address],
+    enabled: enabled && !!address,
     staleTime: 60_000,
     retry: false,
     queryFn: async () => {
       try {
         const { data } = await server.get<TOnboardingResult>(
-          `/etherfuse/customer/${encodeURIComponent(publicKey)}`
+          `/etherfuse/customer/${encodeURIComponent(address)}`
         )
 
         return data

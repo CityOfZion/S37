@@ -37,6 +37,7 @@ export enum ErrorCode {
   RESEND_TOO_SOON = 'RESEND_TOO_SOON',
   EMAIL_SEND_FAILED = 'EMAIL_SEND_FAILED',
   WALLET_NOT_REGISTERED = 'WALLET_NOT_REGISTERED',
+  BALANCE_FETCH_FAILED = 'BALANCE_FETCH_FAILED',
   UNKNOWN = 'UNKNOWN',
 }
 
@@ -46,7 +47,7 @@ export type TUser = {
   name: string | null
   picture: string | null
   onboardingCompletedAt: string | null
-  stellarAddress: string | null
+  address: string | null
   passkeyCredentialId: string | null
 }
 
@@ -54,7 +55,7 @@ export type TAuthMeResult = { success: true; user: TUser } | { success: false; e
 
 export type TCompleteOnboardingPayload = {
   companyName: string
-  stellarAddress: string
+  address: string
   passkeyCredentialId: string
 }
 
@@ -86,7 +87,7 @@ export type TSignupVerifyResult =
   | { success: false; error: ErrorCode }
 
 export type TPasskeyLoginPayload = {
-  stellarAddress: string
+  address: string
 }
 
 export type TPasskeyLoginResult =
@@ -109,7 +110,7 @@ export type TFiatCurrency = 'BRL'
 export type TKycStatus = 'not_started' | 'pending' | 'approved' | 'rejected'
 
 export type TOnboardingPayload = {
-  publicKey: string
+  address: string
 }
 
 export type TOnboardingResult = {
@@ -120,6 +121,66 @@ export type TOnboardingResult = {
 
 export type TKycStatusResult = {
   status: TKycStatus
+}
+
+export type TBalanceResult = {
+  token: TToken
+  balance: string
+  balanceInFiat: string
+}
+
+export type TOrganizationPayload = {
+  displayName: string
+  accountType: 'personal' | 'business'
+  email: string
+  userDisplayName: string
+  address: string
+}
+
+export type TOrganizationWallet = {
+  id: string
+  address: string
+  blockchain: string
+}
+
+export type TOrganizationResult = {
+  organizationId: string
+  displayName: string
+  accountType: string
+  wallets: TOrganizationWallet[]
+}
+
+export type TKycName = { givenName: string; familyName: string }
+
+export type TKycAddress = {
+  street: string
+  city: string
+  region: string
+  postalCode: string
+  country: string
+}
+
+export type TKycIdNumber = { value: string; type: string }
+
+export type TKycIdentity = {
+  id: string
+  email: string
+  phoneNumber: string
+  occupation: string
+  name: TKycName
+  dateOfBirth: string
+  address: TKycAddress
+  idNumbers?: TKycIdNumber[]
+}
+
+export type TSubmitKycPayload = {
+  address: string
+  identity: TKycIdentity
+}
+
+export type TSubmitKycResult = {
+  status: string
+  message: string
 }
 
 export type TBankAccountPayload = {
@@ -141,7 +202,7 @@ export type TQuotePayload = {
   customerId: string
   sourceAmount: string
   token: TToken
-  publicKey: string
+  address: string
 }
 
 export type TQuoteResult = {
@@ -160,7 +221,7 @@ export type TOrderPayload = {
   quoteId: string
   customerId: string
   bankAccountId: string
-  publicKey: string
+  address: string
   memo?: string
 }
 

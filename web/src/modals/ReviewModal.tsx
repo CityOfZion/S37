@@ -94,7 +94,7 @@ export const ReviewModal = ({
   }
 
   const customerLookupQuery = useCustomerLookupQuery({
-    publicKey: recipientAddress,
+    address: recipientAddress,
     enabled: open && !account?.customerId,
   })
 
@@ -112,7 +112,7 @@ export const ReviewModal = ({
 
   const kycQuery = useKycStatusQuery({
     customerId: account?.customerId || '',
-    publicKey: recipientAddress,
+    address: recipientAddress,
     enabled: open && !!account?.customerId,
   })
 
@@ -168,7 +168,7 @@ export const ReviewModal = ({
         customerId: account.customerId,
         sourceAmount: recipientAmount,
         token,
-        publicKey: recipientAddress,
+        address: recipientAddress,
       })
       setQuote(result)
       setQuoteReady(true)
@@ -219,7 +219,7 @@ export const ReviewModal = ({
 
   const startOnboarding = () => {
     onboardingMutation.mutate(
-      { publicKey: recipientAddress },
+      { address: recipientAddress },
       {
         onSuccess: result => {
           setAccount(recipientAddress, {
@@ -251,7 +251,7 @@ export const ReviewModal = ({
         quoteId: quote.quoteId,
         customerId: account.customerId,
         bankAccountId: account.bankAccountId,
-        publicKey: recipientAddress,
+        address: recipientAddress,
         memo: `${APP_NAME} batch ${new Date().toISOString()}`,
       },
       {

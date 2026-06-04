@@ -1,4 +1,5 @@
 import type { FastifyInstance } from 'fastify'
+import { z } from 'zod'
 
 import type {
   TBankAccountPayload,
@@ -8,21 +9,32 @@ import type {
   TOnboardingResult,
   TOrderPayload,
   TOrderResult,
+  TOrganizationPayload,
+  TOrganizationResult,
   TPixKeyType,
   TQuotePayload,
   TQuoteResult,
+  TSubmitKycPayload,
+  TSubmitKycResult,
 } from 'fractapay-shared'
 import { ErrorCode, StellarHelper, SUPPORTED_TOKENS } from 'fractapay-shared'
 
 import {
+  findEtherfuseCustomerByAddress,
+  upsertEtherfuseCustomer,
+} from '../services/etherfuse-customer-service'
+import {
   createOnboarding,
   createOrder,
+  createOrganization,
   createQuote,
-  findCustomerByPublicKey,
+  findCustomerByAddress,
+  getCustomerBankAccountId,
   getKycStatus,
   getOrder,
   registerBankAccount,
   simulateFiatReceived,
+  submitKyc,
 } from '../services/etherfuse-service'
 import {
   recordWebhookEvent,
@@ -43,6 +55,92 @@ type TErrorResponse = { success: false; error: ErrorCode }
 
 const PIX_KEY_TYPES: TPixKeyType[] = ['evp', 'cpf', 'cnpj', 'email', 'phone']
 
+const addressSchema = z.string().refine(StellarHelper.isValidStellarDestination)
+
+const onboardingSchema = z.object({
+  address: addressSchema,
+})
+
+const organizationSchema = z.object({
+  displayName: z.string().min(1),
+  accountType: z.enum(['personal', 'business']),
+  email: z.string().min(1),
+  userDisplayName: z.string().min(1),
+  address: addressSchema,
+})
+
+const addressParamsSchema = z.object({
+  address: addressSchema,
+})
+
+const kycParamsSchema = z.object({
+  customerId: z.string().min(1),
+  address: addressSchema,
+})
+
+const bankAccountSchema = z.object({
+  presignedUrl: z.string().min(1),
+  pixKey: z.string().min(1),
+  pixKeyType: z.enum(PIX_KEY_TYPES),
+  firstName: z.string().min(1),
+  lastName: z.string().min(1),
+  cpf: z.string().min(1),
+})
+
+const quoteSchema = z.object({
+  customerId: z.string().min(1),
+  sourceAmount: z.string().min(1),
+  token: z.enum(SUPPORTED_TOKENS as [string, ...string[]]),
+  address: addressSchema,
+})
+
+const orderSchema = z.object({
+  quoteId: z.string().min(1),
+  customerId: z.string().min(1),
+  bankAccountId: z.string().min(1),
+  address: addressSchema,
+  memo: z.string().optional(),
+})
+
+const orderIdParamsSchema = z.object({
+  orderId: z.string().min(1),
+})
+
+const webhookSchema = z.object({
+  event: z.enum(WEBHOOK_EVENTS as [TEtherfuseWebhookEvent, ...TEtherfuseWebhookEvent[]]),
+  data: z.object({
+    id: z.string().min(1),
+    status: z.string(),
+  }),
+  timestamp: z.string().min(1),
+})
+
+const submitKycSchema = z.object({
+  address: z.string().refine(StellarHelper.isValidStellarDestination),
+  identity: z.object({
+    id: z.string().min(1),
+    email: z.string().min(1),
+    phoneNumber: z.string().min(1),
+    occupation: z.string().min(1),
+    name: z.object({
+      givenName: z.string().min(1),
+      familyName: z.string().min(1),
+    }),
+    dateOfBirth: z.string().min(1),
+    address: z.object({
+      street: z.string().min(1),
+      city: z.string().min(1),
+      region: z.string().min(1),
+      postalCode: z.string().min(1),
+      country: z.string().min(1),
+    }),
+    idNumbers: z
+      .array(z.object({ value: z.string().min(1), type: z.string().min(1) }))
+      .min(1)
+      .optional(),
+  }),
+})
+
 const sendError = (
   status: number,
   error: ErrorCode
@@ -60,15 +158,33 @@ export const etherfuseRoute = async (fastify: FastifyInstance): Promise<void> =>
   fastify.post<{ Body: TOnboardingPayload; Reply: TOnboardingResult | TErrorResponse }>(
     '/etherfuse/onboarding',
     async (request, reply) => {
-      const { publicKey } = request.body ?? {}
+      const parsed = onboardingSchema.safeParse(request.body)
 
-      if (!publicKey || !StellarHelper.isValidStellarDestination(publicKey)) {
+      if (!parsed.success) {
         const { statusCode, body } = sendError(400, ErrorCode.INVALID_ADDRESS)
         return reply.status(statusCode).send(body)
       }
 
       try {
-        const result = await createOnboarding(publicKey)
+        const result = await createOnboarding(parsed.data.address)
+        return reply.status(200).send(result)
+      } catch (error) {
+        return reply.status(502).send({ success: false, error: mapError(error) })
+      }
+    }
+  )
+
+  fastify.post<{ Body: TOrganizationPayload; Reply: TOrganizationResult | TErrorResponse }>(
+    '/etherfuse/organization',
+    async (request, reply) => {
+      const parsed = organizationSchema.safeParse(request.body)
+
+      if (!parsed.success) {
+        return reply.status(400).send({ success: false, error: ErrorCode.INVALID_PAYLOAD })
+      }
+
+      try {
+        const result = await createOrganization(parsed.data)
         return reply.status(200).send(result)
       } catch (error) {
         return reply.status(502).send({ success: false, error: mapError(error) })
@@ -77,17 +193,32 @@ export const etherfuseRoute = async (fastify: FastifyInstance): Promise<void> =>
   )
 
   fastify.get<{
-    Params: { publicKey: string }
+    Params: { address: string }
     Reply: TOnboardingResult | TErrorResponse
-  }>('/etherfuse/customer/:publicKey', async (request, reply) => {
-    const { publicKey } = request.params
+  }>('/etherfuse/customer/:address', async (request, reply) => {
+    const parsed = addressParamsSchema.safeParse(request.params)
 
-    if (!StellarHelper.isValidStellarDestination(publicKey)) {
+    if (!parsed.success) {
       return reply.status(400).send({ success: false, error: ErrorCode.INVALID_ADDRESS })
     }
 
+    const { address } = parsed.data
+
     try {
-      const result = await findCustomerByPublicKey(publicKey)
+      const cached = await findEtherfuseCustomerByAddress(address)
+
+      if (cached) {
+        const bankAccountId =
+          cached.bankAccountId ?? (await getCustomerBankAccountId(cached.customerId))
+
+        if (bankAccountId) {
+          return reply
+            .status(200)
+            .send({ customerId: cached.customerId, bankAccountId, presignedUrl: '' })
+        }
+      }
+
+      const result = await findCustomerByAddress(address)
 
       if (!result) {
         return reply.status(404).send({ success: false, error: ErrorCode.CUSTOMER_NOT_FOUND })
@@ -100,17 +231,49 @@ export const etherfuseRoute = async (fastify: FastifyInstance): Promise<void> =>
   })
 
   fastify.get<{
-    Params: { customerId: string; publicKey: string }
+    Params: { customerId: string; address: string }
     Reply: TKycStatusResult | TErrorResponse
-  }>('/etherfuse/kyc/:customerId/:publicKey', async (request, reply) => {
-    const { customerId, publicKey } = request.params
+  }>('/etherfuse/kyc/:customerId/:address', async (request, reply) => {
+    const parsed = kycParamsSchema.safeParse(request.params)
 
-    if (!StellarHelper.isValidStellarDestination(publicKey)) {
+    if (!parsed.success) {
       return reply.status(400).send({ success: false, error: ErrorCode.INVALID_ADDRESS })
     }
 
+    const { customerId, address } = parsed.data
+
     try {
-      const result = await getKycStatus(customerId, publicKey)
+      const result = await getKycStatus(customerId, address)
+
+      if (result.status === 'approved') {
+        try {
+          await upsertEtherfuseCustomer({ address, customerId })
+        } catch {
+          // If caching fails, we don't want to fail the whole request since the main source of truth is Etherfuse and the onboarding can proceed regardless.
+          // The cache will be updated on the next webhook event for this customer.
+        }
+      }
+
+      return reply.status(200).send(result)
+    } catch (error) {
+      return reply.status(502).send({ success: false, error: mapError(error) })
+    }
+  })
+
+  fastify.post<{
+    Params: { customerId: string }
+    Body: TSubmitKycPayload
+    Reply: TSubmitKycResult | TErrorResponse
+  }>('/etherfuse/customer/:customerId/kyc', async (request, reply) => {
+    const { customerId } = request.params
+    const parsed = submitKycSchema.safeParse(request.body)
+
+    if (!parsed.success) {
+      return reply.status(400).send({ success: false, error: ErrorCode.INVALID_PAYLOAD })
+    }
+
+    try {
+      const result = await submitKyc(customerId, parsed.data)
       return reply.status(200).send(result)
     } catch (error) {
       return reply.status(502).send({ success: false, error: mapError(error) })
@@ -120,22 +283,14 @@ export const etherfuseRoute = async (fastify: FastifyInstance): Promise<void> =>
   fastify.post<{ Body: TBankAccountPayload; Reply: TBankAccountResult | TErrorResponse }>(
     '/etherfuse/bank-account',
     async (request, reply) => {
-      const body = request.body
+      const parsed = bankAccountSchema.safeParse(request.body)
 
-      if (
-        !body?.presignedUrl ||
-        !body.pixKey ||
-        !body.pixKeyType ||
-        !PIX_KEY_TYPES.includes(body.pixKeyType) ||
-        !body.firstName ||
-        !body.lastName ||
-        !body.cpf
-      ) {
+      if (!parsed.success) {
         return reply.status(400).send({ success: false, error: ErrorCode.INVALID_PAYLOAD })
       }
 
       try {
-        const result = await registerBankAccount(body)
+        const result = await registerBankAccount(parsed.data)
         return reply.status(200).send(result)
       } catch (error) {
         return reply.status(502).send({ success: false, error: mapError(error) })
@@ -146,21 +301,14 @@ export const etherfuseRoute = async (fastify: FastifyInstance): Promise<void> =>
   fastify.post<{ Body: TQuotePayload; Reply: TQuoteResult | TErrorResponse }>(
     '/etherfuse/quote',
     async (request, reply) => {
-      const body = request.body
+      const parsed = quoteSchema.safeParse(request.body)
 
-      if (
-        !body?.customerId ||
-        !body.sourceAmount ||
-        !body.token ||
-        !SUPPORTED_TOKENS.includes(body.token) ||
-        !body.publicKey ||
-        !StellarHelper.isValidStellarDestination(body.publicKey)
-      ) {
+      if (!parsed.success) {
         return reply.status(400).send({ success: false, error: ErrorCode.INVALID_PAYLOAD })
       }
 
       try {
-        const result = await createQuote(body)
+        const result = await createQuote(parsed.data as TQuotePayload)
         return reply.status(200).send(result)
       } catch (error) {
         return reply.status(502).send({ success: false, error: mapError(error) })
@@ -171,20 +319,14 @@ export const etherfuseRoute = async (fastify: FastifyInstance): Promise<void> =>
   fastify.post<{ Body: TOrderPayload; Reply: TOrderResult | TErrorResponse }>(
     '/etherfuse/order',
     async (request, reply) => {
-      const body = request.body
+      const parsed = orderSchema.safeParse(request.body)
 
-      if (
-        !body?.quoteId ||
-        !body.customerId ||
-        !body.bankAccountId ||
-        !body.publicKey ||
-        !StellarHelper.isValidStellarDestination(body.publicKey)
-      ) {
+      if (!parsed.success) {
         return reply.status(400).send({ success: false, error: ErrorCode.INVALID_PAYLOAD })
       }
 
       try {
-        const result = await createOrder(body)
+        const result = await createOrder(parsed.data)
         return reply.status(200).send(result)
       } catch (error) {
         return reply.status(502).send({ success: false, error: mapError(error) })
@@ -195,8 +337,14 @@ export const etherfuseRoute = async (fastify: FastifyInstance): Promise<void> =>
   fastify.get<{ Params: { orderId: string }; Reply: TOrderResult | TErrorResponse }>(
     '/etherfuse/order/:orderId',
     async (request, reply) => {
+      const parsed = orderIdParamsSchema.safeParse(request.params)
+
+      if (!parsed.success) {
+        return reply.status(400).send({ success: false, error: ErrorCode.INVALID_PAYLOAD })
+      }
+
       try {
-        const result = await getOrder(request.params.orderId)
+        const result = await getOrder(parsed.data.orderId)
         return reply.status(200).send(result)
       } catch (error) {
         const code = mapError(error)
@@ -209,17 +357,13 @@ export const etherfuseRoute = async (fastify: FastifyInstance): Promise<void> =>
   fastify.post<{ Body: TEtherfuseWebhookPayload; Reply: { success: boolean } | TErrorResponse }>(
     '/etherfuse/webhook',
     async (request, reply) => {
-      const body = request.body
+      const parsed = webhookSchema.safeParse(request.body)
 
-      if (
-        !body?.event ||
-        !WEBHOOK_EVENTS.includes(body.event) ||
-        !body.data?.id ||
-        typeof body.data.status !== 'string' ||
-        !body.timestamp
-      ) {
+      if (!parsed.success) {
         return reply.status(400).send({ success: false, error: ErrorCode.INVALID_PAYLOAD })
       }
+
+      const body = request.body
 
       recordWebhookEvent(body)
 
@@ -232,8 +376,14 @@ export const etherfuseRoute = async (fastify: FastifyInstance): Promise<void> =>
   fastify.post<{ Params: { orderId: string }; Reply: { success: boolean } | TErrorResponse }>(
     '/etherfuse/order/:orderId/simulate',
     async (request, reply) => {
+      const parsed = orderIdParamsSchema.safeParse(request.params)
+
+      if (!parsed.success) {
+        return reply.status(400).send({ success: false, error: ErrorCode.INVALID_PAYLOAD })
+      }
+
       try {
-        await simulateFiatReceived(request.params.orderId)
+        await simulateFiatReceived(parsed.data.orderId)
         return reply.status(200).send({ success: true })
       } catch (error) {
         return reply.status(502).send({ success: false, error: mapError(error) })

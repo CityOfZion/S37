@@ -37,8 +37,8 @@ import {
   normalizeEmail,
 } from '../services/email-verification-store'
 import {
+  findUserByAddress,
   findUserByEmail,
-  findUserByStellarAddress,
   mapUserToTUser,
   markOnboardingCompleted,
   upsertEmailVerifiedUser,
@@ -275,16 +275,16 @@ export const authRoute = async (fastify: FastifyInstance): Promise<void> => {
     async (request, reply) => {
       reply.header('Cache-Control', 'no-store, no-cache, must-revalidate')
 
-      const stellarAddress = request.body?.stellarAddress?.trim()
+      const address = request.body?.address?.trim()
 
-      if (!stellarAddress || !StellarHelper.isValidContractAddress(stellarAddress)) {
+      if (!address || !StellarHelper.isValidContractAddress(address)) {
         return reply.status(400).send({ success: false, error: ErrorCode.INVALID_PAYLOAD })
       }
 
       // TODO: this trusts the client-supplied wallet address (the WebAuthn assertion is
       // verified only in the browser). Add a server-side WebAuthn challenge/assertion check
       // to cryptographically prove control of the passkey before issuing the session.
-      const user = await findUserByStellarAddress(stellarAddress)
+      const user = await findUserByAddress(address)
 
       if (!user) {
         return reply.status(404).send({ success: false, error: ErrorCode.WALLET_NOT_REGISTERED })
@@ -310,24 +310,24 @@ export const authRoute = async (fastify: FastifyInstance): Promise<void> => {
       }
 
       const companyName = request.body?.companyName?.trim()
-      const stellarAddress = request.body?.stellarAddress?.trim()
+      const address = request.body?.address?.trim()
       const passkeyCredentialId = request.body?.passkeyCredentialId?.trim()
 
-      if (!companyName || !stellarAddress || !passkeyCredentialId) {
+      if (!companyName || !address || !passkeyCredentialId) {
         return reply.status(400).send({ success: false, error: ErrorCode.INVALID_PAYLOAD })
       }
 
-      if (!StellarHelper.isValidContractAddress(stellarAddress)) {
+      if (!StellarHelper.isValidContractAddress(address)) {
         return reply.status(400).send({ success: false, error: ErrorCode.INVALID_ADDRESS })
       }
 
       // TODO: the passkey/wallet binding is trusted from the client — the address format is
       // checked but ownership is not. Before production, run a server-side WebAuthn attestation
-      // (registration ceremony) and verify the caller controls `stellarAddress` so the
+      // (registration ceremony) and verify the caller controls `address` so the
       // email↔passkey link is cryptographically enforced rather than a bare DB association.
       const updated = await markOnboardingCompleted(request.user!.id, {
         companyName,
-        stellarAddress,
+        address,
         passkeyCredentialId,
       })
 

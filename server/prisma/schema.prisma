@@ -23,7 +23,7 @@ model User {
   avatarUrl             String?        @db.Text
   companyName           String?
   onboardingCompletedAt DateTime?
-  stellarAddress        String?        @unique
+  address               String?        @unique
   passkeyCredentialId   String?        @db.Text
   createdAt             DateTime       @default(now())
   updatedAt             DateTime       @updatedAt
@@ -40,6 +40,15 @@ model EmailVerificationChallenge {
   attempts       Int      @default(0)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+}
+
+model EtherfuseCustomer {
+  id            String   @id @default(cuid())
+  address       String   @unique
+  customerId    String
+  bankAccountId String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 model OAuthAccount {

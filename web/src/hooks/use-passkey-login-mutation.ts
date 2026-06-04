@@ -18,7 +18,7 @@ export function usePasskeyLoginMutation() {
 
       try {
         const { data } = await server.post<TPasskeyLoginResult>('/auth/passkey/login', {
-          stellarAddress: contractId,
+          address: contractId,
         })
 
         return data
