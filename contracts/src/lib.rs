@@ -154,15 +154,18 @@ pub struct FractaPayContract;
 #[contractimpl]
 impl FractaPayContract {
     pub fn __constructor(env: Env, admin: Address) {
-        env.storage().instance().set(&DataKey::Admin, &admin);
+        save_admin(&env, &admin);
         env.storage()
-            .instance()
+            .persistent()
             .set(&DataKey::NextAgreementId, &0u64);
+        env.storage()
+            .persistent()
+            .extend_ttl(&DataKey::NextAgreementId, TTL_THRESHOLD, TTL_EXTEND_TO);
         extend_instance_ttl(&env);
     }
 
     pub fn get_admin(env: Env) -> Address {
-        env.storage().instance().get(&DataKey::Admin).unwrap()
+        load_admin(&env)
     }
 
     pub fn version(env: Env) -> soroban_sdk::String {
@@ -170,7 +173,7 @@ impl FractaPayContract {
     }
 
     pub fn upgrade(env: Env, new_wasm_hash: BytesN<32>) {
-        let admin: Address = env.storage().instance().get(&DataKey::Admin).unwrap();
+        let admin: Address = load_admin(&env);
         admin.require_auth();
         extend_instance_ttl(&env);
 
@@ -408,6 +411,17 @@ impl FractaPayContract {
         payer_agreements(&env, &payer)
     }
 
+    pub fn get_payer_agreements_full(env: Env, payer: Address) -> Vec<Agreement> {
+        let ids = payer_agreements(&env, &payer);
+        let mut agreements = Vec::new(&env);
+
+        for id in ids.iter() {
+            agreements.push_back(load_agreement(&env, id));
+        }
+
+        agreements
+    }
+
     pub fn get_payment_history(env: Env, payer: Address) -> Vec<PaymentRecord> {
         let key = DataKey::PaymentHistory(payer);
         let history = env
@@ -503,15 +517,34 @@ fn validate_terms(env: &Env, contract_type: &ContractType, flat_amount: i128, pe
     }
 }
 
+fn save_admin(env: &Env, admin: &Address) {
+    env.storage().persistent().set(&DataKey::Admin, admin);
+    env.storage()
+        .persistent()
+        .extend_ttl(&DataKey::Admin, TTL_THRESHOLD, TTL_EXTEND_TO);
+}
+
+fn load_admin(env: &Env) -> Address {
+    let admin: Address = env.storage().persistent().get(&DataKey::Admin).unwrap();
+    env.storage()
+        .persistent()
+        .extend_ttl(&DataKey::Admin, TTL_THRESHOLD, TTL_EXTEND_TO);
+
+    admin
+}
+
 fn next_agreement_id(env: &Env) -> u64 {
     let current: u64 = env
         .storage()
-        .instance()
+        .persistent()
         .get(&DataKey::NextAgreementId)
         .unwrap_or(0);
     env.storage()
-        .instance()
+        .persistent()
         .set(&DataKey::NextAgreementId, &(current + 1));
+    env.storage()
+        .persistent()
+        .extend_ttl(&DataKey::NextAgreementId, TTL_THRESHOLD, TTL_EXTEND_TO);
 
     current
 }

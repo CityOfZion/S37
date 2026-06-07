@@ -1522,6 +1522,120 @@ fn test_get_payer_agreements_empty() {
     assert_eq!(ids.len(), 0);
 }
 
+#[test]
+fn test_get_payer_agreements_full_empty() {
+    let env = Env::default();
+    set_ledger_timestamp(&env, 1_000);
+
+    let admin = Address::generate(&env);
+    let payer = Address::generate(&env);
+
+    let contract_id = register_contract(&env, &admin);
+    let client = FractaPayContractClient::new(&env, &contract_id);
+
+    let agreements = client.get_payer_agreements_full(&payer);
+    assert_eq!(agreements.len(), 0);
+}
+
+#[test]
+fn test_get_payer_agreements_full_returns_objects() {
+    let env = Env::default();
+    env.mock_all_auths();
+    set_ledger_timestamp(&env, 1_000);
+
+    let admin = Address::generate(&env);
+    let payer = Address::generate(&env);
+    let receiver = Address::generate(&env);
+    let (token, _) = create_token(&env, &admin);
+
+    let contract_id = register_contract(&env, &admin);
+    let client = FractaPayContractClient::new(&env, &contract_id);
+
+    let id1 = client.create_agreement(
+        &payer,
+        &receiver,
+        &token.address,
+        &ContractType::Flat,
+        &10_000_i128,
+        &0u32,
+        &schedule(&env, &[WEEK_S]),
+    );
+    let id2 = client.create_agreement(
+        &payer,
+        &receiver,
+        &token.address,
+        &ContractType::Royalties,
+        &0i128,
+        &1_000u32,
+        &schedule(&env, &[MONTH_S]),
+    );
+
+    let agreements = client.get_payer_agreements_full(&payer);
+    assert_eq!(agreements.len(), 2);
+
+    // Insertion order preserved, full objects returned (matches get_agreement).
+    let first = agreements.get(0).unwrap();
+    assert_eq!(first.id, id1);
+    assert_eq!(first.payer, payer);
+    assert_eq!(first.receiver, receiver);
+    assert_eq!(first.token, token.address);
+    assert_eq!(first.contract_type, ContractType::Flat);
+    assert_eq!(first.flat_amount, 10_000_i128);
+    assert_eq!(first.status, Status::Active);
+    assert_eq!(first, client.get_agreement(&id1));
+
+    let second = agreements.get(1).unwrap();
+    assert_eq!(second.id, id2);
+    assert_eq!(second.contract_type, ContractType::Royalties);
+    assert_eq!(second.percent_bps, 1_000u32);
+    assert_eq!(second, client.get_agreement(&id2));
+}
+
+#[test]
+fn test_get_payer_agreements_full_isolated_per_payer() {
+    let env = Env::default();
+    env.mock_all_auths();
+    set_ledger_timestamp(&env, 1_000);
+
+    let admin = Address::generate(&env);
+    let payer_a = Address::generate(&env);
+    let payer_b = Address::generate(&env);
+    let receiver = Address::generate(&env);
+    let (token, _) = create_token(&env, &admin);
+
+    let contract_id = register_contract(&env, &admin);
+    let client = FractaPayContractClient::new(&env, &contract_id);
+
+    let id_a = client.create_agreement(
+        &payer_a,
+        &receiver,
+        &token.address,
+        &ContractType::Flat,
+        &5_000_i128,
+        &0u32,
+        &schedule(&env, &[WEEK_S]),
+    );
+    client.create_agreement(
+        &payer_b,
+        &receiver,
+        &token.address,
+        &ContractType::Flat,
+        &7_000_i128,
+        &0u32,
+        &schedule(&env, &[WEEK_S]),
+    );
+
+    let a = client.get_payer_agreements_full(&payer_a);
+    assert_eq!(a.len(), 1);
+    assert_eq!(a.get(0).unwrap().id, id_a);
+    assert_eq!(a.get(0).unwrap().payer, payer_a);
+
+    let b = client.get_payer_agreements_full(&payer_b);
+    assert_eq!(b.len(), 1);
+    assert_eq!(b.get(0).unwrap().payer, payer_b);
+    assert_eq!(b.get(0).unwrap().flat_amount, 7_000_i128);
+}
+
 // ============================================================================
 // Coverage: execute_all_due non-strict
 // ============================================================================
