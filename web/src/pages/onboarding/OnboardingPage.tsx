@@ -211,6 +211,9 @@ export const OnboardingPage = () => {
         return t('errorEmailLinkedToOauth')
       case EErrorCode.EMAIL_SEND_FAILED:
         return t('errorEmailSendFailed')
+      case EErrorCode.RATE_LIMITED:
+      case EErrorCode.IP_BANNED:
+        return t('errorRateLimited')
       default:
         return t('errorGeneric')
     }
@@ -226,6 +229,9 @@ export const OnboardingPage = () => {
         return t('errorTooManyAttempts')
       case EErrorCode.EMAIL_ALREADY_REGISTERED:
         return t('errorEmailAlreadyRegistered')
+      case EErrorCode.RATE_LIMITED:
+      case EErrorCode.IP_BANNED:
+        return t('errorRateLimited')
       default:
         return t('errorGeneric')
     }

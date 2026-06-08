@@ -78,7 +78,8 @@
     "errorInvalidCode": "That code isn't right. Check it and try again.",
     "errorCodeExpired": "This code expired. Request a new one.",
     "errorTooManyAttempts": "Too many attempts. Request a new code.",
-    "errorGeneric": "Something went wrong. Please try again."
+    "errorGeneric": "Something went wrong. Please try again.",
+    "errorRateLimited": "Too many requests. Please wait a few minutes before trying again."
   },
   "payments": {
     "title": "Payments",

@@ -148,112 +148,120 @@ export const authRoute = async (fastify: FastifyInstance): Promise<void> => {
     return reply.status(200).send(request.user!)
   })
 
-  fastify.post<TRequestParams>('/auth/signup/request', async (request, reply) => {
-    reply.header('Cache-Control', 'no-store, no-cache, must-revalidate')
+  fastify.post<TRequestParams>(
+    '/auth/signup/request',
+    { config: { rateLimit: { max: 5, timeWindow: '1 minute' } } },
+    async (request, reply) => {
+      reply.header('Cache-Control', 'no-store, no-cache, must-revalidate')
 
-    const parsed = requestSchema.safeParse(request.body)
+      const parsed = requestSchema.safeParse(request.body)
 
-    if (!parsed.success) {
-      return reply.status(400).send({ error: EErrorCode.INVALID_PAYLOAD })
-    }
-
-    const { fullName } = parsed.data
-    const email = normalizeEmail(parsed.data.email)
-    const existing = await findUserByEmail(email)
-
-    if (existing) {
-      const hasOAuthAccount = existing.accounts.some(account => account.provider === 'google')
-
-      if (hasOAuthAccount) {
-        return reply.status(409).send({ error: EErrorCode.EMAIL_LINKED_TO_OAUTH })
+      if (!parsed.success) {
+        return reply.status(400).send({ error: EErrorCode.INVALID_PAYLOAD })
       }
 
-      // Only a completed signup (onboarding finished) blocks a new attempt.
-      if (existing.onboardingCompletedAt) {
-        return reply.status(409).send({ error: EErrorCode.EMAIL_ALREADY_REGISTERED })
-      }
-    }
+      const { fullName } = parsed.data
+      const email = normalizeEmail(parsed.data.email)
+      const existing = await findUserByEmail(email)
 
-    let challenge: Awaited<ReturnType<typeof createChallenge>>
+      if (existing) {
+        const hasOAuthAccount = existing.accounts.some(account => account.provider === 'google')
 
-    try {
-      challenge = await createChallenge({ email, fullName })
-    } catch (error) {
-      if (error instanceof Error && error.message === EErrorCode.RESEND_TOO_SOON) {
-        return reply.status(429).send({
-          error: EErrorCode.RESEND_TOO_SOON,
-          cooldownEndsAt: (error as Error & { cooldownEndsAt?: string }).cooldownEndsAt,
-        })
-      }
+        if (hasOAuthAccount) {
+          return reply.status(409).send({ error: EErrorCode.EMAIL_LINKED_TO_OAUTH })
+        }
 
-      throw error
-    }
-
-    const acceptLanguage = request.headers['accept-language']?.split(',')[0]?.trim() || ''
-    const language = SUPPORTED_LANGUAGES.includes(acceptLanguage as TLanguage)
-      ? (acceptLanguage as TLanguage)
-      : DEFAULT_LANGUAGE
-
-    try {
-      await sendVerificationCode({ email, code: challenge.code, fullName, language })
-    } catch {
-      return reply.status(502).send({ error: EErrorCode.EMAIL_SEND_FAILED })
-    }
-
-    return reply.status(200).send({
-      expiresAt: new Date(challenge.expiresAt).toJSON(),
-      cooldownEndsAt: new Date(challenge.cooldownEndsAt).toJSON(),
-    })
-  })
-
-  fastify.post<TVerifyParams>('/auth/signup/verify', async (request, reply) => {
-    reply.header('Cache-Control', 'no-store, no-cache, must-revalidate')
-
-    const parsed = verifySchema.safeParse(request.body)
-
-    if (!parsed.success) {
-      return reply.status(400).send({ error: EErrorCode.INVALID_PAYLOAD })
-    }
-
-    const email = normalizeEmail(parsed.data.email)
-    const { code } = parsed.data
-    let consumeResult: Awaited<ReturnType<typeof consumeChallenge>>
-
-    try {
-      consumeResult = await consumeChallenge({ email, code })
-    } catch (error) {
-      if (error instanceof Error) {
-        return reply.status(400).send({ error: error.message as EErrorCode })
+        // Only a completed signup (onboarding finished) blocks a new attempt.
+        if (existing.onboardingCompletedAt) {
+          return reply.status(409).send({ error: EErrorCode.EMAIL_ALREADY_REGISTERED })
+        }
       }
 
-      throw error
-    }
+      let challenge: Awaited<ReturnType<typeof createChallenge>>
 
-    const existing = await findUserByEmail(email)
+      try {
+        challenge = await createChallenge({ email, fullName })
+      } catch (error) {
+        if (error instanceof Error && error.message === EErrorCode.RESEND_TOO_SOON) {
+          return reply.status(429).send({
+            error: EErrorCode.RESEND_TOO_SOON,
+            cooldownEndsAt: (error as Error & { cooldownEndsAt?: string }).cooldownEndsAt,
+          })
+        }
 
-    if (existing) {
-      const hasOAuthAccount = existing.accounts.some(account => account.provider === 'google')
-
-      if (hasOAuthAccount) {
-        return reply.status(409).send({ error: EErrorCode.EMAIL_LINKED_TO_OAUTH })
+        throw error
       }
 
-      // Mirror the request-side guard: only a completed signup (onboarding finished) is rejected.
-      // An incomplete row is an abandoned attempt and gets reused by upsertEmailVerifiedUser.
-      if (existing.onboardingCompletedAt) {
-        return reply.status(409).send({ error: EErrorCode.EMAIL_ALREADY_REGISTERED })
+      const acceptLanguage = request.headers['accept-language']?.split(',')[0]?.trim() || ''
+      const language = SUPPORTED_LANGUAGES.includes(acceptLanguage as TLanguage)
+        ? (acceptLanguage as TLanguage)
+        : DEFAULT_LANGUAGE
+
+      try {
+        await sendVerificationCode({ email, code: challenge.code, fullName, language })
+      } catch {
+        return reply.status(502).send({ error: EErrorCode.EMAIL_SEND_FAILED })
       }
+
+      return reply.status(200).send({
+        expiresAt: new Date(challenge.expiresAt).toJSON(),
+        cooldownEndsAt: new Date(challenge.cooldownEndsAt).toJSON(),
+      })
     }
+  )
 
-    const user = await upsertEmailVerifiedUser({ email, fullName: consumeResult.fullName })
+  fastify.post<TVerifyParams>(
+    '/auth/signup/verify',
+    { config: { rateLimit: { max: 10, timeWindow: '1 minute' } } },
+    async (request, reply) => {
+      reply.header('Cache-Control', 'no-store, no-cache, must-revalidate')
 
-    const token = await reply.jwtSign(
-      { sub: user.id, email: user.email },
-      { expiresIn: JWT_EXPIRES_IN }
-    )
+      const parsed = verifySchema.safeParse(request.body)
 
-    return reply.status(200).send({ token, user: mapUserToTUser(user) })
-  })
+      if (!parsed.success) {
+        return reply.status(400).send({ error: EErrorCode.INVALID_PAYLOAD })
+      }
+
+      const email = normalizeEmail(parsed.data.email)
+      const { code } = parsed.data
+      let consumeResult: Awaited<ReturnType<typeof consumeChallenge>>
+
+      try {
+        consumeResult = await consumeChallenge({ email, code })
+      } catch (error) {
+        if (error instanceof Error) {
+          return reply.status(400).send({ error: error.message as EErrorCode })
+        }
+
+        throw error
+      }
+
+      const existing = await findUserByEmail(email)
+
+      if (existing) {
+        const hasOAuthAccount = existing.accounts.some(account => account.provider === 'google')
+
+        if (hasOAuthAccount) {
+          return reply.status(409).send({ error: EErrorCode.EMAIL_LINKED_TO_OAUTH })
+        }
+
+        // Mirror the request-side guard: only a completed signup (onboarding finished) is rejected.
+        // An incomplete row is an abandoned attempt and gets reused by upsertEmailVerifiedUser.
+        if (existing.onboardingCompletedAt) {
+          return reply.status(409).send({ error: EErrorCode.EMAIL_ALREADY_REGISTERED })
+        }
+      }
+
+      const user = await upsertEmailVerifiedUser({ email, fullName: consumeResult.fullName })
+
+      const token = await reply.jwtSign(
+        { sub: user.id, email: user.email },
+        { expiresIn: JWT_EXPIRES_IN }
+      )
+
+      return reply.status(200).send({ token, user: mapUserToTUser(user) })
+    }
+  )
 
   fastify.post<TLoginParams>('/auth/passkey/login', async (request, reply) => {
     reply.header('Cache-Control', 'no-store, no-cache, must-revalidate')

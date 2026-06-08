@@ -7,6 +7,7 @@ export const healthRoute = async (fastify: FastifyInstance): Promise<void> => {
     return reply.status(200).send({ status: 'ok', service: SERVICE_NAME })
   }
 
-  fastify.get('/', handler)
-  fastify.get('/health', handler)
+  // Exempt from rate limiting — a 429 on Fly's /health probe would trigger a restart.
+  fastify.get('/', { config: { rateLimit: { max: 10, timeWindow: '1 minute' } } }, handler)
+  fastify.get('/health', { config: { rateLimit: { max: 10, timeWindow: '1 minute' } } }, handler)
 }
