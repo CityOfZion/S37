@@ -1,15 +1,27 @@
 import { useEffect, useRef } from 'react'
 
-import { Outlet } from '@tanstack/react-router'
+import { Outlet, useRouterState } from '@tanstack/react-router'
 
+import { useDestinationsQuery } from '../hooks/use-destinations-query'
+import { useDestinationsStore } from '../hooks/use-destinations-store'
 import { useSidebarStore } from '../hooks/use-sidebar-store'
-import { MobileHeader } from './MobileHeader'
 import { Sidebar } from './Sidebar'
+import { Toolbar } from './Toolbar'
 
 export const RootLayout = () => {
   const { mobileOpen, chatSidebarOpen } = useSidebarStore()
+  const { data: destinationsData } = useDestinationsQuery()
+  const setDestinations = useDestinationsStore(state => state.setDestinations)
   const nonSidebarRef = useRef<HTMLDivElement>(null)
-  const mobileHeaderRef = useRef<HTMLDivElement>(null)
+  const toolbarRef = useRef<HTMLDivElement>(null)
+  const currentPath = useRouterState({ select: state => state.location.pathname })
+  const isChat = currentPath.startsWith('/chat')
+
+  useEffect(() => {
+    if (destinationsData) {
+      setDestinations(destinationsData)
+    }
+  }, [destinationsData, setDestinations])
 
   useEffect(() => {
     const element = nonSidebarRef.current
@@ -23,7 +35,7 @@ export const RootLayout = () => {
   }, [mobileOpen])
 
   useEffect(() => {
-    const element = mobileHeaderRef.current
+    const element = toolbarRef.current
     if (!element) return
 
     if (chatSidebarOpen) {
@@ -34,13 +46,16 @@ export const RootLayout = () => {
   }, [chatSidebarOpen])
 
   return (
-    <div className="bg-neutral-50 text-neutral-900 min-h-screen lg:flex">
+    <div className="bg-neutral-50 text-neutral-900 h-full lg:flex overflow-hidden">
       <Sidebar />
-      <div ref={nonSidebarRef} className="flex-1 min-w-0 flex flex-col">
-        <div ref={mobileHeaderRef} data-mobile-header>
-          <MobileHeader />
+      <div ref={nonSidebarRef} className="flex-1 min-w-0 flex flex-col overflow-hidden h-full">
+        <div ref={toolbarRef} data-toolbar className="h-14 shrink-0">
+          <Toolbar />
         </div>
-        <main className="flex-1">
+        <main
+          id="main-scroll"
+          className={isChat ? 'flex-1 overflow-hidden flex flex-col' : 'flex-1 overflow-y-auto'}
+        >
           <Outlet />
         </main>
       </div>

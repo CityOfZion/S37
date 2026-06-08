@@ -9,13 +9,13 @@ import {
 import { RootLayout } from '../components/RootLayout'
 import { BASE_PATH } from '../constants'
 import { userQueryOptions } from '../hooks/use-user-query'
-import { ChatPage } from '../pages/ChatPage'
-import { DestinationsPage } from '../pages/DestinationsPage'
-import { LoginPage } from '../pages/LoginPage'
-import { OnboardingPage } from '../pages/OnboardingPage'
-import { PaymentPage } from '../pages/PaymentPage'
-import { PaymentsPage } from '../pages/PaymentsPage'
-import { ProfilePage } from '../pages/ProfilePage'
+import { LoginPage } from '../pages/auth/LoginPage'
+import { ChatPage } from '../pages/chat/ChatPage'
+import { DestinationsPage } from '../pages/destinations/DestinationsPage'
+import { OnboardingPage } from '../pages/onboarding/OnboardingPage'
+import { PaymentPage } from '../pages/payments/PaymentPage'
+import { PaymentsPage } from '../pages/payments/PaymentsPage'
+import { ProfilePage } from '../pages/profile/ProfilePage'
 import { queryClient } from '../services/query-client'
 
 const rootRoute = createRootRoute({
@@ -55,7 +55,7 @@ const chatRoute = createRoute({
 
 const chatConversationRoute = createRoute({
   getParentRoute: () => authRoute,
-  path: '/chat/$conversationId',
+  path: '/chat/$id',
   component: ChatPage,
 })
 
@@ -79,7 +79,7 @@ const profileRoute = createRoute({
 
 const paymentRoute = createRoute({
   getParentRoute: () => authRoute,
-  path: '/payments/$orderId',
+  path: '/payments/$id',
   component: PaymentPage,
 })
 

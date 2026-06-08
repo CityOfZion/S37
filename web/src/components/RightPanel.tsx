@@ -18,6 +18,6 @@ export const RightPanel = ({ open, onClose, title, children }: TProps) => (
     panelClassName="w-full max-w-sm shadow-2xl"
     header={<SidebarPanelHeader title={title} onClose={onClose} />}
   >
-    <div className="p-5">{children}</div>
+    <div className="p-5 pb-16">{children}</div>
   </SidebarPanel>
 )

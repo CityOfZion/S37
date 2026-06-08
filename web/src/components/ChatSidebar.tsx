@@ -3,12 +3,12 @@ import { useTranslation } from 'react-i18next'
 
 import { useNavigate, useParams } from '@tanstack/react-router'
 
-import { StringHelper, TOKEN } from 'fractapay-shared'
+import { StringHelper } from 'fractapay-shared'
 
 import { ToastHelper } from '../helpers/ToastHelper'
 import { useChatStore } from '../hooks/use-chat-store'
-import { useConversationStore } from '../hooks/use-conversation-store'
 import { useLanguageStore } from '../hooks/use-language-store'
+import { usePaymentsQuery } from '../hooks/use-payments-query'
 import { ConversationWarningModal } from '../modals/ConversationWarningModal'
 import { Button } from './Button'
 import { SidebarPanel } from './SidebarPanel'
@@ -27,20 +27,21 @@ type TProps = {
 export const ChatSidebar = ({ open, onClose, onNewConversation }: TProps) => {
   const { t } = useTranslation('components', { keyPrefix: 'sidebar' })
   const { t: tChat } = useTranslation('pages', { keyPrefix: 'chat' })
-  const { t: tChatPaymentsBar } = useTranslation('components', { keyPrefix: 'chatPaymentsBar' })
+  const { t: tCommon } = useTranslation('common')
   const { language } = useLanguageStore()
   const navigate = useNavigate()
-  const { conversations } = useConversationStore()
-  const { conversationId } = useParams({ strict: false })
+  const { data: paymentsData } = usePaymentsQuery()
+  const payments = paymentsData?.data || []
+  const { id } = useParams({ strict: false })
   const hasUserMessages = useChatStore(state =>
-    state.messages.some(message => message.role === 'user')
+    state.messages.some(message => message.role === 'USER')
   )
   const isProcessing = useChatStore(state => state.isProcessing)
   const [warningOpen, setWarningOpen] = useState(false)
-  const [pendingConversationId, setPendingConversationId] = useState<string | null>(null)
+  const [pendingId, setPendingId] = useState<string | null>(null)
 
-  const isNewConversation = !conversationId
-  const isAlreadyNew = isNewConversation && !hasUserMessages
+  const isNewPayment = !id
+  const isAlreadyNew = isNewPayment && !hasUserMessages
   const isDisabled = isAlreadyNew || isProcessing
 
   const doNewConversation = () => {
@@ -50,23 +51,23 @@ export const ChatSidebar = ({ open, onClose, onNewConversation }: TProps) => {
   }
 
   const doSelectConversation = (id: string) => {
-    void navigate({ to: '/chat/$conversationId', params: { conversationId: id } })
+    void navigate({ to: '/chat/$id', params: { id } })
     onClose()
   }
 
   const handleNewConversation = () => {
     if (isDisabled) return
 
-    if (isNewConversation && hasUserMessages) {
-      setPendingConversationId(null)
+    if (isNewPayment && hasUserMessages) {
+      setPendingId(null)
       setWarningOpen(true)
     } else {
       doNewConversation()
     }
   }
 
-  const handleSelectConversation = (id: string) => {
-    if (id === conversationId) return
+  const handleSelectConversation = (selectedId: string) => {
+    if (selectedId === id) return
 
     if (isProcessing) {
       ToastHelper.info(tChat('navigatingWhileLoading'))
@@ -74,11 +75,11 @@ export const ChatSidebar = ({ open, onClose, onNewConversation }: TProps) => {
       return
     }
 
-    if (isNewConversation && hasUserMessages) {
-      setPendingConversationId(id)
+    if (isNewPayment && hasUserMessages) {
+      setPendingId(selectedId)
       setWarningOpen(true)
     } else {
-      doSelectConversation(id)
+      doSelectConversation(selectedId)
     }
   }
 
@@ -143,7 +144,7 @@ export const ChatSidebar = ({ open, onClose, onNewConversation }: TProps) => {
         footer={footer}
       >
         <div className="py-2">
-          {conversations.length === 0 ? (
+          {payments.length === 0 ? (
             <div className="p-8 flex flex-col items-center gap-2 text-center">
               <MessageIcon className="size-8 text-neutral-300" aria-hidden="true" />
               <p className="text-xs text-neutral-400 leading-relaxed select-none">
@@ -152,35 +153,34 @@ export const ChatSidebar = ({ open, onClose, onNewConversation }: TProps) => {
             </div>
           ) : (
             <ul className="space-y-1 px-2">
-              {conversations.map(conversation => (
-                <li key={conversation.id}>
+              {payments.map(payment => (
+                <li key={payment.id}>
                   <Button
                     variant="ghost"
                     size="xs"
                     className={
-                      conversation.id === conversationId
+                      payment.id === id
                         ? 'w-full justify-start px-3 py-2 text-xs font-semibold text-primary bg-primary/10 hover:bg-primary/15 text-wrap text-left'
                         : 'w-full justify-start px-3 py-2 text-xs text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 text-wrap text-left'
                     }
-                    onClick={() => handleSelectConversation(conversation.id)}
+                    onClick={() => handleSelectConversation(payment.id)}
                   >
                     {(() => {
-                      const date = new Date(conversation.createdAt).toLocaleDateString(language, {
+                      const date = new Date(payment.createdAt).toLocaleDateString(language, {
                         day: 'numeric',
                         month: 'long',
                         year: 'numeric',
                       })
 
-                      return conversation.totalAmount
-                        ? tChat('conversationTitle', {
+                      return payment.amount
+                        ? tCommon('paymentTitle', {
+                            count: payment.destinations.length,
                             date,
                             amount: StringHelper.formatCurrencyAmount(
-                              conversation.totalAmount,
-                              TOKEN.TESOURO
+                              payment.amount,
+                              payment.token
                             ),
-                            recipients: tChatPaymentsBar('allocationsCount', {
-                              count: conversation.allocations.length,
-                            }),
+                            recipients: payment.destinations.length,
                           })
                         : tChat('conversationTitleEmpty', { date })
                     })()}
@@ -194,14 +194,14 @@ export const ChatSidebar = ({ open, onClose, onNewConversation }: TProps) => {
 
       <ConversationWarningModal
         open={warningOpen}
-        variant={pendingConversationId ? 'open' : 'new'}
+        variant={pendingId ? 'open' : 'new'}
         onOpenChange={open => !open && setWarningOpen(false)}
         onConfirm={() => {
           setWarningOpen(false)
 
-          if (pendingConversationId) {
-            doSelectConversation(pendingConversationId)
-            setPendingConversationId(null)
+          if (pendingId) {
+            doSelectConversation(pendingId)
+            setPendingId(null)
           } else {
             doNewConversation()
           }

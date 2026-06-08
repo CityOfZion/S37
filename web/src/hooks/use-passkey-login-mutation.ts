@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { isAxiosError } from 'axios'
 
-import { ErrorCode, type TPasskeyLoginResult } from 'fractapay-shared'
+import { EErrorCode, type TPasskeyLoginResponse } from 'fractapay-shared'
 
 import { AUTH_TOKEN_STORAGE_KEY } from '../constants'
 import { server } from '../services/server'
@@ -12,26 +12,26 @@ export function usePasskeyLoginMutation() {
   const queryClient = useQueryClient()
   const { connectExistingWallet } = useSmartAccount()
 
-  return useMutation<TPasskeyLoginResult, Error>({
+  return useMutation<TPasskeyLoginResponse, Error>({
     mutationFn: async () => {
       const { contractId } = await connectExistingWallet()
 
       try {
-        const { data } = await server.post<TPasskeyLoginResult>('/auth/passkey/login', {
+        const { data } = await server.post<TPasskeyLoginResponse>('/auth/passkey/login', {
           address: contractId,
         })
 
         return data
       } catch (error) {
         if (isAxiosError(error) && error.response?.data) {
-          return error.response.data as TPasskeyLoginResult
+          return error.response.data as TPasskeyLoginResponse
         }
 
-        return { success: false, error: ErrorCode.NETWORK_ERROR }
+        return { success: false, error: EErrorCode.NETWORK_ERROR }
       }
     },
     onSuccess: result => {
-      if (!result.success) return
+      if ('error' in result) return
 
       localStorage.setItem(AUTH_TOKEN_STORAGE_KEY, result.token)
       queryClient.setQueryData(USER_QUERY_KEY, result.user)

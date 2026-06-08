@@ -1,11 +1,16 @@
 {
   "actions": {
-    "close": "Fechar"
+    "close": "Fechar",
+    "breadcrumb": "Trilha de navegação"
   },
   "fiatByToken": {
     "TESOURO": "Real"
   },
   "fiatBySymbol": {
     "BRL": "Real"
-  }
+  },
+  "paymentTitle": "{{date}} | {{amount}} | {{recipients}} destinatário",
+  "paymentTitle_other": "{{date}} | {{amount}} | {{recipients}} destinatários",
+  "rateValue": "1 {{fiat}} ≈ {{rate}} {{token}}",
+  "fullAllocation": "Integral"
 }

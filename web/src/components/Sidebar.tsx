@@ -72,6 +72,8 @@ const NavContent = ({
     enabled: !!address,
   })
 
+  const isProfileActive = isActive('/profile')
+
   return (
     <nav className="flex flex-col h-full" aria-label={t('label')}>
       <div className="flex items-center gap-2 px-4 py-5 border-b border-white/10">
@@ -135,15 +137,28 @@ const NavContent = ({
           <NavLink
             to="/profile"
             onClick={onClose}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm hover:bg-white/5 transition-colors group"
+            className={StyleHelper.merge(
+              'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-colors group',
+              isProfileActive ? 'bg-white/10' : 'hover:bg-white/5'
+            )}
+            aria-current={isProfileActive ? 'page' : undefined}
           >
-            <UserAvatar name={user.name ?? user.email} picture={user.picture} />
+            <UserAvatar name={user.name} picture={user.picture} />
             <div className="min-w-0 flex-1">
-              <p className="text-white font-bold truncate text-sm">{user.name ?? user.email}</p>
-              <p className="text-neutral-500 text-xs truncate select-none">{t('viewProfile')}</p>
+              <p className="text-white font-bold truncate text-sm">{user.name}</p>
+              <p
+                className={StyleHelper.merge('text-neutral-500 text-xs truncate select-none', {
+                  'text-white': isProfileActive,
+                })}
+              >
+                {t('viewProfile')}
+              </p>
             </div>
             <UserIcon
-              className="size-5 shrink-0 text-neutral-500 group-hover:text-white transition-colors"
+              className={StyleHelper.merge(
+                'size-5 shrink-0 transition-colors',
+                isActive('/profile') ? 'text-white' : 'text-neutral-500 group-hover:text-white'
+              )}
               aria-hidden="true"
             />
           </NavLink>
@@ -192,9 +207,9 @@ export const Sidebar = () => {
   const { mobileOpen, setMobileOpen } = useSidebarStore()
   const { data: user } = useUserQuery()
   const logoutMutation = useLogoutMutation()
-  const { conversationId } = useParams({ strict: false })
+  const { id } = useParams({ strict: false })
   const hasUserMessages = useChatStore(state =>
-    state.messages.some(message => message.role === 'user')
+    state.messages.some(message => message.role === 'USER')
   )
   const [logoutWarningOpen, setLogoutWarningOpen] = useState(false)
 
@@ -232,7 +247,9 @@ export const Sidebar = () => {
 
     document.addEventListener('keydown', handleEscape)
 
-    return () => document.removeEventListener('keydown', handleEscape)
+    return () => {
+      document.removeEventListener('keydown', handleEscape)
+    }
   }, [mobileOpen, setMobileOpen])
 
   const isActive = (path: string) => currentPath.startsWith(path)
@@ -254,7 +271,7 @@ export const Sidebar = () => {
   }
 
   const handleLogout = () => {
-    if (!conversationId && hasUserMessages) {
+    if (!id && hasUserMessages) {
       setLogoutWarningOpen(true)
 
       return

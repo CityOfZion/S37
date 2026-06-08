@@ -9,8 +9,8 @@
   },
   "dependencies": {
     "@eslint/js": "^9.39.4",
-    "@types/node": "^22.15.0",
     "@stellar/stellar-sdk": "15.0.0",
+    "@types/node": "^22.15.0",
     "bignumber.js": "^11.1.1"
   },
   "devDependencies": {

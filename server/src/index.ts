@@ -10,8 +10,14 @@ import { EnvHelper } from './helpers/EnvHelper'
 import { authRoute } from './routes/auth-route'
 import { balanceRoute } from './routes/balance-route'
 import { chatRoute } from './routes/chat-route'
-import { etherfuseRoute } from './routes/etherfuse-route'
+import { customersRoute } from './routes/customers-route'
+import { destinationsRoute } from './routes/destinations-route'
 import { healthRoute } from './routes/health-route'
+import { kycRoute } from './routes/kyc-route'
+import { onboardingRoute } from './routes/onboarding-route'
+import { paymentsRoute } from './routes/payments-route'
+import { quotesRoute } from './routes/quotes-route'
+import { webhooksRoute } from './routes/webhooks-route'
 
 const fastify = Fastify({
   logger: isProduction
@@ -24,12 +30,12 @@ const fastify = Fastify({
       },
 })
 
+const iss = 'fractapay-server'
+
 async function bootstrap(): Promise<void> {
   await fastify.register(cookie, {
     secret: EnvHelper.SESSION_SECRET,
   })
-
-  const iss = 'fractapay-server'
 
   await fastify.register(jwt, {
     secret: EnvHelper.SESSION_SECRET,
@@ -46,7 +52,7 @@ async function bootstrap(): Promise<void> {
 
   await fastify.register(cors, {
     origin: EnvHelper.CORS_ORIGIN.split(',').map(origin => origin.trim()),
-    methods: ['GET', 'POST', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept-Language'],
   })
 
@@ -80,7 +86,7 @@ async function bootstrap(): Promise<void> {
 
     if (!challenge || challenge.length > 128 || !/^[A-Za-z0-9_-]+$/.test(challenge)) return
 
-    reply.setCookie('fractapay_pkce', challenge, {
+    reply.setCookie('fractapay.pkce', challenge, {
       signed: true,
       httpOnly: true,
       sameSite: 'lax',
@@ -92,9 +98,15 @@ async function bootstrap(): Promise<void> {
 
   await fastify.register(healthRoute)
   await fastify.register(authRoute)
-  await fastify.register(etherfuseRoute)
-  await fastify.register(balanceRoute)
+  await fastify.register(onboardingRoute)
   await fastify.register(chatRoute)
+  await fastify.register(paymentsRoute)
+  await fastify.register(destinationsRoute)
+  await fastify.register(customersRoute)
+  await fastify.register(kycRoute)
+  await fastify.register(balanceRoute)
+  await fastify.register(quotesRoute)
+  await fastify.register(webhooksRoute)
 
   await fastify.listen({ port: EnvHelper.PORT, host: '0.0.0.0' })
 
