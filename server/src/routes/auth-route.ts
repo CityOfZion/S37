@@ -16,10 +16,11 @@ import {
   type TSignupRequestPayload,
   type TSignupRequestResponse,
   type TSignupVerifyPayload,
-  TSignupVerifyResponse,
+  type TSignupVerifyResponse,
   type TUser,
 } from 'fractapay-shared'
 
+import { PKCE_COOKIE_NAME } from '../constants'
 import { EnvHelper } from '../helpers/EnvHelper'
 import { PkceHelper } from '../helpers/PkceHelper'
 import { requireAuth } from '../hooks/require-auth'
@@ -73,8 +74,6 @@ type TRequestParams = {
   Reply: TSignupRequestResponse
 }
 
-type TSignupParams = { Reply: { error: EErrorCode } }
-
 export const authRoute = async (fastify: FastifyInstance): Promise<void> => {
   fastify.get('/auth/google/callback', async (request, reply) => {
     try {
@@ -96,11 +95,11 @@ export const authRoute = async (fastify: FastifyInstance): Promise<void> => {
 
       const user = await upsertGoogleUser({ profile: data })
 
-      const signedChallenge = request.cookies['fractapay.pkce']
+      const signedChallenge = request.cookies[PKCE_COOKIE_NAME]
       const unsigned = signedChallenge ? request.unsignCookie(signedChallenge) : null
       const challenge = unsigned?.valid ? unsigned.value : null
 
-      reply.clearCookie('fractapay.pkce', { path: '/auth' })
+      reply.clearCookie(PKCE_COOKIE_NAME, { path: '/auth' })
 
       if (!challenge) {
         return reply.redirect(EnvHelper.WEB_LOGIN_FAILURE_URL)
@@ -149,12 +148,6 @@ export const authRoute = async (fastify: FastifyInstance): Promise<void> => {
     return reply.status(200).send(request.user!)
   })
 
-  fastify.post<TSignupParams>('/auth/signup', async (request, reply) => {
-    request.log.info('[Auth] signup endpoint hit — not yet implemented')
-
-    return reply.status(501).send({ error: EErrorCode.NOT_IMPLEMENTED })
-  })
-
   fastify.post<TRequestParams>('/auth/signup/request', async (request, reply) => {
     reply.header('Cache-Control', 'no-store, no-cache, must-revalidate')
 
@@ -181,13 +174,19 @@ export const authRoute = async (fastify: FastifyInstance): Promise<void> => {
       }
     }
 
-    const challenge = await createChallenge({ email, fullName })
+    let challenge: Awaited<ReturnType<typeof createChallenge>>
 
-    if (!challenge.ok) {
-      return reply.status(429).send({
-        error: EErrorCode.RESEND_TOO_SOON,
-        cooldownEndsAt: new Date(challenge.cooldownEndsAt).toJSON(),
-      })
+    try {
+      challenge = await createChallenge({ email, fullName })
+    } catch (error) {
+      if (error instanceof Error && error.message === EErrorCode.RESEND_TOO_SOON) {
+        return reply.status(429).send({
+          error: EErrorCode.RESEND_TOO_SOON,
+          cooldownEndsAt: (error as Error & { cooldownEndsAt?: string }).cooldownEndsAt,
+        })
+      }
+
+      throw error
     }
 
     const acceptLanguage = request.headers['accept-language']?.split(',')[0]?.trim() || ''
@@ -218,17 +217,16 @@ export const authRoute = async (fastify: FastifyInstance): Promise<void> => {
 
     const email = normalizeEmail(parsed.data.email)
     const { code } = parsed.data
-    const result = await consumeChallenge({ email, code })
+    let consumeResult: Awaited<ReturnType<typeof consumeChallenge>>
 
-    if (!result.ok) {
-      const error =
-        result.reason === 'expired'
-          ? EErrorCode.VERIFICATION_EXPIRED
-          : result.reason === 'too_many_attempts'
-            ? EErrorCode.TOO_MANY_VERIFICATION_ATTEMPTS
-            : EErrorCode.INVALID_VERIFICATION_CODE
+    try {
+      consumeResult = await consumeChallenge({ email, code })
+    } catch (error) {
+      if (error instanceof Error) {
+        return reply.status(400).send({ error: error.message as EErrorCode })
+      }
 
-      return reply.status(400).send({ error })
+      throw error
     }
 
     const existing = await findUserByEmail(email)
@@ -247,7 +245,7 @@ export const authRoute = async (fastify: FastifyInstance): Promise<void> => {
       }
     }
 
-    const user = await upsertEmailVerifiedUser({ email, fullName: result.fullName })
+    const user = await upsertEmailVerifiedUser({ email, fullName: consumeResult.fullName })
 
     const token = await reply.jwtSign(
       { sub: user.id, email: user.email },

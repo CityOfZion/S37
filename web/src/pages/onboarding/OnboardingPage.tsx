@@ -4,12 +4,14 @@ import { useTranslation } from 'react-i18next'
 
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useNavigate, useSearch } from '@tanstack/react-router'
+import { isAxiosError } from 'axios'
 
 import { APP_NAME, EErrorCode } from 'fractapay-shared'
 
 import logoUrl from '../../assets/logos/logo.svg'
 import { Button } from '../../components/Button'
 import { Input } from '../../components/Input'
+import { InputHelper } from '../../helpers/InputHelper'
 import { ToastHelper } from '../../helpers/ToastHelper'
 import { useCompleteOnboardingMutation } from '../../hooks/use-complete-onboarding-mutation'
 import { useConnectExistingWalletMutation } from '../../hooks/use-connect-existing-wallet-mutation'
@@ -236,59 +238,71 @@ export const OnboardingPage = () => {
 
     if (!isStepValid) return
 
-    const result = await signupRequestMutation.mutateAsync({
-      fullName: getValues('fullName').trim(),
-      email: getValues('email').trim(),
-    })
+    signupRequestMutation.mutate(
+      { fullName: getValues('fullName').trim(), email: getValues('email').trim() },
+      {
+        onSuccess: result => {
+          setCooldownEndsAt(new Date(result.cooldownEndsAt).getTime())
+          setVerificationCode('')
+          setCodeError(undefined)
+          setIsVerifying(true)
+        },
+        onError: error => {
+          const code: EErrorCode = isAxiosError(error)
+            ? error.response?.data?.error
+            : EErrorCode.NETWORK_ERROR
 
-    if ('error' in result) {
-      if (result.error === EErrorCode.RESEND_TOO_SOON) {
-        if (result.cooldownEndsAt) setCooldownEndsAt(new Date(result.cooldownEndsAt).getTime())
-        setVerificationCode('')
-        setCodeError(undefined)
-        setIsVerifying(true)
+          if (code === EErrorCode.RESEND_TOO_SOON) {
+            const cooldown: string | undefined = isAxiosError(error)
+              ? error.response?.data?.cooldownEndsAt
+              : undefined
+            if (cooldown) setCooldownEndsAt(new Date(cooldown).getTime())
+            setVerificationCode('')
+            setCodeError(undefined)
+            setIsVerifying(true)
 
-        return
+            return
+          }
+
+          setRequestError(mapRequestError(code))
+        },
       }
-
-      setRequestError(mapRequestError(result.error))
-
-      return
-    }
-
-    setCooldownEndsAt(new Date(result.cooldownEndsAt).getTime())
-    setVerificationCode('')
-    setCodeError(undefined)
-    setIsVerifying(true)
+    )
   }
 
-  const handleResendCode = async () => {
+  const handleResendCode = () => {
     if (remainingSeconds > 0 || isRequestingCode) return
 
     setCodeError(undefined)
 
-    const result = await signupRequestMutation.mutateAsync({
-      fullName: getValues('fullName').trim(),
-      email: getValues('email').trim(),
-    })
+    signupRequestMutation.mutate(
+      { fullName: getValues('fullName').trim(), email: getValues('email').trim() },
+      {
+        onSuccess: result => {
+          setCooldownEndsAt(new Date(result.cooldownEndsAt).getTime())
+          setVerificationCode('')
+        },
+        onError: error => {
+          const code: EErrorCode = isAxiosError(error)
+            ? error.response?.data?.error
+            : EErrorCode.NETWORK_ERROR
 
-    if ('error' in result) {
-      if (result.error === EErrorCode.RESEND_TOO_SOON && result.cooldownEndsAt) {
-        setCooldownEndsAt(new Date(result.cooldownEndsAt).getTime())
+          if (code === EErrorCode.RESEND_TOO_SOON) {
+            const cooldown: string | undefined = isAxiosError(error)
+              ? error.response?.data?.cooldownEndsAt
+              : undefined
+            if (cooldown) setCooldownEndsAt(new Date(cooldown).getTime())
 
-        return
+            return
+          }
+
+          setCodeError(mapRequestError(code))
+        },
       }
-
-      setCodeError(mapRequestError(result.error))
-
-      return
-    }
-
-    setCooldownEndsAt(new Date(result.cooldownEndsAt).getTime())
-    setVerificationCode('')
+    )
   }
 
-  const handleVerifyCode = async (event: FormEvent) => {
+  const handleVerifyCode = (event: FormEvent) => {
     event.preventDefault()
     setCodeError(undefined)
 
@@ -298,27 +312,30 @@ export const OnboardingPage = () => {
       return
     }
 
-    const result = await signupVerifyMutation.mutateAsync({
-      email: getValues('email').trim(),
-      code: verificationCode,
-    })
+    signupVerifyMutation.mutate(
+      { email: getValues('email').trim(), code: verificationCode },
+      {
+        onSuccess: () => {
+          setSignupVerified(true)
+          setIsVerifying(false)
+          setCurrentStep(2)
+        },
+        onError: error => {
+          const code: EErrorCode = isAxiosError(error)
+            ? error.response?.data?.error
+            : EErrorCode.NETWORK_ERROR
 
-    if ('error' in result) {
-      if (
-        result.error === EErrorCode.VERIFICATION_EXPIRED ||
-        result.error === EErrorCode.TOO_MANY_VERIFICATION_ATTEMPTS
-      ) {
-        setCooldownEndsAt(null)
+          if (
+            code === EErrorCode.VERIFICATION_EXPIRED ||
+            code === EErrorCode.TOO_MANY_VERIFICATION_ATTEMPTS
+          ) {
+            setCooldownEndsAt(null)
+          }
+
+          setCodeError(mapVerifyError(code))
+        },
       }
-
-      setCodeError(mapVerifyError(result.error))
-
-      return
-    }
-
-    setSignupVerified(true)
-    setIsVerifying(false)
-    setCurrentStep(2)
+    )
   }
 
   const handleBackToIdentity = () => {
@@ -522,7 +539,6 @@ export const OnboardingPage = () => {
             )}
           />
 
-          {/* TODO: implement CNPJ mask */}
           <Controller
             name="cnpj"
             control={control}
@@ -535,7 +551,14 @@ export const OnboardingPage = () => {
                 maxLength={18}
                 inputMode="numeric"
                 autoComplete="off"
-                onChange={event => field.onChange(event.target.value)}
+                error={
+                  errors.cnpj?.message
+                    ? t(errors.cnpj.message, { defaultValue: errors.cnpj.message })
+                    : undefined
+                }
+                onChange={event =>
+                  field.onChange(InputHelper.applyPixKeyMask(event.target.value, 'CNPJ'))
+                }
               />
             )}
           />

@@ -606,7 +606,7 @@ export const ChatPage = () => {
         onDrop={handleDrop}
       >
         {isDragging && (
-          <div className="fixed inset-0 lg:left-124 z-50 flex flex-col items-center justify-center gap-3 bg-primary/10 border-2 border-dashed border-primary pointer-events-none">
+          <div className="fixed inset-0 top-14 lg:left-124 z-50 flex flex-col items-center justify-center gap-3 bg-primary/10 border-2 border-dashed border-primary pointer-events-none">
             <AttachIcon className="size-10 text-primary" aria-hidden="true" />
             <p className="text-primary font-semibold text-lg">{t('dropFile')}</p>
           </div>

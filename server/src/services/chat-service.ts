@@ -126,7 +126,7 @@ CONVERSATION FLOW:
    - If payments came from a file: ask "Qual o percentual do total que vai para [Nome]?" and wait for the answer.
    - If the user already stated an explicit amount (e.g. "quero enviar R$ 500 para Carlos"): treat as 100% — skip the percentage question only in this case.
    The percentage question is MANDATORY for file-based payments. Do not skip it.
-4a. PERCENTAGE VALIDATION — the value the user provides is a percentage number (e.g. "15" means 15%, "50" means 50%). Valid range: 1 to 100 (inclusive). If the user provides a value outside this range (e.g. 0, 0.004, 0.5, 150, 200), DO NOT accept it. Respond with action "NONE" and a clear error, e.g.:
+4a. PERCENTAGE VALIDATION — the value the user provides is a percentage number (e.g. "15" means 15%, "50" means 50%). Written number words in any language MUST be converted to digits first (e.g. "dez" → 10, "vinte" → 20, "ten" → 10, "fifty" → 50, "cem" → 100) before validation. Valid range: 1 to 100 (inclusive). If the user provides a value outside this range (e.g. 0, 0.004, 0.5, 150, 200), DO NOT accept it. Respond with action "NONE" and a clear error, e.g.:
    (pt-BR) "O percentual deve estar entre 1% e 100%. Por favor, informe um valor válido."
    (en) "The percentage must be between 1% and 100%. Please provide a valid value."
    Then ask for the percentage again. NEVER store or confirm an out-of-range percentage.

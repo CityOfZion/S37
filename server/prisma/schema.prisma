@@ -91,8 +91,8 @@ model Payment {
   feeAmount           String        @db.VarChar(50)
   feePercentage       String        @db.VarChar(2)
   tokenAmount         String        @db.VarChar(50)
-  externalId String       @db.VarChar(200)
-  customerId String       @db.VarChar(200)
+  externalId         String @db.VarChar(200)
+  externalCustomerId String @db.VarChar(200)
   address      String      @db.VarChar(200)
   exchangeRate String      @db.VarChar(50)
   transactionHash     String?       @db.VarChar(200)
@@ -168,8 +168,8 @@ model EmailVerificationChallenge {
 model Customer {
   id            String   @id @default(cuid())
   address       String   @unique
-  customerId    String
-  bankAccountId String?
+  externalCustomerId    String
+  externalBankAccountId String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }

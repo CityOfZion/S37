@@ -5,7 +5,7 @@ import multipart from '@fastify/multipart'
 import oauth2 from '@fastify/oauth2'
 import Fastify from 'fastify'
 
-import { isProduction } from './constants'
+import { isProduction, PKCE_COOKIE_NAME, SERVICE_NAME } from './constants'
 import { EnvHelper } from './helpers/EnvHelper'
 import { authRoute } from './routes/auth-route'
 import { balanceRoute } from './routes/balance-route'
@@ -30,8 +30,6 @@ const fastify = Fastify({
       },
 })
 
-const iss = 'fractapay-server'
-
 async function bootstrap(): Promise<void> {
   await fastify.register(cookie, {
     secret: EnvHelper.SESSION_SECRET,
@@ -41,11 +39,11 @@ async function bootstrap(): Promise<void> {
     secret: EnvHelper.SESSION_SECRET,
     sign: {
       algorithm: 'HS256',
-      iss,
+      iss: SERVICE_NAME,
     },
     verify: {
       algorithms: ['HS256'],
-      allowedIss: iss,
+      allowedIss: SERVICE_NAME,
       clockTolerance: 30,
     },
   })
@@ -86,7 +84,7 @@ async function bootstrap(): Promise<void> {
 
     if (!challenge || challenge.length > 128 || !/^[A-Za-z0-9_-]+$/.test(challenge)) return
 
-    reply.setCookie('fractapay.pkce', challenge, {
+    reply.setCookie(PKCE_COOKIE_NAME, challenge, {
       signed: true,
       httpOnly: true,
       sameSite: 'lax',

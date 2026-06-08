@@ -3,9 +3,9 @@ import { z } from 'zod'
 import { PAYMENT_MESSAGE_ROLES, PAYMENT_STATUSES, PIX_KEY_TYPES, TOKENS } from 'fractapay-shared'
 
 export const createPaymentSchema = z.object({
-  quoteId: z.string().min(1).max(500),
-  customerId: z.string().min(1).max(500),
-  bankAccountId: z.string().min(1).max(500),
+  externalQuoteId: z.string().min(1).max(500),
+  externalCustomerId: z.string().min(1).max(500),
+  externalBankAccountId: z.string().min(1).max(500),
   address: z.string().min(1).max(200),
   token: z.enum(TOKENS),
   amount: z.string().min(1).max(50),

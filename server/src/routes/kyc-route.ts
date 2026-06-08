@@ -6,11 +6,11 @@ import { requireAuth } from '../hooks/require-auth'
 import { kycSchema } from '../schemas/kyc-schema'
 import { getKycStatus, upsertCustomer } from '../services/etherfuse-service'
 
-type TKycParams = { Params: { customerId: string; address: string } }
+type TKycParams = { Params: { externalCustomerId: string; address: string } }
 
 export const kycRoute = async (fastify: FastifyInstance): Promise<void> => {
   fastify.get<TKycParams>(
-    '/kyc/:customerId/:address',
+    '/kyc/:externalCustomerId/:address',
     { preHandler: requireAuth },
     async (request, reply) => {
       const parsed = kycSchema.safeParse(request.params)
@@ -20,13 +20,13 @@ export const kycRoute = async (fastify: FastifyInstance): Promise<void> => {
       }
 
       try {
-        const { customerId, address } = parsed.data
+        const { externalCustomerId, address } = parsed.data
 
-        const response = await getKycStatus(customerId, address)
+        const response = await getKycStatus(externalCustomerId, address)
 
         if (response.status === 'APPROVED') {
           try {
-            await upsertCustomer({ customerId, address })
+            await upsertCustomer({ externalCustomerId, address })
           } catch {
             /* empty */
           }

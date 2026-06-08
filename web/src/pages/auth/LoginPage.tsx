@@ -1,9 +1,9 @@
 import { useTranslation } from 'react-i18next'
 
 import { useNavigate } from '@tanstack/react-router'
+import { isAxiosError } from 'axios'
 
-import { EErrorCode } from 'fractapay-shared'
-import { APP_NAME } from 'fractapay-shared'
+import { APP_NAME, EErrorCode } from 'fractapay-shared'
 
 import logoUrl from '../../assets/logos/logo.svg'
 import { Button } from '../../components/Button'
@@ -26,6 +26,7 @@ type TProps = {
 
 const HeroPanel = ({ onBiometric, onSignup, isBiometricPending }: TProps) => {
   const { t } = useTranslation('pages', { keyPrefix: 'auth' })
+  const { t: tCommon } = useTranslation('common')
 
   return (
     <section
@@ -47,7 +48,12 @@ const HeroPanel = ({ onBiometric, onSignup, isBiometricPending }: TProps) => {
 
       <header className="relative flex items-center gap-3">
         <div className="size-12 sm:size-14 rounded-2xl bg-white flex items-center justify-center backdrop-blur-sm">
-          <img src={logoUrl} alt="FractaPay logo" aria-hidden="true" className="size-8 sm:size-9" />
+          <img
+            src={logoUrl}
+            alt={tCommon('logoAlt')}
+            aria-hidden="true"
+            className="size-8 sm:size-9"
+          />
         </div>
         <span className="text-lg sm:text-xl font-extrabold tracking-tight">{APP_NAME}</span>
       </header>
@@ -163,49 +169,44 @@ export const LoginPage = () => {
   const navigate = useNavigate()
   const passkeyLoginMutation = usePasskeyLoginMutation()
 
+  const isBiometricPending = passkeyLoginMutation.isPending
+
   usePageTitle(t('signInTitle'))
 
   const handleSignup = () => {
     void navigate({ to: '/onboarding', search: { source: 'signup' } })
   }
 
-  const handleBiometric = async () => {
-    try {
-      const result = await passkeyLoginMutation.mutateAsync()
+  const handleBiometric = () => {
+    passkeyLoginMutation.mutate(undefined, {
+      onSuccess: () => {
+        void navigate({ to: '/chat' })
+      },
+      onError: error => {
+        if (error instanceof DOMException && error.name === 'NotAllowedError') return
 
-      if ('error' in result) {
-        const message =
-          result.error === EErrorCode.WALLET_NOT_REGISTERED
-            ? t('biometricNoAccount')
-            : t('biometricFailed')
-        ToastHelper.error(message)
+        const axiosCode: EErrorCode | undefined = isAxiosError(error)
+          ? error.response?.data?.error
+          : undefined
+        const runtimeCode = error instanceof Error ? error.message : ''
+        const isNoAccount =
+          axiosCode === EErrorCode.WALLET_NOT_REGISTERED || runtimeCode === 'NO_SMART_ACCOUNT'
 
-        return
-      }
-
-      void navigate({ to: '/chat' })
-    } catch (error) {
-      if (error instanceof DOMException && error.name === 'NotAllowedError') return
-
-      const code = error instanceof Error ? error.message : ''
-      const message = code === 'NO_SMART_ACCOUNT' ? t('biometricNoAccount') : t('biometricFailed')
-      ToastHelper.error(message)
-    }
+        ToastHelper.error(isNoAccount ? t('biometricNoAccount') : t('biometricFailed'))
+      },
+    })
   }
-
-  const onBiometric = () => void handleBiometric()
-  const isBiometricPending = passkeyLoginMutation.isPending
 
   return (
     <main className="min-h-screen w-full lg:flex bg-neutral-50">
       <HeroPanel
-        onBiometric={onBiometric}
+        onBiometric={handleBiometric}
         onSignup={handleSignup}
         isBiometricPending={isBiometricPending}
       />
 
       <SignInCard
-        onBiometric={onBiometric}
+        onBiometric={handleBiometric}
         onSignup={handleSignup}
         isBiometricPending={isBiometricPending}
       />

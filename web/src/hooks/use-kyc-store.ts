@@ -1,9 +1,11 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
+import { KYC_STORAGE_KEY } from '../constants'
+
 export type TKycAccount = {
-  customerId: string
-  bankAccountId: string
+  externalCustomerId: string
+  externalBankAccountId: string
   presignedUrl: string
 }
 
@@ -30,6 +32,6 @@ export const useKycStore = create<TKycStore>()(
         }),
       reset: () => set({ accounts: {} }),
     }),
-    { name: 'fractapay.kyc' }
+    { name: KYC_STORAGE_KEY }
   )
 )

@@ -21,17 +21,10 @@ import { StellarExpertsHelper } from '../helpers/StellarExpertsHelper'
 import { prisma } from './prisma-service'
 
 const BLOCKCHAIN = 'stellar'
-const HORIZON_TESTNET_URL = 'https://horizon-testnet.stellar.org'
 const FRIENDBOT_URL = 'https://friendbot.stellar.org'
 
 const ensureAccountFunded = async (address: string): Promise<void> => {
-  try {
-    const response = await fetch(`${HORIZON_TESTNET_URL}/accounts/${address}`)
-
-    if (response.ok) return
-  } catch {
-    return
-  }
+  if (isMainnet) return
 
   try {
     await fetch(`${FRIENDBOT_URL}?addr=${encodeURIComponent(address)}`)
@@ -68,14 +61,14 @@ type TKycRawStatus =
   | 'rejected'
 
 type TCreateOrderPayload = {
-  quoteId: string
-  customerId: string
-  bankAccountId: string
+  externalQuoteId: string
+  externalCustomerId: string
+  externalBankAccountId: string
   address: string
 }
 
 type TOrderResponse = {
-  orderId: string
+  externalId: string
   status: TPaymentStatus
   pix?: TPaymentPix
   confirmedTxSignature?: string
@@ -246,13 +239,15 @@ type TWalletsResponse = { items: { publicKey: string }[] }
 
 type TBankAccountListResponse = { items: { bankAccountId: string }[] }
 
-export const getCustomerBankAccountId = async (customerId: string): Promise<string | null> => {
+export const getCustomerExternalBankAccountId = async (
+  externalCustomerId: string
+): Promise<string | null> => {
   const banks = await request<TBankAccountListResponse>(
     'GET',
-    `/ramp/customer/${encodeURIComponent(customerId)}/bank-accounts`
+    `/ramp/customer/${encodeURIComponent(externalCustomerId)}/bank-accounts`
   )
 
-  return banks.items[0]?.bankAccountId ?? null
+  return banks.items[0]?.bankAccountId || null
 }
 
 export const findCustomerByAddress = async (address: string): Promise<TOnboardingResult | null> => {
@@ -260,9 +255,9 @@ export const findCustomerByAddress = async (address: string): Promise<TOnboardin
     const pageSize = 100
     let pageNumber = 0
     let totalPages = 1
-    let matchedCustomerId: string | null = null
+    let externalCustomerId: string | null = null
 
-    while (pageNumber < totalPages && !matchedCustomerId) {
+    while (pageNumber < totalPages && !externalCustomerId) {
       const customers = await request<TCustomersListResponse>('POST', '/ramp/customers', {
         pageSize,
         pageNumber,
@@ -277,7 +272,7 @@ export const findCustomerByAddress = async (address: string): Promise<TOnboardin
         )
 
         if (wallets.items.some(wallet => wallet.publicKey === address)) {
-          matchedCustomerId = customer.customerId
+          externalCustomerId = customer.customerId
           break
         }
       }
@@ -285,16 +280,17 @@ export const findCustomerByAddress = async (address: string): Promise<TOnboardin
       pageNumber += 1
     }
 
-    if (!matchedCustomerId) {
+    if (!externalCustomerId) {
       return null
     }
 
-    const bankAccountId = await getCustomerBankAccountId(matchedCustomerId)
-    if (!bankAccountId) {
+    const externalBankAccountId = await getCustomerExternalBankAccountId(externalCustomerId)
+
+    if (!externalBankAccountId) {
       return null
     }
 
-    return { customerId: matchedCustomerId, bankAccountId, presignedUrl: '' }
+    return { externalCustomerId, externalBankAccountId, presignedUrl: '' }
   } catch {
     return null
   }
@@ -302,22 +298,22 @@ export const findCustomerByAddress = async (address: string): Promise<TOnboardin
 
 export const createOnboarding = async (
   address: string,
-  customerId: string = uuid.v4()
+  externalCustomerId: string = uuid.v4()
 ): Promise<TOnboardingResult> => {
-  const bankAccountId = uuid.v4()
+  const externalBankAccountId = uuid.v4()
 
   try {
     const response = await request<TOnboardingResponse>('POST', '/ramp/onboarding-url', {
-      customerId,
-      bankAccountId,
+      customerId: externalCustomerId,
+      bankAccountId: externalBankAccountId,
       publicKey: address,
       blockchain: BLOCKCHAIN,
     })
 
-    // TODO: remove this when Etherfuse resolves correctly
+    // TODO: remove this when Etherfuse solves the KYC
     if (!isMainnet) {
       try {
-        await submitKyc(customerId, {
+        await submitKyc(externalCustomerId, {
           address,
           identity: { ...SANDBOX_KYC_IDENTITY, id: address },
         })
@@ -326,28 +322,33 @@ export const createOnboarding = async (
       }
     }
 
-    return { customerId, bankAccountId, presignedUrl: response.presigned_url }
+    return { externalCustomerId, externalBankAccountId, presignedUrl: response.presigned_url }
   } catch (error) {
     if ((error as Error).message !== EErrorCode.CUSTOMER_ALREADY_EXISTS) throw error
 
     // The address already belongs to an org/customer — retry the onboarding-url with
     // that existing id as the customerId so Etherfuse returns its presigned URL.
-    const existingCustomerId = (error as { organizationId?: string }).organizationId
-    if (existingCustomerId) {
-      const retry = await createOnboarding(address, existingCustomerId)
+    const externalCustomerId = (error as { organizationId?: string }).organizationId
+    if (externalCustomerId) {
+      const retry = await createOnboarding(address, externalCustomerId)
 
       // Retry succeeded — sync the database row so its customerId matches the real one.
       try {
-        await upsertCustomer({ address, customerId: existingCustomerId })
+        await upsertCustomer({ address, externalCustomerId })
       } catch {
         // Ignore any errors here — the onboarding succeeded, so the user can proceed even if our database is out of sync.
         // We'll have another chance to fix it on their next onboarding attempt, or we can do it manually if needed.
       }
 
-      return { customerId: existingCustomerId, bankAccountId, presignedUrl: retry.presignedUrl }
+      return {
+        externalCustomerId,
+        externalBankAccountId,
+        presignedUrl: retry.presignedUrl,
+      }
     }
 
     const recovered = await findCustomerByAddress(address)
+
     if (recovered) return recovered
 
     throw error
@@ -355,12 +356,12 @@ export const createOnboarding = async (
 }
 
 export const submitKyc = async (
-  customerId: string,
+  externalCustomerId: string,
   payload: TSubmitKycPayload
 ): Promise<TSubmitKycResponse> => {
   const response = await request<TSubmitKycResponse>(
     'POST',
-    `/ramp/customer/${encodeURIComponent(customerId)}/kyc`,
+    `/ramp/customer/${encodeURIComponent(externalCustomerId)}/kyc`,
     {
       pubkey: payload.address,
       identity: payload.identity,
@@ -371,25 +372,25 @@ export const submitKyc = async (
 }
 
 export const getKycStatus = async (
-  customerId: string,
+  externalCustomerId: string,
   address: string
 ): Promise<TKycStatusResponse> => {
   const response = await request<TKycRawResponse>(
     'GET',
-    `/ramp/customer/${encodeURIComponent(customerId)}/kyc/${encodeURIComponent(address)}`
+    `/ramp/customer/${encodeURIComponent(externalCustomerId)}/kyc/${encodeURIComponent(address)}`
   )
 
   return { status: mapKycStatus(response.status) }
 }
 
 export const createQuote = async (payload: TQuotePayload): Promise<TQuoteResult> => {
-  const quoteId = uuid.v4()
+  const externalQuoteId = uuid.v4()
   const targetAsset = TOKEN_ASSET[payload.token]
   const { address } = payload
 
   const response = await request<TQuoteResponse>('POST', '/ramp/quote', {
-    quoteId,
-    customerId: payload.customerId,
+    quoteId: externalQuoteId,
+    customerId: payload.externalCustomerId,
     blockchain: BLOCKCHAIN,
     quoteAssets: { type: 'onramp', sourceAsset: 'BRL', targetAsset },
     sourceAmount: payload.sourceAmount,
@@ -401,13 +402,13 @@ export const createQuote = async (payload: TQuotePayload): Promise<TQuoteResult>
   const feeAmount = StringHelper.formatAmount(providerFee.plus(fee))
 
   return {
-    quoteId: response.quoteId,
+    externalQuoteId: response.quoteId,
     sourceAmount: response.sourceAmount,
     destinationAmount: response.destinationAmountAfterFee || response.destinationAmount,
     exchangeRate: response.exchangeRate,
     feeAmount,
     address,
-    addressUrl: StellarExpertsHelper.getAddressUrl(address),
+    addressUrl: StellarExpertsHelper.getContractUrl(address),
     createdAt: response.createdAt,
     expiresAt: response.expiresAt,
   }
@@ -425,18 +426,19 @@ type TOrderListResponse = {
 }
 
 const findPendingOrder = async (
-  customerId: string,
-  bankAccountId: string
+  externalCustomerId: string,
+  externalBankAccountId: string
 ): Promise<TOrderResponse | null> => {
   try {
     const response = await request<TOrderListResponse>(
       'GET',
-      `/ramp/orders?customerId=${encodeURIComponent(customerId)}&pageSize=50`
+      `/ramp/orders?customerId=${encodeURIComponent(externalCustomerId)}&pageSize=50`
     )
 
     const match = response.items.find(
       item =>
-        item.status === 'CREATED' && (!item.bankAccountId || item.bankAccountId === bankAccountId)
+        item.status === 'CREATED' &&
+        (!item.bankAccountId || item.bankAccountId === externalBankAccountId)
     )
 
     if (!match) return null
@@ -448,22 +450,22 @@ const findPendingOrder = async (
 }
 
 export const createOrder = async (payload: TCreateOrderPayload): Promise<TOrderResponse> => {
-  const orderId = uuid.v4()
+  const externalId = uuid.v4()
 
   await ensureAccountFunded(payload.address)
 
   try {
     const response = await request<TCreateOrderResponse>('POST', '/ramp/order', {
-      orderId,
-      bankAccountId: payload.bankAccountId,
+      orderId: externalId,
+      quoteId: payload.externalQuoteId,
+      bankAccountId: payload.externalBankAccountId,
       publicKey: payload.address,
-      quoteId: payload.quoteId,
     })
 
     const { onramp } = response
 
     return {
-      orderId: onramp.orderId,
+      externalId: onramp.orderId,
       status: 'CREATED',
       pix:
         mapPix({
@@ -477,18 +479,24 @@ export const createOrder = async (payload: TCreateOrderPayload): Promise<TOrderR
   } catch (error) {
     if ((error as Error).message !== EErrorCode.PENDING_ORDER_EXISTS) throw error
 
-    const existing = await findPendingOrder(payload.customerId, payload.bankAccountId)
+    const existing = await findPendingOrder(
+      payload.externalCustomerId,
+      payload.externalBankAccountId
+    )
     if (existing) return { ...existing, isRecovered: true }
 
     throw error
   }
 }
 
-export const getOrder = async (orderId: string): Promise<TOrderResponse> => {
-  const response = await request<TOrderResult>('GET', `/ramp/order/${encodeURIComponent(orderId)}`)
+export const getOrder = async (externalId: string): Promise<TOrderResponse> => {
+  const response = await request<TOrderResult>(
+    'GET',
+    `/ramp/order/${encodeURIComponent(externalId)}`
+  )
 
   return {
-    orderId: response.orderId,
+    externalId: response.orderId,
     status: response.status,
     amountInFiat: response.amountInFiat,
     amountInTokens: response.amountInTokens,
@@ -503,8 +511,8 @@ export const getOrder = async (orderId: string): Promise<TOrderResponse> => {
   }
 }
 
-export const simulateFiatReceived = async (orderId: string): Promise<void> => {
-  await request<unknown>('POST', '/ramp/order/fiat_received', { orderId })
+export const simulateFiatReceived = async (externalId: string): Promise<void> => {
+  await request<unknown>('POST', '/ramp/order/fiat_received', { orderId: externalId })
 }
 
 export const findCustomerByAddressFromDatabase = async (
@@ -515,22 +523,22 @@ export const findCustomerByAddressFromDatabase = async (
 
 type TUpsertCustomerParams = {
   address: string
-  customerId: string
-  bankAccountId?: string
+  externalCustomerId: string
+  externalBankAccountId?: string
   userId?: string
 }
 
 export const upsertCustomer = async ({
   userId,
-  customerId,
-  bankAccountId,
+  externalCustomerId,
+  externalBankAccountId,
   address,
 }: TUpsertCustomerParams): Promise<Customer> => {
   const [customer] = await prisma.$transaction([
     prisma.customer.upsert({
       where: { address },
-      update: { customerId, bankAccountId },
-      create: { customerId, bankAccountId, address },
+      update: { externalCustomerId, externalBankAccountId },
+      create: { externalCustomerId, externalBankAccountId, address },
     }),
     ...(userId ? [prisma.user.update({ where: { id: userId }, data: { address } })] : []),
   ])

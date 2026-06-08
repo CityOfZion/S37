@@ -1,7 +1,10 @@
 {
+  "logoAlt": "Logo do FractaPay",
   "actions": {
     "close": "Fechar",
-    "breadcrumb": "Trilha de navegação"
+    "breadcrumb": "Trilha de navegação",
+    "copy": "Copiar",
+    "copied": "Copiado!"
   },
   "fiatByToken": {
     "TESOURO": "Real"

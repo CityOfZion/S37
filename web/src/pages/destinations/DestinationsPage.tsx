@@ -29,8 +29,6 @@ import EmptyStateIcon from '../../assets/icons/empty-state-icon.svg?react'
 export const DestinationsPage = () => {
   const { t } = useTranslation('pages', { keyPrefix: 'destinations' })
   const { t: tCommon } = useTranslation('common')
-  usePageTitle(t('title'))
-  useBreadcrumb([{ label: t('title') }])
   const { destinations } = useDestinationsStore()
   const addDestinationMutation = useAddDestinationMutation()
   const updateDestinationMutation = useUpdateDestinationMutation()
@@ -41,6 +39,15 @@ export const DestinationsPage = () => {
   const deletingNameRef = useRef<string>('')
 
   const isSaving = addDestinationMutation.isPending || updateDestinationMutation.isPending
+
+  usePageTitle(t('title'))
+  useBreadcrumb([{ label: t('title') }])
+
+  const getErrorMessage = (error: unknown): string => {
+    const code: string | undefined = isAxiosError(error) ? error.response?.data?.error : undefined
+
+    return t(code || 'saveError', { defaultValue: t('saveError') })
+  }
 
   const openDeleteConfirm = (id: string) => {
     deletingNameRef.current = destinations.find(destination => destination.id === id)?.name ?? ''
@@ -66,13 +73,7 @@ export const DestinationsPage = () => {
             ToastHelper.success(t('updateSuccess'))
             setModalOpen(false)
           },
-          onError: error => {
-            const code: string | undefined = isAxiosError(error)
-              ? error.response?.data?.error
-              : undefined
-
-            ToastHelper.error(t(code || 'saveError', { defaultValue: t('saveError') }))
-          },
+          onError: error => ToastHelper.error(getErrorMessage(error)),
         }
       )
     } else {
@@ -81,13 +82,7 @@ export const DestinationsPage = () => {
           ToastHelper.success(t('addSuccess'))
           setModalOpen(false)
         },
-        onError: error => {
-          const code: string | undefined = isAxiosError(error)
-            ? error.response?.data?.error
-            : undefined
-
-          ToastHelper.error(t(code || 'saveError', { defaultValue: t('saveError') }))
-        },
+        onError: error => ToastHelper.error(getErrorMessage(error)),
       })
     }
   }

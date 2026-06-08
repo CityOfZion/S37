@@ -2,6 +2,7 @@ type TCopyOptions = {
   onSuccess?: () => void
   onAfterSuccess?: () => void
   afterSuccessMilliseconds?: number
+  onError?: () => void
 }
 
 export class ClipboardHelper {
@@ -14,7 +15,7 @@ export class ClipboardHelper {
   }
 
   static async copy(value: string, options?: TCopyOptions): Promise<void> {
-    const { onSuccess, onAfterSuccess, afterSuccessMilliseconds } = options || {}
+    const { onSuccess, onAfterSuccess, afterSuccessMilliseconds, onError } = options || {}
 
     try {
       await navigator.clipboard.writeText(value)
@@ -25,7 +26,7 @@ export class ClipboardHelper {
         setTimeout(() => onAfterSuccess(), afterSuccessMilliseconds ?? 2000)
       }
     } catch {
-      /* empty */
+      onError?.()
     }
   }
 }

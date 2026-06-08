@@ -6,7 +6,7 @@ import { requireAuth } from '../hooks/require-auth'
 import { customersSchema } from '../schemas/customers-schema'
 import {
   findCustomerByAddressFromDatabase,
-  getCustomerBankAccountId,
+  getCustomerExternalBankAccountId,
 } from '../services/etherfuse-service'
 
 type TCustomerParams = { Params: { address: string } }
@@ -26,13 +26,16 @@ export const customersRoute = async (fastify: FastifyInstance): Promise<void> =>
         const customer = await findCustomerByAddressFromDatabase(parsed.data.address)
 
         if (customer) {
-          const bankAccountId =
-            customer.bankAccountId || (await getCustomerBankAccountId(customer.customerId))
+          const externalBankAccountId =
+            customer.externalBankAccountId ||
+            (await getCustomerExternalBankAccountId(customer.externalCustomerId))
 
-          if (bankAccountId) {
-            return reply
-              .status(200)
-              .send({ customerId: customer.customerId, bankAccountId, presignedUrl: '' })
+          if (externalBankAccountId) {
+            return reply.status(200).send({
+              externalCustomerId: customer.externalCustomerId,
+              externalBankAccountId,
+              presignedUrl: '',
+            })
           }
         }
 
