@@ -1,5 +1,4 @@
 import { useMutation } from '@tanstack/react-query'
-import { isAxiosError } from 'axios'
 
 import type {
   TChatDestination,
@@ -9,7 +8,6 @@ import type {
   TLanguage,
   TPaymentItem,
 } from 'fractapay-shared'
-import { EErrorCode } from 'fractapay-shared'
 
 import { server } from '../services/server'
 
@@ -44,23 +42,11 @@ export function useChatMutation() {
         formData.append('file', new Blob(), '')
       }
 
-      try {
-        const response = await server.post<TChatResponse>('/chat', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        })
+      const response = await server.post<TChatResponse>('/chat', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
 
-        return response.data
-      } catch (error) {
-        if (isAxiosError(error) && error.response?.data) {
-          return error.response.data as TChatResponse
-        }
-
-        return {
-          text: '',
-          action: 'NONE' as const,
-          error: EErrorCode.NETWORK_ERROR,
-        }
-      }
+      return response.data
     },
   })
 }

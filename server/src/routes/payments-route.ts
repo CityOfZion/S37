@@ -76,8 +76,7 @@ export const paymentsRoute = async (fastify: FastifyInstance): Promise<void> => 
     }
   )
 
-  // TODO: remove comment in Mainnet
-  // if (!isProduction) {}
+  // TODO: remove in Mainnet
   fastify.post<TPaymentParams>(
     '/payments/:id/simulate',
     { preHandler: requireAuth },

@@ -8,7 +8,7 @@ export class StellarExpertsHelper {
     return `${this.#url}/${this.#network}/tx/${hash}`
   }
 
-  static getAddressUrl(address: string): string {
-    return `${this.#url}/${this.#network}/account/${address}`
+  static getContractUrl(contract: string): string {
+    return `${this.#url}/${this.#network}/contract/${contract}`
   }
 }

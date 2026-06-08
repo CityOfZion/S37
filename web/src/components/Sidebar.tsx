@@ -64,6 +64,7 @@ const NavContent = ({
   isLoggingOut,
 }: TNavContentProps) => {
   const { t } = useTranslation('components', { keyPrefix: 'sidebar' })
+  const { t: tCommon } = useTranslation('common')
   const { language } = useLanguageStore()
   const address = user?.address ?? ''
   const isUserLoading = user === undefined
@@ -77,7 +78,7 @@ const NavContent = ({
   return (
     <nav className="flex flex-col h-full" aria-label={t('label')}>
       <div className="flex items-center gap-2 px-4 py-5 border-b border-white/10">
-        <img src={logoUrl} alt={APP_NAME} className="size-8 shrink-0" />
+        <img src={logoUrl} alt={tCommon('logoAlt')} className="size-8 shrink-0" />
         <span className="font-extrabold text-white text-xl tracking-tight truncate select-none">
           {APP_NAME}
         </span>
@@ -119,7 +120,7 @@ const NavContent = ({
 
       <div className="px-2 py-4 border-t border-white/10 space-y-1">
         {(isUserLoading || (address && (isBalanceLoading || balance))) && (
-          <div className="px-3 py-2.5 mb-1" aria-label={t('balance')}>
+          <div className="px-3 mb-1" aria-label={t('balance')}>
             <p className="text-[10px] font-bold tracking-widest uppercase text-neutral-500 select-none">
               {t('balance')}
             </p>
@@ -128,7 +129,7 @@ const NavContent = ({
                 {StringHelper.formatCurrencyAmount(balance.balanceInFiat, TOKEN.TESOURO)}
               </p>
             ) : (
-              <Skeleton className="h-5 w-24 mt-1" />
+              <Skeleton className="h-5 w-24 mt-1 bg-neutral-200/32" />
             )}
           </div>
         )}

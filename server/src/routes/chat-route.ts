@@ -113,7 +113,6 @@ export const chatRoute = async (fastify: FastifyInstance): Promise<void> => {
             return reply.status(200).send({
               text: '',
               action: 'NONE',
-
               error: EErrorCode.NO_PAYMENTS_FOUND,
               fileName: data.filename,
             })

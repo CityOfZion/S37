@@ -5,6 +5,7 @@ import { QRCode } from 'react-qr-code'
 import type { TPaymentPix } from 'fractapay-shared'
 import { PAYMENT_PAID_STATUSES, StringHelper, TOKEN } from 'fractapay-shared'
 
+import { ClipboardHelper } from '../helpers/ClipboardHelper'
 import { ToastHelper } from '../helpers/ToastHelper'
 import { usePaymentQuery } from '../hooks/use-payment-query'
 import { usePaymentSimulateMutation } from '../hooks/use-simulate-fiat-mutation'
@@ -58,13 +59,11 @@ export const PixContent = ({
     selection?.addRange(range)
   }
 
-  const copyCode = async () => {
-    try {
-      await navigator.clipboard.writeText(pix.pixCode)
-      ToastHelper.success(t('copied'))
-    } catch {
-      ToastHelper.error(t('copyError'))
-    }
+  const copyCode = () => {
+    void ClipboardHelper.copy(pix.pixCode, {
+      onSuccess: () => ToastHelper.success(t('copied')),
+      onError: () => ToastHelper.error(t('copyError')),
+    })
   }
 
   const simulate = () => {

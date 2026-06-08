@@ -162,12 +162,19 @@ make deploy-testnet  # Deploy to testnet
 | `WEB_BASE_URL` | No (default: `http://localhost:5173`)                      | Base URL of the web app; used as fallback for login redirect URLs |
 | `WEB_LOGIN_SUCCESS_URL` | No (default: `WEB_BASE_URL`)                               | Redirect target after successful Google login. **Must include the SPA base path in prod** (e.g. `https://host/S37/`) — landing path mismatch makes login silently fail |
 | `WEB_LOGIN_FAILURE_URL` | No (default: `WEB_BASE_URL/?login=failed`)                 | Redirect target on OAuth callback failure |
+| `RESEND_API_KEY` | Yes | [Resend](https://resend.com) API key — sends the signup verification email |
+| `RESEND_EMAIL` | Yes | Verified sender address for verification emails (`from` = `FractaPay <RESEND_EMAIL>`) |
 
 ### Web (`web/.env`)
 
 | Variable | Required | Description |
 |---|---|---|
-| `VITE_API_URL` | No (default: http://localhost:3000) | Backend URL |
+| `VITE_API_URL` | No (default: `http://localhost:3000`) | Backend URL |
+| `VITE_SOROBAN_RPC_URL` | Yes | Soroban RPC for `smart-account-kit` (testnet: `https://soroban-testnet.stellar.org`) |
+| `VITE_STELLAR_NETWORK_PASSPHRASE` | Yes | Stellar network passphrase (testnet: `Test SDF Network ; September 2015`) |
+| `VITE_ACCOUNT_WASM_HASH` | Yes | WASM hash of the smart-account contract the kit deploys |
+| `VITE_WEBAUTHN_VERIFIER_ADDRESS` | Yes | On-chain WebAuthn verifier contract (`C…`) |
+| `VITE_NATIVE_TOKEN_CONTRACT` | Yes | Native token (XLM) SAC contract id — enables `autoFund` on wallet creation |
 
 ---
 

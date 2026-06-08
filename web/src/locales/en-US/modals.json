@@ -55,6 +55,7 @@
     "total": "Total to pay",
     "rate": "Quote",
     "lookingUpCustomer": "Checking your account…",
+    "loadingKyc": "Checking KYC status…",
     "kycRequired": "We need to verify your identity before your first payment.",
     "kycPending": "Identity verification in progress…",
     "kycRejected": "Identity verification was not approved. Please try again.",

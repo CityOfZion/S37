@@ -97,7 +97,7 @@ const mapPayment = (payment: TRawPayment, includeMessages = false): TPayment => 
     exchangeRate: payment.exchangeRate,
     isRecurrence: payment.isRecurrence,
     address,
-    addressUrl: StellarExpertsHelper.getAddressUrl(address),
+    addressUrl: StellarExpertsHelper.getContractUrl(address),
     errorMessage: payment.errorMessage,
     createdAt: payment.createdAt.toJSON(),
     updatedAt: payment.updatedAt.toJSON(),
@@ -113,9 +113,9 @@ export const createPayment = async (
   data: TCreatePaymentPayload
 ): Promise<TPayment> => {
   const orderResponse = await createOrder({
-    quoteId: data.quoteId,
-    customerId: data.customerId,
-    bankAccountId: data.bankAccountId,
+    externalQuoteId: data.externalQuoteId,
+    externalCustomerId: data.externalCustomerId,
+    externalBankAccountId: data.externalBankAccountId,
     address: data.address,
   })
 
@@ -129,8 +129,8 @@ export const createPayment = async (
       feeAmount: data.feeAmount,
       feePercentage: data.feePercentage,
       tokenAmount: data.tokenAmount,
-      externalId: EncryptionHelper.encrypt(orderResponse.orderId),
-      customerId: EncryptionHelper.encrypt(data.customerId),
+      externalId: EncryptionHelper.encrypt(orderResponse.externalId),
+      externalCustomerId: EncryptionHelper.encrypt(data.externalCustomerId),
       address: data.address,
       exchangeRate: data.exchangeRate,
       transactionHash: orderResponse.confirmedTxSignature || null,

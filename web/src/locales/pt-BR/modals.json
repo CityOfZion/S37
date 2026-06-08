@@ -55,6 +55,7 @@
     "total": "Total a pagar",
     "rate": "Cotação",
     "lookingUpCustomer": "Verificando sua conta…",
+    "loadingKyc": "Verificando status do KYC…",
     "kycRequired": "Precisamos confirmar sua identidade antes do primeiro pagamento.",
     "kycPending": "Verificação de identidade em andamento…",
     "kycRejected": "Verificação de identidade não aprovada. Por favor, tente novamente.",

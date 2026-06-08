@@ -1,5 +1,7 @@
 import { createHash, randomInt, timingSafeEqual } from 'crypto'
 
+import { EErrorCode } from 'fractapay-shared'
+
 import { prisma } from './prisma-service'
 
 const CODE_TTL_MS = 10 * 60 * 1000
@@ -21,30 +23,29 @@ const hashCode = (code: string): string => createHash('sha256').update(code).dig
 
 const generateCode = (): string => randomInt(0, 1_000_000).toString().padStart(6, '0')
 
-export type TCreateChallengeFailure = { ok: false; cooldownEndsAt: number }
-export type TCreateChallengeSuccess = {
-  ok: true
-  code: string
-  expiresAt: number
-  cooldownEndsAt: number
-}
-export type TCreateChallengeResult = TCreateChallengeSuccess | TCreateChallengeFailure
-
 type TCreateChallengeInput = {
   email: string
   fullName: string
 }
 
+export type TChallengeResult = {
+  code: string
+  expiresAt: number
+  cooldownEndsAt: number
+}
+
 export const createChallenge = async ({
   email,
   fullName,
-}: TCreateChallengeInput): Promise<TCreateChallengeResult> => {
+}: TCreateChallengeInput): Promise<TChallengeResult> => {
   const key = normalizeEmail(email)
   const now = Date.now()
   const existing = await prisma.emailVerificationChallenge.findUnique({ where: { email: key } })
 
   if (existing && existing.cooldownEndsAt.getTime() > now && existing.expiresAt.getTime() > now) {
-    return { ok: false, cooldownEndsAt: existing.cooldownEndsAt.getTime() }
+    throw Object.assign(new Error(EErrorCode.RESEND_TOO_SOON), {
+      cooldownEndsAt: new Date(existing.cooldownEndsAt).toJSON(),
+    })
   }
 
   const code = generateCode()
@@ -71,31 +72,30 @@ export const createChallenge = async ({
     },
   })
 
-  return { ok: true, code, expiresAt, cooldownEndsAt }
+  return { code, expiresAt, cooldownEndsAt }
 }
-
-export type TConsumeChallengeResult =
-  | { ok: true; fullName: string }
-  | { ok: false; reason: 'not_found' | 'expired' | 'invalid' | 'too_many_attempts' }
 
 type TConsumeChallengeInput = {
   email: string
   code: string
 }
 
+export type TConsumeResult = {
+  fullName: string
+}
+
 export const consumeChallenge = async ({
   email,
   code,
-}: TConsumeChallengeInput): Promise<TConsumeChallengeResult> => {
+}: TConsumeChallengeInput): Promise<TConsumeResult> => {
   const key = normalizeEmail(email)
   const entry = await prisma.emailVerificationChallenge.findUnique({ where: { email: key } })
 
-  if (!entry) return { ok: false, reason: 'not_found' }
+  if (!entry) throw new Error(EErrorCode.INVALID_VERIFICATION_CODE)
 
   if (entry.expiresAt.getTime() < Date.now()) {
     await prisma.emailVerificationChallenge.delete({ where: { email: key } })
-
-    return { ok: false, reason: 'expired' }
+    throw new Error(EErrorCode.VERIFICATION_EXPIRED)
   }
 
   const submittedHash = hashCode(code)
@@ -108,15 +108,14 @@ export const consumeChallenge = async ({
   if (matches) {
     await prisma.emailVerificationChallenge.delete({ where: { email: key } })
 
-    return { ok: true, fullName: entry.fullName }
+    return { fullName: entry.fullName }
   }
 
   const attempts = entry.attempts + 1
 
   if (attempts >= MAX_ATTEMPTS) {
     await prisma.emailVerificationChallenge.delete({ where: { email: key } })
-
-    return { ok: false, reason: 'too_many_attempts' }
+    throw new Error(EErrorCode.TOO_MANY_VERIFICATION_ATTEMPTS)
   }
 
   await prisma.emailVerificationChallenge.update({
@@ -124,5 +123,5 @@ export const consumeChallenge = async ({
     data: { attempts },
   })
 
-  return { ok: false, reason: 'invalid' }
+  throw new Error(EErrorCode.INVALID_VERIFICATION_CODE)
 }

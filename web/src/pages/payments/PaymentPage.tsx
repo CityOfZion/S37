@@ -8,39 +8,38 @@ import { FIAT_BY_TOKEN, PAYMENT_TERMINAL_STATUSES, StringHelper } from 'fractapa
 
 import { Accordion } from '../../components/Accordion'
 import { Button } from '../../components/Button'
+import { CopyButton } from '../../components/CopyButton'
 import { ErrorState } from '../../components/ErrorState'
 import { ExternalLink } from '../../components/ExternalLink'
 import { FeeIcon } from '../../components/FeeIcon'
+import { PaymentStatusBadge } from '../../components/PaymentStatusBadge'
 import { PixContent } from '../../components/PixContent'
 import { RightPanel } from '../../components/RightPanel'
 import { Skeleton } from '../../components/Skeleton'
 import { Spinner } from '../../components/Spinner'
 import { TokenIcon } from '../../components/TokenIcon'
 import { Tooltip } from '../../components/Tooltip'
-import { EMPTY_VALUE, PAYMENT_STATUS_CLASSES } from '../../constants'
+import { EMPTY_VALUE } from '../../constants'
 import { DestinationsHelper } from '../../helpers/DestinationsHelper'
 import { InputHelper } from '../../helpers/InputHelper'
-import { StyleHelper } from '../../helpers/StyleHelper'
 import { useBreadcrumb } from '../../hooks/use-breadcrumb-store'
 import { useLanguageStore } from '../../hooks/use-language-store'
 import { usePageTitle } from '../../hooks/use-page-title'
 import { usePaymentQuery } from '../../hooks/use-payment-query'
 
-import ClipboardIcon from '../../assets/icons/clipboard-icon.svg?react'
 import RefreshIcon from '../../assets/icons/refresh-icon.svg?react'
 
 export const PaymentPage = () => {
   const { t } = useTranslation('pages', { keyPrefix: 'payment' })
   const { t: tPayments } = useTranslation('pages', { keyPrefix: 'payments' })
   const { t: tCommon } = useTranslation('common')
-  usePageTitle(t('title'))
-  const { language } = useLanguageStore()
   const { id: paymentId } = useParams({ from: '/auth/payments/$id' })
+  const { language } = useLanguageStore()
   const { data: paymentData, isLoading, isError } = usePaymentQuery(paymentId)
-  const payment = paymentData || null
-  const [copiedTx, setCopiedTx] = useState(false)
   const [itemsPanel, setItemsPanel] = useState(false)
 
+  const payment = paymentData || null
+  const statusKey = payment?.status || 'CREATED'
   const breadcrumbLabel = payment?.amount
     ? tCommon('paymentTitle', {
         count: payment.destinations.length,
@@ -54,20 +53,8 @@ export const PaymentPage = () => {
       })
     : t('title')
 
+  usePageTitle(t('title'))
   useBreadcrumb([{ label: tPayments('title'), to: '/payments' }, { label: breadcrumbLabel }])
-
-  const copyTx = async (hash: string) => {
-    try {
-      await navigator.clipboard.writeText(hash)
-      setCopiedTx(true)
-      setTimeout(() => setCopiedTx(false), 2000)
-    } catch {
-      // ignore
-    }
-  }
-
-  const statusKey = payment?.status || 'CREATED'
-  const badgeClass = PAYMENT_STATUS_CLASSES[statusKey] || PAYMENT_STATUS_CLASSES.CREATED
 
   return (
     <>
@@ -158,14 +145,7 @@ export const PaymentPage = () => {
                 <span className="text-sm font-medium text-neutral-500">{t('status')}</span>
                 <div className="flex items-center gap-2">
                   {!PAYMENT_TERMINAL_STATUSES.has(payment.status) && <Spinner />}
-                  <span
-                    className={StyleHelper.merge(
-                      'px-3 py-1 rounded-full text-sm font-semibold',
-                      badgeClass
-                    )}
-                  >
-                    {t(`statuses.${statusKey}`)}
-                  </span>
+                  <PaymentStatusBadge status={statusKey} className="px-3 py-1 text-sm" />
                 </div>
               </div>
 
@@ -232,20 +212,7 @@ export const PaymentPage = () => {
                       >
                         {payment.transactionHash}
                       </ExternalLink>
-                      <Tooltip
-                        open={copiedTx ? true : undefined}
-                        content={copiedTx ? t('copiedTx') : t('copyTx')}
-                      >
-                        <Button
-                          aria-label={t('copyTx')}
-                          variant="ghost"
-                          size="xs"
-                          className="p-1 text-neutral-400 hover:text-neutral-700 focus:text-neutral-700 active:text-neutral-800"
-                          onClick={() => void copyTx(payment.transactionHash!)}
-                        >
-                          <ClipboardIcon className="size-3.5" aria-hidden="true" />
-                        </Button>
-                      </Tooltip>
+                      <CopyButton value={payment.transactionHash!} />
                     </div>
                   </div>
                 )}
@@ -273,13 +240,16 @@ export const PaymentPage = () => {
 
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-t border-neutral-100 pt-3 gap-1">
                   <span className="text-sm text-neutral-500 shrink-0">{t('address')}</span>
-                  <ExternalLink
-                    href={payment.addressUrl}
-                    label={t('viewOnExplorer')}
-                    className="break-all"
-                  >
-                    {payment.address}
-                  </ExternalLink>
+                  <div className="flex items-center gap-1">
+                    <ExternalLink
+                      href={payment.addressUrl}
+                      label={t('viewOnExplorer')}
+                      className="break-all"
+                    >
+                      {payment.address}
+                    </ExternalLink>
+                    <CopyButton value={payment.address} />
+                  </div>
                 </div>
               </div>
             </Accordion>

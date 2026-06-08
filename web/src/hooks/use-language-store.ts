@@ -3,6 +3,8 @@ import { persist } from 'zustand/middleware'
 
 import { SUPPORTED_LANGUAGES, type TLanguage } from 'fractapay-shared'
 
+import { LANGUAGE_STORAGE_KEY } from '../constants'
+
 const detectBrowserLanguage = (): TLanguage => {
   const browserLanguage = navigator.language.toLowerCase()
 
@@ -27,9 +29,9 @@ export const useLanguageStore = create<TLanguageStore>()(
       },
     }),
     {
-      name: 'fractapay.language',
+      name: LANGUAGE_STORAGE_KEY,
       onRehydrateStorage: () => state => {
-        if (!localStorage.getItem('fractapay.language')) {
+        if (!localStorage.getItem(LANGUAGE_STORAGE_KEY)) {
           state?.setLanguage(detectBrowserLanguage())
         }
       },

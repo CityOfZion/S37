@@ -16,7 +16,7 @@ type TDestinationParams = { Params: { id: string } }
 
 type TCreateDestinationParams = { Body: TDestination }
 
-export const destinationsRoute = (fastify: FastifyInstance): void => {
+export const destinationsRoute = async (fastify: FastifyInstance): Promise<void> => {
   fastify.get('/destinations', { preHandler: requireAuth }, async (request, reply) => {
     const destinations = await findDestinationsByUserId(request.user.id)
 

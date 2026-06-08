@@ -10,7 +10,9 @@ export function usePaymentsQuery(params?: TGetPaymentsParams) {
   return useQuery<TGetPaymentsResponse>({
     queryKey: [PAYMENTS_QUERY_KEY, params],
     queryFn: async () => {
-      const { data } = await server.get<TGetPaymentsResponse>('/payments', { params })
+      const { data } = await server.get<TGetPaymentsResponse>('/payments', {
+        params,
+      })
 
       return data
     },

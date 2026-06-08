@@ -1,28 +1,20 @@
 import { useMutation } from '@tanstack/react-query'
-import { isAxiosError } from 'axios'
 
-import {
-  EErrorCode,
-  type TSignupRequestPayload,
-  type TSignupRequestResponse,
-} from 'fractapay-shared'
+import { type TSignupRequestPayload, type TSignupRequestResponse } from 'fractapay-shared'
 
 import { server } from '../services/server'
 
+type TSignupRequestSuccessResponse = Extract<TSignupRequestResponse, { expiresAt: string }>
+
 export function useSignupRequestMutation() {
-  return useMutation<TSignupRequestResponse, Error, TSignupRequestPayload>({
+  return useMutation<TSignupRequestSuccessResponse, Error, TSignupRequestPayload>({
     mutationFn: async payload => {
-      try {
-        const { data } = await server.post<TSignupRequestResponse>('/auth/signup/request', payload)
+      const { data } = await server.post<TSignupRequestSuccessResponse>(
+        '/auth/signup/request',
+        payload
+      )
 
-        return data
-      } catch (error) {
-        if (isAxiosError(error) && error.response?.data) {
-          return error.response.data as TSignupRequestResponse
-        }
-
-        return { success: false, error: EErrorCode.NETWORK_ERROR }
-      }
+      return data
     },
   })
 }

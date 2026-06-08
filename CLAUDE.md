@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **FractaPay** — AI-powered batch payment processor. Built for Hackathon Stellar 37° × NearX.
 
-User provides a destination address + selects a token + uploads a payment file (CSV/XLS/XLSX/PDF/TXT) → Gemini AI extracts only `{ amount, description }` per row (NEVER addresses — the destination is global) → user clicks **Review and confirm** to open a modal showing the recipient share (currently `15%` of the total to a single address) plus `2%` Etherfuse + FractaPay fee → user completes Etherfuse KYC (first-time only) → confirm creates an Etherfuse PIX onramp order → user pays via PIX → TESOURO is delivered on Stellar to the provided address.
+User registers named destinations (recipients with PIX keys) → describes payments via AI chat or uploads a file (CSV/XLS/XLSX/PDF/TXT) → Gemini AI extracts `{ amount, description }` per row → AI asks which destinations receive payments and at what percentage → user clicks **Review and confirm** to open a modal showing the total recipient amount plus `2%` fee → user completes Etherfuse KYC (first-time only) → confirm creates an Etherfuse PIX onramp order → user pays via PIX → TESOURO is delivered on Stellar to the recipient address.
 
 **Tokens:**
 - **TESOURO** (default and only enabled token) — Etherfuse Stellar token tracking BRL with yield. File must be in BRL. Flow: BRL (PIX onramp) → TESOURO (on-chain) → BRL (PIX offramp, optional, recipient-side).
@@ -14,10 +14,10 @@ User provides a destination address + selects a token + uploads a payment file (
 **UI terminology**: the UI labels the token select as "Coin" / "Moeda" (TESOURO → "Real") to feel familiar to non-crypto users. Internally — types, code, contract, server — uses "token".
 
 **Fee model:**
-- `RECIPIENT_PERCENTAGE = 0.15` (15%): of the file's total BRL, the share that actually goes to the destination address.
-- `FEE_PERCENTAGE = 0.02` (2%): combined Etherfuse + FractaPay fee charged on top of the recipient amount.
-- Total the user pays via PIX = `recipientAmount × (1 + FEE_PERCENTAGE)`.
-- Both constants live in `shared/src/constants` so server, web and contract math stay aligned.
+- Each destination receives a user-defined percentage (1–100%) of the file's total BRL amount. Multiple destinations are independent — percentages do not need to sum to 100%.
+- `FEE_PERCENTAGE = 0.02` (2%): combined Etherfuse + FractaPay fee charged on top of the total recipient amount.
+- Total the user pays via PIX = `totalRecipientAmount × (1 + FEE_PERCENTAGE)`.
+- `FEE_PERCENTAGE` lives in `shared/src/constants` so server and web math stay aligned.
 
 ## Monorepo Structure
 

@@ -91,8 +91,8 @@ export type TOnboardingPayload = {
 }
 
 export type TOnboardingResult = {
-  customerId: string
-  bankAccountId: string
+  externalCustomerId: string
+  externalBankAccountId: string
   presignedUrl: string
 }
 
@@ -101,14 +101,14 @@ export type TKycStatusResponse = {
 }
 
 export type TQuotePayload = {
-  customerId: string
+  externalCustomerId: string
   sourceAmount: string
   token: TToken
   address: string
 }
 
 export type TQuoteResult = {
-  quoteId: string
+  externalQuoteId: string
   sourceAmount: string
   destinationAmount: string
   exchangeRate: string
@@ -220,9 +220,9 @@ export type TCreatePaymentMessage = {
 }
 
 export type TCreatePaymentPayload = {
-  quoteId: string
-  customerId: string
-  bankAccountId: string
+  externalQuoteId: string
+  externalCustomerId: string
+  externalBankAccountId: string
   address: string
   amount: string
   feeAmount: string
