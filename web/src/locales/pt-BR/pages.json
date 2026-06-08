@@ -104,9 +104,7 @@
     "saveSuccess": "Perfil atualizado",
     "saveError": "Não foi possível salvar. Tente novamente.",
     "nameRequired": "Nome é obrigatório",
-    "walletLabel": "Endereço da carteira",
-    "walletCopy": "Copiar endereço",
-    "walletCopied": "Endereço copiado"
+    "walletLabel": "Endereço da carteira"
   },
   "chat": {
     "title": "Chat",

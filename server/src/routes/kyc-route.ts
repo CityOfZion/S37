@@ -4,7 +4,7 @@ import { EErrorCode, ErrorHelper } from 'fractapay-shared'
 
 import { requireAuth } from '../hooks/require-auth'
 import { kycSchema } from '../schemas/kyc-schema'
-import { getKycStatus, upsertCustomer } from '../services/etherfuse-service'
+import { getKycStatus, saveCustomer } from '../services/etherfuse-service'
 
 type TKycParams = { Params: { externalCustomerId: string; address: string } }
 
@@ -26,7 +26,7 @@ export const kycRoute = async (fastify: FastifyInstance): Promise<void> => {
 
         if (response.status === 'APPROVED') {
           try {
-            await upsertCustomer({ externalCustomerId, address })
+            await saveCustomer({ address, externalCustomerId })
           } catch {
             /* empty */
           }

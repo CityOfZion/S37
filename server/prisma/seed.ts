@@ -5,12 +5,9 @@ const main = async (): Promise<void> => {
 
   if (existing === 0) {
     await prisma.healthCheck.create({ data: {} })
-    console.log('Seeded HealthCheck row')
 
     return
   }
-
-  console.log(`HealthCheck already has ${existing} row(s); skipping seed`)
 }
 
 main()
