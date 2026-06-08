@@ -1,26 +1,32 @@
-.PHONY: build test fmt fmt-check lint clean optimize check install-tools \
+.PHONY: build test fmt fmt-check lint clean optimize check install-tools bindings \
 	deploy-testnet setup-accounts require-contract-id print-contract-id \
-	invoke-version invoke-create-agreement invoke-get-due invoke-get-agreement \
-	invoke-execute invoke-history invoke-pause invoke-resume invoke-end
+	invoke-version invoke-create-agreement invoke-create-royalties invoke-get-due invoke-get-agreement \
+	invoke-execute invoke-history invoke-pause invoke-resume invoke-end edit-agreement \
+	invoke-get-next
 
 # ─── Identities + scenario constants ──────────────────────────────────────────
 # Override per invocation: `make invoke-execute AGREEMENT_ID=1`
 PAYER             ?= Bob
 RECEIVER          ?= charlie
-ADMIN             ?= alice
+ADMIN             ?= delta
 NETWORK           ?= testnet
 FLAT_AMOUNT       ?= 12345
-FREQUENCY_SECONDS ?= 180
+# Royalty/Mix base, declared at execution time (volatile per payment). Ignored by Flat.
+REFERENCE_AMOUNT  ?= 0
 
 # Contract + agreement state — default reads from .contract-id (written by deploy-testnet)
-CONTRACT_ID       ?= CAVEWL2VRXYUZBGJCDPETZSHXNB7OZCATWVSGXF2GAARMRL6VJEMQW5L
+CONTRACT_ID       ?= $(shell cat .contract-id 2>/dev/null)
 AGREEMENT_ID      ?= 0
 
 # Native XLM SAC address on the chosen network (derived lazily)
 XLM_SAC            = CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC
 
-# Default end_timestamp = now + 24h (room for many 3-minute cycles)
-END_TIMESTAMP      = $(shell echo $$(( $$(date +%s) + 86400 )))
+# Output directory for generated TypeScript bindings (override with BINDINGS_DIR=…)
+BINDINGS_DIR      ?= bindings
+
+# Default payment schedule = two timestamps, now + 3min and now + 6min.
+# Override with your own JSON array: `make invoke-create-agreement PAYMENT_TIMESTAMPS='[111,222]'`
+PAYMENT_TIMESTAMPS = $(shell echo "[$$(( $$(date +%s) + 180 )),$$(( $$(date +%s) + 360 ))]")
 
 # ─── Build / lint / test ──────────────────────────────────────────────────────
 
@@ -56,6 +62,15 @@ optimize: build
 
 install-tools:
 	cargo install --locked stellar-cli --features opt
+
+# Generate TypeScript bindings for the deployed contract into $(BINDINGS_DIR).
+# Reads CONTRACT_ID from .contract-id; fetches the contract spec from the network.
+bindings: require-contract-id
+	stellar contract bindings typescript \
+		--network $(NETWORK) \
+		--contract-id $(CONTRACT_ID) \
+		--output-dir $(BINDINGS_DIR) \
+		--overwrite
 
 # ─── Deploy + identity setup ──────────────────────────────────────────────────
 
@@ -99,11 +114,11 @@ invoke-version: require-contract-id
 		-- \
 		version
 
-# Bob (payer) → Charlie (receiver), native XLM, Flat 12345 stroops every 180 s.
+# Bob (payer) → Charlie (receiver), native XLM, Flat 12345 stroops at each timestamp.
 # Notes:
-#   * Stellar CLI ≥ 22 accepts bare unit variants (`Flat`) and inline-JSON tuple
-#     variants (`'{"Custom":180}'`). If your CLI rejects them, try `'"Flat"'` and
-#     `'{"custom":180}'` (lowercase tag).
+#   * Stellar CLI ≥ 22 accepts bare unit variants (`Flat`); if yours rejects it, try `'"Flat"'`.
+#   * --payment_timestamps is a JSON array of u64 unix seconds, strictly ascending.
+#   * No reference amount at create — for Royalties/Mix it is declared per payment at execute.
 #   * Prints the new agreement's u64 id; re-pass it via AGREEMENT_ID=<n>.
 invoke-create-agreement: require-contract-id
 	stellar contract invoke \
@@ -118,10 +133,26 @@ invoke-create-agreement: require-contract-id
 		--contract_type Flat \
 		--flat_amount $(FLAT_AMOUNT) \
 		--percent_bps 0 \
-		--reference_amount 0 \
-		--frequency '{"Custom":$(FREQUENCY_SECONDS)}' \
-		--end_timestamp $(END_TIMESTAMP)
+		--payment_timestamps '$(PAYMENT_TIMESTAMPS)'
 
+# Royalties agreement at 25% (2500 bps). flat_amount 0; the royalty base is declared
+# per payment at execute time (`make invoke-execute REFERENCE_AMOUNT=…`).
+invoke-create-royalties: require-contract-id
+	stellar contract invoke \
+		--id $(CONTRACT_ID) \
+		--network $(NETWORK) \
+		--source-account $(PAYER) \
+		-- \
+		create_agreement \
+		--payer $(PAYER) \
+		--receiver $(RECEIVER) \
+		--token $(XLM_SAC) \
+		--contract_type Royalties \
+		--flat_amount 0 \
+		--percent_bps 2500 \
+		--payment_timestamps '$(PAYMENT_TIMESTAMPS)'
+
+# Lists agreements whose next scheduled timestamp (at next_payment_index) has elapsed.
 invoke-get-due: require-contract-id
 	stellar contract invoke \
 		--id $(CONTRACT_ID) \
@@ -129,6 +160,16 @@ invoke-get-due: require-contract-id
 		--source-account $(PAYER) \
 		-- \
 		get_due_payments \
+		--payer $(PAYER)
+
+# Lists each Active agreement's upcoming payment (at next_payment_index) whether due yet or not.
+invoke-get-next: require-contract-id
+	stellar contract invoke \
+		--id $(CONTRACT_ID) \
+		--network $(NETWORK) \
+		--source-account $(PAYER) \
+		-- \
+		get_next_payments \
 		--payer $(PAYER)
 
 invoke-get-agreement: require-contract-id
@@ -140,6 +181,11 @@ invoke-get-agreement: require-contract-id
 		get_agreement \
 		--id $(AGREEMENT_ID)
 
+# Pays exactly ONE due timestamp (the one at next_payment_index) and advances the
+# cursor. --reference_amount is the volatile royalty base for this payment (Flat
+# ignores it; Royalties needs it > 0). Run again to catch up on further elapsed
+# timestamps. Panics: #3 not due yet, #4 schedule complete, #6 zero/negative amount
+# (e.g. Royalties with no reference), #8 insufficient payer balance.
 invoke-execute: require-contract-id
 	stellar contract invoke \
 		--id $(CONTRACT_ID) \
@@ -147,7 +193,8 @@ invoke-execute: require-contract-id
 		--source-account $(PAYER) \
 		-- \
 		execute_due_payment \
-		--id $(AGREEMENT_ID)
+		--id $(AGREEMENT_ID) \
+		--reference_amount $(REFERENCE_AMOUNT)
 
 invoke-history: require-contract-id
 	stellar contract invoke \
@@ -158,6 +205,8 @@ invoke-history: require-contract-id
 		get_payment_history \
 		--payer $(PAYER)
 
+# Pause/resume is a status gate only — timestamps are absolute and never shifted.
+# While paused, execute is blocked; on resume any elapsed timestamp is due at once.
 invoke-pause: require-contract-id
 	stellar contract invoke \
 		--id $(CONTRACT_ID) \
@@ -185,6 +234,9 @@ invoke-end: require-contract-id
 		end_agreement \
 		--id $(AGREEMENT_ID)
 
+# Replaces terms + schedule. New --payment_timestamps must be non-empty, strictly
+# ascending, end in the future, and have length >= the already-paid count
+# (next_payment_index); the cursor is preserved. Fails with #9 if the agreement is Ended.
 edit-agreement: require-contract-id
 	stellar contract invoke \
 		--id $(CONTRACT_ID) \
@@ -196,6 +248,4 @@ edit-agreement: require-contract-id
 		--contract_type Flat \
 		--flat_amount 120000000 \
 		--percent_bps 0 \
-		--reference_amount 0 \
-		--frequency '{"Custom":$(FREQUENCY_SECONDS)}' \
-		--end_timestamp $(shell echo $$(( $$(date +%s) + 172800 )))
+		--payment_timestamps '$(PAYMENT_TIMESTAMPS)'

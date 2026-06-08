@@ -3,13 +3,12 @@
 
 use soroban_sdk::{
     contract, contracterror, contractevent, contractimpl, contracttype, panic_with_error, token,
-    Address, BytesN, Env, Vec,
+    Address, BytesN, Env, Map, Vec,
 };
 
 const TTL_THRESHOLD: u32 = 100;
 const TTL_EXTEND_TO: u32 = 535_000;
 
-const DAY: u64 = 86_400;
 const BPS_DENOM: i128 = 10_000;
 
 #[contracttype]
@@ -31,17 +30,6 @@ pub enum ContractType {
 
 #[contracttype]
 #[derive(Clone, Debug, PartialEq)]
-pub enum Frequency {
-    Weekly,
-    Biweekly,
-    Monthly,
-    Quarterly,
-    Yearly,
-    Custom(u64),
-}
-
-#[contracttype]
-#[derive(Clone, Debug, PartialEq)]
 pub enum Status {
     Active,
     Paused,
@@ -58,13 +46,10 @@ pub struct Agreement {
     pub contract_type: ContractType,
     pub flat_amount: i128,
     pub percent_bps: u32,
-    pub reference_amount: i128,
-    pub frequency: Frequency,
-    pub last_paid_at: u64,
+    pub payment_timestamps: Vec<u64>,
+    pub next_payment_index: u32,
     pub last_amount_paid: i128,
-    pub end_timestamp: u64,
     pub status: Status,
-    pub paused_at: u64,
 }
 
 #[contracttype]
@@ -83,6 +68,15 @@ pub struct PaymentRecord {
 pub struct DuePayment {
     pub id: u64,
     pub amount: i128,
+    pub timestamp: u64,
+}
+
+#[contracttype]
+#[derive(Clone, Debug, PartialEq)]
+pub struct NextPayment {
+    pub id: u64,
+    pub amount: i128,
+    pub timestamp: u64,
 }
 
 #[contracterror]
@@ -90,15 +84,13 @@ pub struct DuePayment {
 #[repr(u32)]
 pub enum ContractError {
     AgreementNotFound = 1,
-    NotPayer = 2,
-    PaymentNotDue = 3,
-    AfterEnd = 4,
-    InvalidWindow = 5,
-    InvalidAmount = 6,
-    InvalidBps = 7,
-    InsufficientBalance = 8,
-    WrongStatus = 9,
-    ReferenceRequired = 10,
+    PaymentNotDue = 2,
+    AfterEnd = 3,
+    InvalidWindow = 4,
+    InvalidAmount = 5,
+    InvalidBps = 6,
+    InsufficientBalance = 7,
+    WrongStatus = 8,
 }
 
 #[contractevent]
@@ -162,23 +154,28 @@ pub struct FractaPayContract;
 #[contractimpl]
 impl FractaPayContract {
     pub fn __constructor(env: Env, admin: Address) {
-        env.storage().instance().set(&DataKey::Admin, &admin);
+        save_admin(&env, &admin);
         env.storage()
-            .instance()
+            .persistent()
             .set(&DataKey::NextAgreementId, &0u64);
+        env.storage()
+            .persistent()
+            .extend_ttl(&DataKey::NextAgreementId, TTL_THRESHOLD, TTL_EXTEND_TO);
+        extend_instance_ttl(&env);
     }
 
     pub fn get_admin(env: Env) -> Address {
-        env.storage().instance().get(&DataKey::Admin).unwrap()
+        load_admin(&env)
     }
 
     pub fn version(env: Env) -> soroban_sdk::String {
-        soroban_sdk::String::from_str(&env, "0.4.0")
+        soroban_sdk::String::from_str(&env, "0.5.0")
     }
 
     pub fn upgrade(env: Env, new_wasm_hash: BytesN<32>) {
-        let admin: Address = env.storage().instance().get(&DataKey::Admin).unwrap();
+        let admin: Address = load_admin(&env);
         admin.require_auth();
+        extend_instance_ttl(&env);
 
         env.deployer()
             .update_current_contract_wasm(new_wasm_hash.clone());
@@ -194,23 +191,13 @@ impl FractaPayContract {
         contract_type: ContractType,
         flat_amount: i128,
         percent_bps: u32,
-        reference_amount: i128,
-        frequency: Frequency,
-        end_timestamp: u64,
+        payment_timestamps: Vec<u64>,
     ) -> u64 {
         payer.require_auth();
+        extend_instance_ttl(&env);
 
-        let now_ts = now(&env);
-        if end_timestamp <= now_ts {
-            panic_with_error!(&env, ContractError::InvalidWindow);
-        }
-        validate_terms(
-            &env,
-            &contract_type,
-            flat_amount,
-            percent_bps,
-            reference_amount,
-        );
+        validate_timestamps(&env, &payment_timestamps);
+        validate_terms(&env, &contract_type, flat_amount, percent_bps);
 
         let id = next_agreement_id(&env);
 
@@ -222,13 +209,10 @@ impl FractaPayContract {
             contract_type,
             flat_amount,
             percent_bps,
-            reference_amount,
-            frequency,
-            last_paid_at: now_ts,
+            payment_timestamps,
+            next_payment_index: 0,
             last_amount_paid: 0,
-            end_timestamp,
             status: Status::Active,
-            paused_at: 0,
         };
 
         save_agreement(&env, &agreement);
@@ -251,53 +235,27 @@ impl FractaPayContract {
         contract_type: ContractType,
         flat_amount: i128,
         percent_bps: u32,
-        reference_amount: i128,
-        frequency: Frequency,
-        end_timestamp: u64,
+        payment_timestamps: Vec<u64>,
     ) {
         let mut agreement = load_agreement(&env, id);
         agreement.payer.require_auth();
+        extend_instance_ttl(&env);
 
         if agreement.status == Status::Ended {
             panic_with_error!(&env, ContractError::WrongStatus);
         }
 
-        let now_ts = now(&env);
-        if end_timestamp <= now_ts {
+        validate_timestamps(&env, &payment_timestamps);
+        if (payment_timestamps.len()) < agreement.next_payment_index {
             panic_with_error!(&env, ContractError::InvalidWindow);
         }
-        validate_terms(
-            &env,
-            &contract_type,
-            flat_amount,
-            percent_bps,
-            reference_amount,
-        );
+        validate_terms(&env, &contract_type, flat_amount, percent_bps);
 
         agreement.contract_type = contract_type;
         agreement.flat_amount = flat_amount;
         agreement.percent_bps = percent_bps;
-        agreement.reference_amount = reference_amount;
-        agreement.frequency = frequency;
-        agreement.end_timestamp = end_timestamp;
+        agreement.payment_timestamps = payment_timestamps;
 
-        save_agreement(&env, &agreement);
-
-        AgreementEdited { id }.publish(&env);
-    }
-
-    pub fn set_reference(env: Env, id: u64, reference_amount: i128) {
-        let mut agreement = load_agreement(&env, id);
-        agreement.payer.require_auth();
-
-        if agreement.status == Status::Ended {
-            panic_with_error!(&env, ContractError::WrongStatus);
-        }
-        if reference_amount < 0 {
-            panic_with_error!(&env, ContractError::InvalidAmount);
-        }
-
-        agreement.reference_amount = reference_amount;
         save_agreement(&env, &agreement);
 
         AgreementEdited { id }.publish(&env);
@@ -306,13 +264,13 @@ impl FractaPayContract {
     pub fn pause_agreement(env: Env, id: u64) {
         let mut agreement = load_agreement(&env, id);
         agreement.payer.require_auth();
+        extend_instance_ttl(&env);
 
         if agreement.status != Status::Active {
             panic_with_error!(&env, ContractError::WrongStatus);
         }
 
         agreement.status = Status::Paused;
-        agreement.paused_at = now(&env);
         save_agreement(&env, &agreement);
 
         AgreementPaused { id }.publish(&env);
@@ -321,14 +279,12 @@ impl FractaPayContract {
     pub fn resume_agreement(env: Env, id: u64) {
         let mut agreement = load_agreement(&env, id);
         agreement.payer.require_auth();
+        extend_instance_ttl(&env);
 
         if agreement.status != Status::Paused {
             panic_with_error!(&env, ContractError::WrongStatus);
         }
 
-        let paused_duration = now(&env) - agreement.paused_at;
-        agreement.last_paid_at += paused_duration;
-        agreement.paused_at = 0;
         agreement.status = Status::Active;
         save_agreement(&env, &agreement);
 
@@ -338,13 +294,13 @@ impl FractaPayContract {
     pub fn end_agreement(env: Env, id: u64) {
         let mut agreement = load_agreement(&env, id);
         agreement.payer.require_auth();
+        extend_instance_ttl(&env);
 
         if agreement.status == Status::Ended {
             panic_with_error!(&env, ContractError::WrongStatus);
         }
 
         agreement.status = Status::Ended;
-        agreement.paused_at = 0;
         save_agreement(&env, &agreement);
 
         AgreementEnded { id }.publish(&env);
@@ -360,29 +316,76 @@ impl FractaPayContract {
             if agreement.status != Status::Active {
                 continue;
             }
-            if now_ts > agreement.end_timestamp {
+            if agreement.next_payment_index >= agreement.payment_timestamps.len() {
                 continue;
             }
-            let interval = interval_seconds(&agreement.frequency);
-            if now_ts < agreement.last_paid_at + interval {
+            let timestamp = agreement
+                .payment_timestamps
+                .get(agreement.next_payment_index)
+                .unwrap();
+            if now_ts < timestamp {
                 continue;
             }
-            let amount = compute_payment_amount(&agreement);
-            due.push_back(DuePayment { id, amount });
+            let amount = compute_payment_amount(&agreement, 0);
+            due.push_back(DuePayment {
+                id,
+                amount,
+                timestamp,
+            });
         }
 
         due
     }
 
-    pub fn execute_due_payment(env: Env, id: u64) -> i128 {
-        let mut agreement = load_agreement(&env, id);
-        agreement.payer.require_auth();
+    /// The upcoming payment for each Active agreement: the timestamp at
+    /// `next_payment_index` (whether or not it is due yet), with its amount.
+    /// Agreements that are not Active or whose schedule is complete are skipped.
+    pub fn get_next_payments(env: Env, payer: Address) -> Vec<NextPayment> {
+        let ids = payer_agreements(&env, &payer);
+        let mut next = Vec::new(&env);
 
-        execute_one(&env, &mut agreement, true)
+        for id in ids.iter() {
+            let agreement = load_agreement(&env, id);
+            if agreement.status != Status::Active {
+                continue;
+            }
+            if agreement.next_payment_index >= agreement.payment_timestamps.len() {
+                continue;
+            }
+            let timestamp = agreement
+                .payment_timestamps
+                .get(agreement.next_payment_index)
+                .unwrap();
+            let amount = compute_payment_amount(&agreement, 0);
+            next.push_back(NextPayment {
+                id,
+                amount,
+                timestamp,
+            });
+        }
+
+        next
     }
 
-    pub fn execute_all_due(env: Env, payer: Address) -> i128 {
+    /// Execute the due payment for one agreement. `reference_amount` is the
+    /// volatile royalty base for this payment (used by `Royalties`/`Mix`; ignored
+    /// by `Flat`). For `Royalties` a non-positive reference yields a zero amount
+    /// and panics `InvalidAmount`.
+    pub fn execute_due_payment(env: Env, id: u64, reference_amount: i128) -> i128 {
+        let mut agreement = load_agreement(&env, id);
+        agreement.payer.require_auth();
+        extend_instance_ttl(&env);
+
+        execute_one(&env, &mut agreement, reference_amount, true)
+    }
+
+    /// Batch-execute every due payment for `payer`. `references` maps an
+    /// agreement id to its per-execution royalty base; agreements absent from the
+    /// map use `0` (so `Royalties` with no entry is skipped, `Mix` pays its flat
+    /// portion only).
+    pub fn execute_all_due(env: Env, payer: Address, references: Map<u64, i128>) -> i128 {
         payer.require_auth();
+        extend_instance_ttl(&env);
 
         let ids = payer_agreements(&env, &payer);
         let mut total: i128 = 0;
@@ -392,7 +395,8 @@ impl FractaPayContract {
             if agreement.payer != payer {
                 continue;
             }
-            let paid = execute_one(&env, &mut agreement, false);
+            let reference_amount = references.get(id).unwrap_or(0);
+            let paid = execute_one(&env, &mut agreement, reference_amount, false);
             total += paid;
         }
 
@@ -405,6 +409,17 @@ impl FractaPayContract {
 
     pub fn get_payer_agreements(env: Env, payer: Address) -> Vec<u64> {
         payer_agreements(&env, &payer)
+    }
+
+    pub fn get_payer_agreements_full(env: Env, payer: Address) -> Vec<Agreement> {
+        let ids = payer_agreements(&env, &payer);
+        let mut agreements = Vec::new(&env);
+
+        for id in ids.iter() {
+            agreements.push_back(load_agreement(&env, id));
+        }
+
+        agreements
     }
 
     pub fn get_payment_history(env: Env, payer: Address) -> Vec<PaymentRecord> {
@@ -428,38 +443,53 @@ fn now(env: &Env) -> u64 {
     env.ledger().timestamp()
 }
 
-fn interval_seconds(frequency: &Frequency) -> u64 {
-    match frequency {
-        Frequency::Weekly => 7 * DAY,
-        Frequency::Biweekly => 14 * DAY,
-        Frequency::Monthly => 30 * DAY,
-        Frequency::Quarterly => 90 * DAY,
-        Frequency::Yearly => 365 * DAY,
-        Frequency::Custom(seconds) => *seconds,
+/// Bump the instance entry's TTL so `Admin`/`NextAgreementId` (and the contract
+/// instance + Wasm) are not archived. Called from every mutating entry point.
+fn extend_instance_ttl(env: &Env) {
+    env.storage()
+        .instance()
+        .extend_ttl(TTL_THRESHOLD, TTL_EXTEND_TO);
+}
+
+/// Validate a payment schedule: non-empty, strictly ascending, and ending in the
+/// future (the last timestamp must be after `now`, else the whole schedule is in
+/// the past). Panics with `InvalidWindow` on any violation.
+fn validate_timestamps(env: &Env, payment_timestamps: &Vec<u64>) {
+    let length = payment_timestamps.len();
+    if length == 0 {
+        panic_with_error!(env, ContractError::InvalidWindow);
+    }
+
+    let mut previous = payment_timestamps.get(0).unwrap();
+    for index in 1..length {
+        let current = payment_timestamps.get(index).unwrap();
+        if current <= previous {
+            panic_with_error!(env, ContractError::InvalidWindow);
+        }
+        previous = current;
+    }
+
+    let last = payment_timestamps.get(length - 1).unwrap();
+    if last <= now(env) {
+        panic_with_error!(env, ContractError::InvalidWindow);
     }
 }
 
-fn compute_payment_amount(agreement: &Agreement) -> i128 {
+/// Compute a payment's amount. `reference_amount` is supplied per-execution (the
+/// volatile royalty base) and ignored for `Flat`; for queries before execution
+/// pass `0` to get only the pre-known (flat) portion.
+fn compute_payment_amount(agreement: &Agreement, reference_amount: i128) -> i128 {
     match agreement.contract_type {
         ContractType::Flat => agreement.flat_amount,
-        ContractType::Royalties => {
-            agreement.reference_amount * (agreement.percent_bps as i128) / BPS_DENOM
-        }
+        ContractType::Royalties => reference_amount * (agreement.percent_bps as i128) / BPS_DENOM,
         ContractType::Mix => {
-            agreement.flat_amount
-                + agreement.reference_amount * (agreement.percent_bps as i128) / BPS_DENOM
+            agreement.flat_amount + reference_amount * (agreement.percent_bps as i128) / BPS_DENOM
         }
     }
 }
 
-fn validate_terms(
-    env: &Env,
-    contract_type: &ContractType,
-    flat_amount: i128,
-    percent_bps: u32,
-    reference_amount: i128,
-) {
-    if flat_amount < 0 || reference_amount < 0 {
+fn validate_terms(env: &Env, contract_type: &ContractType, flat_amount: i128, percent_bps: u32) {
+    if flat_amount < 0 {
         panic_with_error!(env, ContractError::InvalidAmount);
     }
     if percent_bps > BPS_DENOM as u32 {
@@ -487,15 +517,34 @@ fn validate_terms(
     }
 }
 
+fn save_admin(env: &Env, admin: &Address) {
+    env.storage().persistent().set(&DataKey::Admin, admin);
+    env.storage()
+        .persistent()
+        .extend_ttl(&DataKey::Admin, TTL_THRESHOLD, TTL_EXTEND_TO);
+}
+
+fn load_admin(env: &Env) -> Address {
+    let admin: Address = env.storage().persistent().get(&DataKey::Admin).unwrap();
+    env.storage()
+        .persistent()
+        .extend_ttl(&DataKey::Admin, TTL_THRESHOLD, TTL_EXTEND_TO);
+
+    admin
+}
+
 fn next_agreement_id(env: &Env) -> u64 {
     let current: u64 = env
         .storage()
-        .instance()
+        .persistent()
         .get(&DataKey::NextAgreementId)
         .unwrap_or(0);
     env.storage()
-        .instance()
+        .persistent()
         .set(&DataKey::NextAgreementId, &(current + 1));
+    env.storage()
+        .persistent()
+        .extend_ttl(&DataKey::NextAgreementId, TTL_THRESHOLD, TTL_EXTEND_TO);
 
     current
 }
@@ -568,7 +617,7 @@ fn append_history(env: &Env, payer: &Address, record: PaymentRecord) {
 
 /// Run a single agreement's payment. When `strict`, an undue/paused/ended/post-end
 /// agreement panics. When non-strict (batch path), it returns 0 and skips.
-fn execute_one(env: &Env, agreement: &mut Agreement, strict: bool) -> i128 {
+fn execute_one(env: &Env, agreement: &mut Agreement, reference_amount: i128, strict: bool) -> i128 {
     let now_ts = now(env);
 
     if agreement.status != Status::Active {
@@ -578,15 +627,18 @@ fn execute_one(env: &Env, agreement: &mut Agreement, strict: bool) -> i128 {
 
         return 0;
     }
-    if now_ts > agreement.end_timestamp {
+    if agreement.next_payment_index >= agreement.payment_timestamps.len() {
         if strict {
             panic_with_error!(env, ContractError::AfterEnd);
         }
 
         return 0;
     }
-    let interval = interval_seconds(&agreement.frequency);
-    if now_ts < agreement.last_paid_at + interval {
+    let due_ts = agreement
+        .payment_timestamps
+        .get(agreement.next_payment_index)
+        .unwrap();
+    if now_ts < due_ts {
         if strict {
             panic_with_error!(env, ContractError::PaymentNotDue);
         }
@@ -594,7 +646,15 @@ fn execute_one(env: &Env, agreement: &mut Agreement, strict: bool) -> i128 {
         return 0;
     }
 
-    let amount = compute_payment_amount(agreement);
+    if reference_amount < 0 {
+        if strict {
+            panic_with_error!(env, ContractError::InvalidAmount);
+        }
+
+        return 0;
+    }
+
+    let amount = compute_payment_amount(agreement, reference_amount);
     if amount <= 0 {
         if strict {
             panic_with_error!(env, ContractError::InvalidAmount);
@@ -615,7 +675,7 @@ fn execute_one(env: &Env, agreement: &mut Agreement, strict: bool) -> i128 {
 
     token_client.transfer(&agreement.payer, &agreement.receiver, &amount);
 
-    agreement.last_paid_at = now_ts;
+    agreement.next_payment_index += 1;
     agreement.last_amount_paid = amount;
     save_agreement(env, agreement);
 

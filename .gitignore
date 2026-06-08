@@ -13,6 +13,7 @@ build/
 target/
 *.wasm
 test_snapshots/
+.contract-id
 
 # Environment variables
 .env
