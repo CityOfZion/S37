@@ -5,6 +5,7 @@ import { Outlet, useRouterState } from '@tanstack/react-router'
 import { useDestinationsQuery } from '../hooks/use-destinations-query'
 import { useDestinationsStore } from '../hooks/use-destinations-store'
 import { useSidebarStore } from '../hooks/use-sidebar-store'
+import { useSyncEtherfuseCustomer } from '../hooks/use-sync-etherfuse-customer'
 import { Sidebar } from './Sidebar'
 import { Toolbar } from './Toolbar'
 
@@ -16,6 +17,8 @@ export const RootLayout = () => {
   const toolbarRef = useRef<HTMLDivElement>(null)
   const currentPath = useRouterState({ select: state => state.location.pathname })
   const isChat = currentPath.startsWith('/chat')
+
+  useSyncEtherfuseCustomer()
 
   useEffect(() => {
     if (destinationsData) {
