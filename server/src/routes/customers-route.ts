@@ -8,7 +8,7 @@ import {
   findCustomerByAddress,
   findCustomerByAddressFromDatabase,
   getCustomerExternalBankAccountId,
-  upsertCustomer,
+  saveCustomer,
 } from '../services/etherfuse-service'
 
 type TCustomerParams = { Params: { address: string } }
@@ -81,7 +81,7 @@ export const customersRoute = async (fastify: FastifyInstance): Promise<void> =>
           return reply.status(404).send({ error: EErrorCode.CUSTOMER_NOT_FOUND })
         }
 
-        await upsertCustomer({
+        await saveCustomer({
           address,
           externalCustomerId: remote.externalCustomerId,
           externalBankAccountId: remote.externalBankAccountId,
