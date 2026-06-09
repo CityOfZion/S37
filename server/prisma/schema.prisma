@@ -166,12 +166,12 @@ model EmailVerificationChallenge {
 }
 
 model Customer {
-  id            String   @id @default(cuid())
-  address       String   @unique
-  externalCustomerId    String
-  externalBankAccountId String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id                    String   @id @default(cuid())
+  address               String   @unique
+  externalCustomerId    String   @db.VarChar(200)
+  externalBankAccountId String?  @db.VarChar(200)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
 }
 
 model OAuthAccount {

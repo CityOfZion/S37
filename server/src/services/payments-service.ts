@@ -1,7 +1,9 @@
 import type { Payment, PaymentDestination, PaymentItem, PaymentMessage } from '@prisma/client'
+import BigNumber from 'bignumber.js'
 
 import {
   PAYMENT_TERMINAL_STATUSES,
+  StringHelper,
   TCreatePaymentPayload,
   TGetPaymentsParams,
   TGetPaymentsResponse,
@@ -135,7 +137,12 @@ export const createPayment = async (
       exchangeRate: data.exchangeRate,
       transactionHash: orderResponse.confirmedTxSignature || null,
       pixData: orderResponse.pix
-        ? EncryptionHelper.encrypt(JSON.stringify(orderResponse.pix))
+        ? EncryptionHelper.encrypt(
+            JSON.stringify({
+              ...orderResponse.pix,
+              amount: StringHelper.formatAmount(new BigNumber(data.amount).plus(data.feeAmount)),
+            })
+          )
         : null,
       isRecurrence: false, // TODO: implement recurrence
       items: {

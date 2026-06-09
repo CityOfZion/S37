@@ -121,9 +121,7 @@
     "saveSuccess": "Profile updated",
     "saveError": "Could not save. Please try again.",
     "nameRequired": "Name is required",
-    "walletLabel": "Wallet address",
-    "walletCopy": "Copy address",
-    "walletCopied": "Address copied"
+    "walletLabel": "Wallet address"
   },
   "chat": {
     "title": "Chat",

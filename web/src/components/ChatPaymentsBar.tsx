@@ -32,9 +32,19 @@ export const ChatPaymentsBar = ({
     new BigNumber(0)
   )
 
+  const recipientTotal = destinations.reduce(
+    (sum, allocation) => sum.plus(total.times(allocation.percentage / 100)),
+    new BigNumber(0)
+  )
+
   if (payments.length === 0 && !orderExecuted) return null
 
   const formattedTotal = StringHelper.formatCurrencyAmount(StringHelper.formatAmount(total), token)
+
+  const formattedRecipientTotal = StringHelper.formatCurrencyAmount(
+    StringHelper.formatAmount(recipientTotal),
+    token
+  )
 
   return (
     <div className="max-w-3xl mx-auto w-full px-4 flex flex-col gap-y-2">
@@ -60,10 +70,14 @@ export const ChatPaymentsBar = ({
               <Button
                 variant="ghost"
                 size="xs"
-                className="text-xs font-semibold text-primary px-0 h-auto min-h-0 hover:text-primary/70 hover:bg-transparent active:bg-transparent active:opacity-70 rounded"
+                className="flex items-center gap-2 text-xs px-0 h-auto min-h-0 text-primary hover:text-primary/70 hover:bg-transparent active:bg-transparent active:opacity-70 rounded"
                 onClick={onOpenDestinations}
               >
-                {t('destinationsCount', { count: destinations.length })}
+                <span className="font-semibold">
+                  {t('destinationsCount', { count: destinations.length })}
+                </span>
+                <span className="h-3.5 w-px bg-neutral-200 shrink-0" aria-hidden="true" />
+                <span className="text-primary/70">{formattedRecipientTotal}</span>
               </Button>
             </Tooltip>
           )}

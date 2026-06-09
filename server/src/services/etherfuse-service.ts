@@ -4,8 +4,12 @@ import BigNumber from 'bignumber.js'
 import * as uuid from 'uuid'
 
 import {
+  EErrorCode,
+  FEE_PERCENTAGE,
+  StringHelper,
   TKycStatus,
   TKycStatusResponse,
+  TOKEN,
   TOnboardingResult,
   TPaymentPix,
   TPaymentStatus,
@@ -13,7 +17,6 @@ import {
   TQuoteResult,
   TToken,
 } from 'fractapay-shared'
-import { EErrorCode, FEE_PERCENTAGE, StringHelper, TOKEN } from 'fractapay-shared'
 
 import { isMainnet } from '../constants'
 import { EnvHelper } from '../helpers/EnvHelper'
@@ -334,10 +337,9 @@ export const createOnboarding = async (
 
       // Retry succeeded — sync the database row so its customerId matches the real one.
       try {
-        await upsertCustomer({ address, externalCustomerId })
+        await saveCustomer({ address, externalCustomerId, externalBankAccountId })
       } catch {
         // Ignore any errors here — the onboarding succeeded, so the user can proceed even if our database is out of sync.
-        // We'll have another chance to fix it on their next onboarding attempt, or we can do it manually if needed.
       }
 
       return {
@@ -474,7 +476,7 @@ export const createOrder = async (payload: TCreateOrderPayload): Promise<TOrderR
           depositPixKeyType: onramp.depositPixKeyType,
           beneficiary: onramp.beneficiary,
           amount: onramp.depositAmount,
-        }) ?? undefined,
+        }) || undefined,
     }
   } catch (error) {
     if ((error as Error).message !== EErrorCode.PENDING_ORDER_EXISTS) throw error
@@ -521,27 +523,20 @@ export const findCustomerByAddressFromDatabase = async (
   return prisma.customer.findUnique({ where: { address } })
 }
 
-type TUpsertCustomerParams = {
+type TSaveCustomerParams = {
   address: string
   externalCustomerId: string
   externalBankAccountId?: string
-  userId?: string
 }
 
-export const upsertCustomer = async ({
-  userId,
+export const saveCustomer = async ({
+  address,
   externalCustomerId,
   externalBankAccountId,
-  address,
-}: TUpsertCustomerParams): Promise<Customer> => {
-  const [customer] = await prisma.$transaction([
-    prisma.customer.upsert({
-      where: { address },
-      update: { externalCustomerId, externalBankAccountId },
-      create: { externalCustomerId, externalBankAccountId, address },
-    }),
-    ...(userId ? [prisma.user.update({ where: { id: userId }, data: { address } })] : []),
-  ])
-
-  return customer
+}: TSaveCustomerParams): Promise<void> => {
+  await prisma.customer.upsert({
+    where: { address },
+    update: { externalCustomerId, externalBankAccountId },
+    create: { externalCustomerId, externalBankAccountId, address },
+  })
 }

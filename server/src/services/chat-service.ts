@@ -58,7 +58,10 @@ CRITICAL RULES:
 1. ALWAYS return valid JSON only — no markdown wrapper, no explanations, just the raw JSON object
 2. NEVER make up or guess payment amounts — only use values explicitly stated by the user or extracted from files
 3. NEVER confuse values between different payments or destinations
-3a. When mentioning totals or amounts in your message text, ALWAYS use the exact values from the CURRENT STATE context block (Collected payments section). NEVER recompute totals from raw file content — the context block already shows the correct extracted amounts. If the context says total is R$ 100, say R$ 100.
+3a. When mentioning amounts in your message text, use the correct section of CURRENT STATE:
+   - Raw payment total (sum of all items): use "Collected payments" section.
+   - Amount a specific recipient will receive: use "Destination allocations" section (e.g. "João Pedro: 25% = R$ 12.50" — report R$ 12.50, NOT R$ 50.00).
+   NEVER recompute totals from raw file content. If allocations are set and the user asks "what is the value" or "how much will X receive", report the allocation amount, not the raw total.
 4. ALWAYS verify amounts and percentages with the user before setting action to "EXECUTE"
 5. Percentages are INDEPENDENT commissions — each destination receives their own % of the total. They do NOT need to sum to 100%. NEVER ask about the "remaining" amount or suggest the total must reach 100%. Only warn if a single percentage exceeds 100%.
 6. STRICT destination matching for PAYMENT ALLOCATION — when the user is assigning a payment to a destination (SET_DESTINATIONS), ONLY use destinations from the "Registered destinations" list.
@@ -68,7 +71,11 @@ CRITICAL RULES:
    - NEVER confirm a payment allocation to a destination that is not explicitly listed.
    - NEVER say "encontrei" or "found" for someone not in the list.
    - If the registered destinations list is empty and the user wants to make a payment, offer to register a destination directly in the chat.
-7. Ask clarifying questions if anything is ambiguous — payments are serious
+7. MINIMUM PAYMENT RULE: The minimum "Estimated total to pay" (recipient amount + 2% fee) is R$ 50,00. This is NOT the raw payments total — it is the sum of all allocation amounts after applying each destination's percentage, plus the 2% fee. If the user tries to confirm (EXECUTE) and the CURRENT STATE shows "Estimated total to pay" below R$ 50,00, respond with action "NONE" and explain clearly:
+   (pt-BR) "O valor total a pagar (R$ X,XX) é inferior ao mínimo de R$ 50,00. Adicione mais pagamentos ou ajuste os percentuais para continuar."
+   (en) "The total amount to pay (R$ X.XX) is below the R$ 50.00 minimum. Add more payments or adjust the percentages to continue."
+   NEVER say the "total dos pagamentos coletados" (raw total) is the amount that must be >= 50 — only "Estimated total to pay" matters for this rule.
+8. Ask clarifying questions if anything is ambiguous — payments are serious
 8. NEVER expose internal destination IDs (e.g. "cmpx9nloa0003714o9nqz8trv") in any user-facing message. IDs are for SET_DESTINATIONS JSON only — never in the "message" field.
 
 RESPONSE FORMAT — always return exactly this JSON structure:
@@ -267,6 +274,20 @@ const buildContextBlock = (
           .join('\n')
       : '  (none yet)'
 
+  const sumPercentage = chatDestinations.reduce((sum, allocation) => sum + allocation.percentage, 0)
+  const recipientAmount = total.times(sumPercentage / 100)
+  const feeAmount = recipientAmount.times(FEE_PERCENTAGE)
+  const estimatedTotalToPay = recipientAmount.plus(feeAmount)
+
+  const totalToPayBlock =
+    chatDestinations.length > 0
+      ? `\nPayment summary (estimated, before quote):
+  Recipient amount (sum of allocations): R$ ${StringHelper.formatAmount(recipientAmount)}
+  FractaPay fee (${FEE_PERCENTAGE.times(100)}% of recipient amount): R$ ${StringHelper.formatAmount(feeAmount)}
+  Total to pay via PIX: R$ ${StringHelper.formatAmount(estimatedTotalToPay)}
+  Minimum required: R$ 50.00`
+      : ''
+
   return `CURRENT STATE:
 User/Company name: ${userName || 'Name not provided (unknown)'}
 
@@ -277,7 +298,7 @@ Collected payments (${payments.length}, total R$ ${StringHelper.formatAmount(tot
 ${paymentList}
 
 Destination allocations:
-${allocationList}`
+${allocationList}${totalToPayBlock}`
 }
 
 export const processChat = async (input: TChatInput): Promise<TChatResponse> => {

@@ -4,8 +4,8 @@ import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
 
 import { Button } from '../../components/Button'
+import { CopyButton } from '../../components/CopyButton'
 import { Input } from '../../components/Input'
-import { ClipboardHelper } from '../../helpers/ClipboardHelper'
 import { ToastHelper } from '../../helpers/ToastHelper'
 import { useBreadcrumb } from '../../hooks/use-breadcrumb-store'
 import { usePageTitle } from '../../hooks/use-page-title'
@@ -123,21 +123,7 @@ export const ProfilePage = () => {
               <span className="font-mono text-sm text-neutral-900 truncate" title={user.address}>
                 {user.address}
               </span>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={async () => {
-                  try {
-                    await ClipboardHelper.copy(user.address!)
-
-                    ToastHelper.success(t('walletCopied'))
-                  } catch {
-                    ToastHelper.error(t('saveError'))
-                  }
-                }}
-              >
-                {t('walletCopy')}
-              </Button>
+              <CopyButton value={user.address} />
             </div>
           </div>
         ) : null}

@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { useQueryClient } from '@tanstack/react-query'
 import { useParams } from '@tanstack/react-router'
 import BigNumber from 'bignumber.js'
 
@@ -35,8 +36,15 @@ export const PaymentPage = () => {
   const { t: tCommon } = useTranslation('common')
   const { id: paymentId } = useParams({ from: '/auth/payments/$id' })
   const { language } = useLanguageStore()
+  const queryClient = useQueryClient()
   const { data: paymentData, isLoading, isError } = usePaymentQuery(paymentId)
   const [itemsPanel, setItemsPanel] = useState(false)
+
+  useEffect(() => {
+    if (paymentData?.status === 'COMPLETED' && paymentData.address) {
+      void queryClient.invalidateQueries({ queryKey: ['balance', paymentData.address] })
+    }
+  }, [paymentData?.status, paymentData?.address, queryClient])
 
   const payment = paymentData || null
   const statusKey = payment?.status || 'CREATED'
@@ -151,6 +159,12 @@ export const PaymentPage = () => {
 
               {payment.amount && (
                 <>
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-t border-neutral-100 pt-4 gap-1">
+                    <span className="text-sm text-neutral-500">{t('amount')}</span>
+                    <span className="text-sm text-neutral-700">
+                      {StringHelper.formatCurrencyAmount(payment.amount, payment.token)}
+                    </span>
+                  </div>
                   {payment.feeAmount && (
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-t border-neutral-100 pt-4 gap-1">
                       <span className="flex items-center gap-1 text-sm text-neutral-500">
@@ -165,12 +179,6 @@ export const PaymentPage = () => {
                       </span>
                     </div>
                   )}
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-t border-neutral-100 pt-4 gap-1">
-                    <span className="text-sm text-neutral-500">{t('amount')}</span>
-                    <span className="text-sm text-neutral-700">
-                      {StringHelper.formatCurrencyAmount(payment.amount, payment.token)}
-                    </span>
-                  </div>
                   {payment.feeAmount && (
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-t border-neutral-100 pt-4 gap-1 font-bold">
                       <span className="text-sm text-neutral-700">{t('totalAmount')}</span>

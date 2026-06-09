@@ -25,6 +25,7 @@ import {
   ALLOWED_EXTENSIONS,
   ALLOWED_MIME_TYPES,
   EErrorCode,
+  FEE_PERCENTAGE,
   MINIMUM_PAYMENT_AMOUNT,
   StringHelper,
 } from 'fractapay-shared'
@@ -356,14 +357,18 @@ export const ChatPage = () => {
           onSuccess: response => {
             if (!('action' in response)) return
 
+            const totalPaymentsAmount = chatPayments.reduce(
+              (sum, payment) => sum.plus(new BigNumber(payment.amount || '0')),
+              new BigNumber(0)
+            )
+
+            const sumPercentage = destinations.reduce((sum, { percentage }) => sum + percentage, 0)
+            const recipientAmount = totalPaymentsAmount.times(sumPercentage / 100)
+            const estimatedTotalToPay = recipientAmount.times(new BigNumber(1).plus(FEE_PERCENTAGE))
+
             const isBelowMinimum =
               response.action === 'EXECUTE' &&
-              chatPayments
-                .reduce(
-                  (sum, payment) => sum.plus(new BigNumber(payment.amount || '0')),
-                  new BigNumber(0)
-                )
-                .isLessThan(MINIMUM_PAYMENT_AMOUNT)
+              estimatedTotalToPay.isLessThan(MINIMUM_PAYMENT_AMOUNT)
 
             const text = isBelowMinimum
               ? t('minimumAmountError', {
@@ -512,9 +517,14 @@ export const ChatPage = () => {
     (payment: TPayment) => {
       setOrderExecuted(true)
       resetChat()
+
+      if (address) {
+        void queryClient.invalidateQueries({ queryKey: ['balance', address] })
+      }
+
       void navigate({ to: '/chat/$id', params: { id: payment.id } })
     },
-    [resetChat, navigate]
+    [resetChat, navigate, address]
   )
 
   const handleFileSelected = (file?: File) => {
