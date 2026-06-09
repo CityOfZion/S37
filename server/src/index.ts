@@ -1,9 +1,13 @@
 import cookie from '@fastify/cookie'
 import cors from '@fastify/cors'
+import helmet from '@fastify/helmet'
 import jwt from '@fastify/jwt'
 import multipart from '@fastify/multipart'
 import oauth2 from '@fastify/oauth2'
-import Fastify from 'fastify'
+import rateLimit from '@fastify/rate-limit'
+import Fastify, { type FastifyRequest } from 'fastify'
+
+import { EErrorCode } from 'fractapay-shared'
 
 import { isProduction, PKCE_COOKIE_NAME, SERVICE_NAME } from './constants'
 import { EnvHelper } from './helpers/EnvHelper'
@@ -20,6 +24,8 @@ import { quotesRoute } from './routes/quotes-route'
 import { webhooksRoute } from './routes/webhooks-route'
 
 const fastify = Fastify({
+  // Behind Fly's proxy, so `request.ip` reads the real client from X-Forwarded-For.
+  trustProxy: true,
   logger: isProduction
     ? true
     : {
@@ -52,6 +58,32 @@ async function bootstrap(): Promise<void> {
     origin: EnvHelper.CORS_ORIGIN.split(',').map(origin => origin.trim()),
     methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept-Language'],
+  })
+
+  // CSP off: this server only returns JSON + OAuth redirects, no HTML pages to protect.
+  await fastify.register(helmet, {
+    contentSecurityPolicy: false,
+  })
+
+  await fastify.register(rateLimit, {
+    global: true,
+    max: 100,
+    timeWindow: '1 minute',
+    // Key on Fly's spoof-proof client IP, not the forgeable X-Forwarded-For (request.ip).
+    // Swap this header if you move off Fly (e.g. Cloudflare → 'cf-connecting-ip').
+    keyGenerator: (request: FastifyRequest) =>
+      (request.headers['fly-client-ip'] as string) ?? request.ip,
+    ban: 5,
+    exponentialBackoff: true,
+    onBanReach: (request: FastifyRequest) =>
+      request.log.warn({ ip: request.ip }, '[RateLimit] client banned'),
+    errorResponseBuilder: (_request, context) => {
+      const body = {
+        error: context.ban ? EErrorCode.IP_BANNED : EErrorCode.RATE_LIMITED,
+      }
+
+      return body
+    },
   })
 
   await fastify.register(oauth2, {

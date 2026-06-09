@@ -78,7 +78,8 @@
     "errorInvalidCode": "Esse código não está certo. Verifique e tente de novo.",
     "errorCodeExpired": "Este código expirou. Solicite um novo.",
     "errorTooManyAttempts": "Muitas tentativas. Solicite um novo código.",
-    "errorGeneric": "Algo deu errado. Tente novamente."
+    "errorGeneric": "Algo deu errado. Tente novamente.",
+    "errorRateLimited": "Muitas requisições. Aguarde alguns minutos antes de tentar novamente."
   },
   "dashboard": {
     "title": "Dashboard",
