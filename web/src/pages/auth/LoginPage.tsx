@@ -180,7 +180,7 @@ export const LoginPage = () => {
   const handleBiometric = () => {
     passkeyLoginMutation.mutate(undefined, {
       onSuccess: () => {
-        void navigate({ to: '/chat' })
+        void navigate({ to: '/dashboard' })
       },
       onError: error => {
         if (error instanceof DOMException && error.name === 'NotAllowedError') return
