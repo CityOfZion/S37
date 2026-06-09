@@ -3,6 +3,7 @@
     "label": "Main menu",
     "menuSection": "Main menu",
     "chat": "Chat",
+    "dashboard": "Dashboard",
     "payments": "Payments",
     "destinations": "Recipients",
     "switchLanguage": "Switch language",

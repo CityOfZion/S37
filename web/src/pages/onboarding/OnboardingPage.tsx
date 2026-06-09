@@ -381,7 +381,7 @@ export const OnboardingPage = () => {
 
     setIsCelebrating(true)
     window.setTimeout(() => {
-      void navigate({ to: '/chat' })
+      void navigate({ to: '/dashboard' })
     }, SUCCESS_TRANSITION_MS)
   }
 

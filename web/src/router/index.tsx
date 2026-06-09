@@ -11,6 +11,7 @@ import { BASE_PATH } from '../constants'
 import { userQueryOptions } from '../hooks/use-user-query'
 import { LoginPage } from '../pages/auth/LoginPage'
 import { ChatPage } from '../pages/chat/ChatPage'
+import { DashboardPage } from '../pages/DashboardPage'
 import { DestinationsPage } from '../pages/destinations/DestinationsPage'
 import { OnboardingPage } from '../pages/onboarding/OnboardingPage'
 import { PaymentPage } from '../pages/payments/PaymentPage'
@@ -43,7 +44,7 @@ const indexRoute = createRoute({
   getParentRoute: () => authRoute,
   path: '/',
   beforeLoad: () => {
-    throw redirect({ to: '/chat' })
+    throw redirect({ to: '/dashboard' })
   },
 })
 
@@ -57,6 +58,12 @@ const chatConversationRoute = createRoute({
   getParentRoute: () => authRoute,
   path: '/chat/$id',
   component: ChatPage,
+})
+
+const dashboardRoute = createRoute({
+  getParentRoute: () => authRoute,
+  path: '/dashboard',
+  component: DashboardPage,
 })
 
 const paymentsRoute = createRoute({
@@ -90,7 +97,7 @@ const loginRoute = createRoute({
     const user = await queryClient.ensureQueryData(userQueryOptions)
 
     if (user?.onboardingCompletedAt) {
-      throw redirect({ to: '/chat' })
+      throw redirect({ to: '/dashboard' })
     }
   },
   component: LoginPage,
@@ -108,7 +115,7 @@ const onboardingRoute = createRoute({
     const user = await queryClient.ensureQueryData(userQueryOptions)
 
     if (user?.onboardingCompletedAt) {
-      throw redirect({ to: '/chat' })
+      throw redirect({ to: '/dashboard' })
     }
   },
   component: OnboardingPage,
@@ -118,7 +125,7 @@ const catchAllRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '$',
   beforeLoad: () => {
-    throw redirect({ to: '/chat' })
+    throw redirect({ to: '/dashboard' })
   },
 })
 
@@ -127,6 +134,7 @@ const routeTree = rootRoute.addChildren([
     indexRoute,
     chatRoute,
     chatConversationRoute,
+    dashboardRoute,
     paymentsRoute,
     destinationsRoute,
     profileRoute,

@@ -3,8 +3,7 @@ import { useTranslation } from 'react-i18next'
 
 import { useNavigate, useParams, useRouterState } from '@tanstack/react-router'
 
-import type { TLanguage, TUser } from 'fractapay-shared'
-import { APP_NAME, DEFAULT_LANGUAGE, StringHelper, TOKEN } from 'fractapay-shared'
+import { APP_NAME, DEFAULT_LANGUAGE, StringHelper, TLanguage, TOKEN, TUser } from 'fractapay-shared'
 
 import logoUrl from '../assets/logos/logo.svg'
 import { LANGUAGE_NAMES } from '../constants'
@@ -25,6 +24,7 @@ import { UserAvatar } from './UserAvatar'
 import BrazilFlagIcon from '../assets/icons/brazil-flag-icon.svg?react'
 import ChatIcon from '../assets/icons/chat-icon.svg?react'
 import CloseIcon from '../assets/icons/close-icon.svg?react'
+import DashboardIcon from '../assets/icons/dashboard-icon.svg?react'
 import DestinationsIcon from '../assets/icons/destinations-icon.svg?react'
 import LogoutIcon from '../assets/icons/logout-icon.svg?react'
 import PaymentsIcon from '../assets/icons/payments-icon.svg?react'
@@ -41,6 +41,7 @@ const BOTTOM_BUTTON_CLASS =
   'flex items-center gap-3 px-3 py-2.5 w-full justify-start text-sm font-medium'
 
 const NAV_ITEMS: TNavItem[] = [
+  { path: '/dashboard', labelKey: 'dashboard', Icon: DashboardIcon },
   { path: '/chat', labelKey: 'chat', Icon: ChatIcon },
   { path: '/payments', labelKey: 'payments', Icon: PaymentsIcon },
   { path: '/destinations', labelKey: 'destinations', Icon: DestinationsIcon },
@@ -110,7 +111,9 @@ const NavContent = ({
                     )}
                     aria-hidden="true"
                   />
-                  <span>{t(item.labelKey as 'chat' | 'payments' | 'destinations')}</span>
+                  <span>
+                    {t(item.labelKey as 'chat' | 'dashboard' | 'payments' | 'destinations')}
+                  </span>
                 </NavLink>
               </li>
             ))}

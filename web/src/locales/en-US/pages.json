@@ -80,6 +80,23 @@
     "errorTooManyAttempts": "Too many attempts. Request a new code.",
     "errorGeneric": "Something went wrong. Please try again."
   },
+  "dashboard": {
+    "title": "Dashboard",
+    "subtitle": "Overview of your payments and contracts.",
+    "nextSevenDays": "Next 7 days",
+    "thisMonth": "This month",
+    "activeContracts": "Active contracts",
+    "pendingReview": "Pending review",
+    "paymentsLabel": "{{count}} payment",
+    "paymentsLabel_other": "{{count}} payments",
+    "contractsLabel": "{{count}} contract",
+    "contractsLabel_other": "{{count}} contracts",
+    "pendingLabel": "{{count}} pending",
+    "schedule": "Payment schedule",
+    "previousMonth": "Previous month",
+    "nextMonth": "Next month",
+    "addPayment": "Add payment"
+  },
   "payments": {
     "title": "Payments",
     "subtitle": "History of all payments made via FractaPay.",
