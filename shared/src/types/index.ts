@@ -6,7 +6,14 @@ export type TPixKeyType = 'EVP' | 'CPF' | 'CNPJ' | 'EMAIL' | 'PHONE'
 
 export type TFiatCurrency = 'BRL'
 
-export type TPaymentStatus = 'CREATED' | 'FUNDED' | 'COMPLETED' | 'FAILED' | 'REFUNDED' | 'CANCELED'
+export type TPaymentStatus =
+  | 'CREATED'
+  | 'FUNDED'
+  | 'PROCESSING'
+  | 'COMPLETED'
+  | 'FAILED'
+  | 'REFUNDED'
+  | 'CANCELED'
 
 export type TPaymentMethod = 'PIX'
 
@@ -161,6 +168,10 @@ export type TPaymentDestination = {
   pixKeyType: TPixKeyType
   percentage: number
   amount: string
+  transactionData: string | null
+  transactionHash: string | null
+  transactionUrl: string | null
+  completed: boolean
 }
 
 export type TPaymentItem = {
@@ -255,8 +266,9 @@ export type TGetPaymentsResponse = {
 export type TUpdatePaymentByIdParams = {
   id: string
   status: string
-  tokenAmount: string
-  transactionHash: string
+  tokenAmount?: string
+  transactionData?: string
+  transactionHash?: string
 }
 
 export type TPaymentSummaryItem = {

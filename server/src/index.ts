@@ -21,6 +21,7 @@ import { kycRoute } from './routes/kyc-route'
 import { onboardingRoute } from './routes/onboarding-route'
 import { paymentsRoute } from './routes/payments-route'
 import { quotesRoute } from './routes/quotes-route'
+import { transactionsRoute } from './routes/transactions-route'
 import { webhooksRoute } from './routes/webhooks-route'
 
 const fastify = Fastify({
@@ -136,6 +137,7 @@ async function bootstrap(): Promise<void> {
   await fastify.register(kycRoute)
   await fastify.register(balanceRoute)
   await fastify.register(quotesRoute)
+  await fastify.register(transactionsRoute)
   await fastify.register(webhooksRoute)
 
   await fastify.listen({ port: EnvHelper.PORT, host: '0.0.0.0' })

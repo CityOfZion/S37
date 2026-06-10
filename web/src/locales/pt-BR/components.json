@@ -43,7 +43,7 @@
     "summaryPercentage": "Percentual",
     "summaryAmount": "Valor",
     "summaryFee": "Taxa",
-    "summaryFeeTooltip": "Taxa de {{fee}}% aplicada sobre a soma dos valores de todos os destinatários. Essa taxa pode aumentar um pouco somando com a taxa do provedor na tela de revisão.",
+    "summaryFeeTooltip": "Taxa de {{fee}} aplicada sobre a soma dos valores de todos os destinatários. Essa taxa pode aumentar um pouco somando com a taxa do provedor na tela de revisão.",
     "summaryTotal": "Total a pagar",
     "senderMe": "Eu",
     "senderAssistant": "Assistente"

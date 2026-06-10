@@ -125,7 +125,7 @@ make deploy-testnet  # Deploy to testnet
 │        ↓                                                       │
 │  [AI requests confirmation → summary table in chat bubble]     │
 │        ↓                                                       │
-│  [Review modal: live Etherfuse quote + 2% fee + countdown]     │
+│  [Review modal: live Etherfuse quote + 1% fee + countdown]     │
 │        ↓                                                       │
 │  [First time only: Etherfuse KYC embedded flow]                │
 │        ↓                                                       │
@@ -195,3 +195,5 @@ FractaPay uses [Etherfuse](https://docs.etherfuse.com/initial-setup) for the BRL
 The Etherfuse API key never reaches the browser — all calls are proxied through the server, which uses `axios` (same version as the web client) for outbound requests.
 
 Point the Etherfuse dashboard's webhook URL at `<public-host>/webhook` so order/KYC state changes are pushed to the server in real time. `order_updated` events update the payment record in the DB directly; other events are cached in process memory (`src/services/etherfuse-webhook-store.ts`). Use ngrok or a similar tunnel to expose localhost during development.
+
+**Offramp signing flow** — when an onramp reaches `FUNDED`, the server automatically creates one Etherfuse offramp order per destination. Each offramp order response includes a `burnTransaction` (base64 Stellar XDR). The server stores this XDR in `PaymentDestination.transaction` and moves the payment to `PROCESSING`. The web client polls at 2s while `FUNDED`/`PROCESSING`, detects the pending `transaction`, and uses `SmartAccountKit.signAuthEntry()` to sign with the user's passkey — then broadcasts directly to the Stellar network. No redirect to Etherfuse's UI is needed.

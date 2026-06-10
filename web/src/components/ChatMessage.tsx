@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import BigNumber from 'bignumber.js'
 
 import type { TChatMessage } from 'fractapay-shared'
-import { FEE_PERCENTAGE, StringHelper } from 'fractapay-shared'
+import { FEE_PERCENTAGE_DISPLAY, StringHelper } from 'fractapay-shared'
 
 import { DestinationsHelper } from '../helpers/DestinationsHelper'
 import { StyleHelper } from '../helpers/StyleHelper'
@@ -112,8 +112,7 @@ export const ChatMessage = ({ message, language, userName, userPicture }: TProps
                     (() => {
                       const summary = message.summary!
                       const summaryToken = summary[0].token
-                      const fee = FEE_PERCENTAGE.times(100).toFixed(0)
-                      const feeLabel = t('summaryFeeTooltip', { fee })
+                      const feeLabel = t('summaryFeeTooltip', { fee: FEE_PERCENTAGE_DISPLAY })
 
                       const sumField = (field: 'feeAmount' | 'totalAmount') =>
                         StringHelper.formatCurrencyAmount(
@@ -135,7 +134,9 @@ export const ChatMessage = ({ message, language, userName, userPicture }: TProps
                                 <FeeIcon label={feeLabel} />
                               </span>
                             </td>
-                            <td className="py-1.5 pr-3 text-right text-neutral-500">{`${fee}%`}</td>
+                            <td className="py-1.5 pr-3 text-right text-neutral-500">
+                              {FEE_PERCENTAGE_DISPLAY}
+                            </td>
                             <td className="py-1.5 text-right text-neutral-500 whitespace-nowrap">
                               {sumField('feeAmount')}
                             </td>

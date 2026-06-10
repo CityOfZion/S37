@@ -175,7 +175,7 @@ export const OnboardingPage = () => {
     const hasIdentity = !!user.name && !!user.email
 
     if (hasIdentity) {
-      setValue('fullName', user.name ?? '', { shouldValidate: true })
+      setValue('fullName', user.name!, { shouldValidate: true })
       setValue('email', user.email, { shouldValidate: true })
       setSkippedIdentityStep(true)
       setCurrentStep(previousStep => (previousStep === 1 ? 2 : previousStep))
@@ -393,15 +393,15 @@ export const OnboardingPage = () => {
 
   const handleCreateWallet = async () => {
     try {
-      const userName = user?.email || user?.name
+      const userName = user?.name
+
       if (!userName) throw new Error()
 
       const { contractId, credentialId } = await createWalletMutation.mutateAsync({ userName })
 
       await finishOnboarding(contractId, credentialId)
-    } catch (error) {
-      const message = error instanceof Error ? error.message : t('walletError')
-      ToastHelper.error(message)
+    } catch {
+      ToastHelper.error(t('walletError'))
     }
   }
 

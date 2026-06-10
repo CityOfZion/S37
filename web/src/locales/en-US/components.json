@@ -43,7 +43,7 @@
     "summaryPercentage": "Percentage",
     "summaryAmount": "Amount",
     "summaryFee": "Fee",
-    "summaryFeeTooltip": "{{fee}}% fee applied to the sum of all recipient amounts. This fee may increase slightly when added to the provider's fee shown on the review screen.",
+    "summaryFeeTooltip": "{{fee}} fee applied to the sum of all recipient amounts. This fee may increase slightly when added to the provider's fee shown on the review screen.",
     "summaryTotal": "Total to pay",
     "senderMe": "Me",
     "senderAssistant": "Assistant"

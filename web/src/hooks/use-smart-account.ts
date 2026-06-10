@@ -1,10 +1,14 @@
 import { useMemo } from 'react'
 
+import { rpc, Transaction } from '@stellar/stellar-sdk'
 import { IndexedDBStorage, SmartAccountKit } from 'smart-account-kit'
 
 import { APP_NAME } from 'fractapay-shared'
 
 import { EnvHelper } from '../helpers/EnvHelper'
+import { server } from '../services/server'
+
+type TTransactionSubmitResponse = { hash: string }
 
 let kitSingleton: SmartAccountKit | null = null
 
@@ -42,7 +46,7 @@ export function useSmartAccount() {
         })
 
         if (result.submitResult && !result.submitResult.success) {
-          throw new Error(result.submitResult.error ?? 'Wallet deployment failed')
+          throw new Error()
         }
 
         return { contractId: result.contractId, credentialId: result.credentialId }
@@ -69,6 +73,45 @@ export function useSmartAccount() {
         return { contractId: result.contractId, credentialId: result.credentialId }
       },
       rehydrate: () => kit.connectWallet(),
+      signTransaction: async (transactionData: string): Promise<string> => {
+        await kit.connectWallet()
+
+        const sorobanServer = new rpc.Server(EnvHelper.VITE_SOROBAN_RPC_URL)
+        const transaction = new Transaction(
+          transactionData,
+          EnvHelper.VITE_STELLAR_NETWORK_PASSPHRASE
+        )
+
+        const simulateResult = await sorobanServer.simulateTransaction(transaction)
+
+        if (rpc.Api.isSimulationError(simulateResult)) {
+          throw new Error()
+        }
+
+        const assembled = rpc.assembleTransaction(transaction, simulateResult).build()
+        const envelope = assembled.toEnvelope()
+
+        for (const operation of envelope.v1().tx().operations()) {
+          if (operation.body().switch().name === 'invokeHostFunction') {
+            const invokeOperation = operation.body().invokeHostFunctionOp()
+            const authEntries = invokeOperation.auth()
+
+            if (authEntries.length > 0) {
+              const signedEntries = await Promise.all(
+                authEntries.map(async entry => await kit.signAuthEntry(entry))
+              )
+
+              invokeOperation.auth(signedEntries)
+            }
+          }
+        }
+
+        const { data } = await server.post<TTransactionSubmitResponse>('/transactions/submit', {
+          transactionData: envelope.toXDR('base64'),
+        })
+
+        return data.hash
+      },
     }
   }, [])
 }

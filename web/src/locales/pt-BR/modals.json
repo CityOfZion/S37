@@ -50,7 +50,7 @@
     "percentage": "Percentual",
     "amount": "Valor",
     "technicalDetailsTitle": "Detalhes técnicos",
-    "feeTooltip": "Taxa de {{fee}}% aplicada sobre o valor do destinatário, cobrindo custos da plataforma, provedor e conversão.",
+    "feeTooltip": "Taxa de {{fee}} aplicada sobre o valor do destinatário, cobrindo custos da plataforma, provedor e conversão.",
     "feeLabel": "Taxa",
     "total": "Total a pagar",
     "rate": "Cotação",
