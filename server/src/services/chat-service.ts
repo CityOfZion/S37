@@ -15,7 +15,12 @@ import {
   TPaymentSummaryItem,
   TPixKeyType,
 } from 'fractapay-shared'
-import { FEE_PERCENTAGE, PIX_KEY_TYPES, StringHelper } from 'fractapay-shared'
+import {
+  FEE_PERCENTAGE,
+  FEE_PERCENTAGE_DISPLAY,
+  PIX_KEY_TYPES,
+  StringHelper,
+} from 'fractapay-shared'
 
 import { EnvHelper } from '../helpers/EnvHelper'
 
@@ -28,7 +33,7 @@ FractaPay automates batch payments for publishers, agencies, and content creator
 
 YOUR ROLE:
 - Primary function: guide the user through creating and confirming batch payments conversationally
-- Secondary function: answer questions about FractaPay — how it works, what it does, fees (2% total), supported file formats, identity verification requirements, etc.
+- Secondary function: answer questions about FractaPay — how it works, what it does, fees (${FEE_PERCENTAGE_DISPLAY} total), supported file formats, identity verification requirements, etc.
 - You are NOT a general-purpose assistant — stay focused on FractaPay and payments
 - If asked about unrelated topics, politely redirect to payment tasks
 
@@ -44,7 +49,7 @@ ALWAYS use real-world equivalents instead:
 - "pagamento" / "payment" instead of "transaction"
 - "conta" / "account" instead of "wallet"
 - "Real" / "Reais" / "R$" for Brazilian currency
-- "taxa" / "fee" for the 2% service fee — never mention it as a blockchain fee
+- "taxa" / "fee" for the ${FEE_PERCENTAGE_DISPLAY} service fee — never mention it as a blockchain fee
 - "verificação de identidade" / "identity verification" instead of "KYC" (or explain it simply: "precisamos confirmar sua identidade")
 - "enviado" / "sent" to describe how money moves
 - "comprovante" / "receipt" instead of "transaction hash"
@@ -71,7 +76,7 @@ CRITICAL RULES:
    - NEVER confirm a payment allocation to a destination that is not explicitly listed.
    - NEVER say "encontrei" or "found" for someone not in the list.
    - If the registered destinations list is empty and the user wants to make a payment, offer to register a destination directly in the chat.
-7. MINIMUM PAYMENT RULE: The minimum "Estimated total to pay" (recipient amount + 2% fee) is R$ 50,00. This is NOT the raw payments total — it is the sum of all allocation amounts after applying each destination's percentage, plus the 2% fee. If the user tries to confirm (EXECUTE) and the CURRENT STATE shows "Estimated total to pay" below R$ 50,00, respond with action "NONE" and explain clearly:
+7. MINIMUM PAYMENT RULE: The minimum "Estimated total to pay" (recipient amount + ${FEE_PERCENTAGE_DISPLAY} fee) is R$ 50,00. This is NOT the raw payments total — it is the sum of all allocation amounts after applying each destination's percentage, plus the ${FEE_PERCENTAGE_DISPLAY} fee. If the user tries to confirm (EXECUTE) and the CURRENT STATE shows "Estimated total to pay" below R$ 50,00, respond with action "NONE" and explain clearly:
    (pt-BR) "O valor total a pagar (R$ X,XX) é inferior ao mínimo de R$ 50,00. Adicione mais pagamentos ou ajuste os percentuais para continuar."
    (en) "The total amount to pay (R$ X.XX) is below the R$ 50.00 minimum. Add more payments or adjust the percentages to continue."
    NEVER say the "total dos pagamentos coletados" (raw total) is the amount that must be >= 50 — only "Estimated total to pay" matters for this rule.
@@ -283,7 +288,7 @@ const buildContextBlock = (
     chatDestinations.length > 0
       ? `\nPayment summary (estimated, before quote):
   Recipient amount (sum of allocations): R$ ${StringHelper.formatAmount(recipientAmount)}
-  FractaPay fee (${FEE_PERCENTAGE.times(100)}% of recipient amount): R$ ${StringHelper.formatAmount(feeAmount)}
+  FractaPay fee (${FEE_PERCENTAGE_DISPLAY} of recipient amount): R$ ${StringHelper.formatAmount(feeAmount)}
   Total to pay via PIX: R$ ${StringHelper.formatAmount(estimatedTotalToPay)}
   Minimum required: R$ 50.00`
       : ''

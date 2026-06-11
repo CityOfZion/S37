@@ -3,7 +3,6 @@ import type { FastifyInstance } from 'fastify'
 import type { TCreatePaymentPayload } from 'fractapay-shared'
 import { EErrorCode, ErrorHelper } from 'fractapay-shared'
 
-import { EncryptionHelper } from '../helpers/EncryptionHelper'
 import { requireAuth } from '../hooks/require-auth'
 import {
   createPaymentSchema,
@@ -96,9 +95,7 @@ export const paymentsRoute = async (fastify: FastifyInstance): Promise<void> => 
           return reply.status(404).send({ error: EErrorCode.PAYMENT_NOT_FOUND })
         }
 
-        const externalId = EncryptionHelper.decrypt(payment.externalId)
-
-        await simulateFiatReceived(externalId)
+        await simulateFiatReceived(payment.externalId)
 
         return reply.status(204).send()
       } catch {

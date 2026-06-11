@@ -55,7 +55,9 @@ export const SYMBOL_BY_TOKEN: Record<TToken, 'R$'> = {
   [TOKEN.TESOURO]: 'R$',
 }
 
-export const FEE_PERCENTAGE = new BigNumber('0.02')
+export const FEE_PERCENTAGE = new BigNumber('0.01')
+export const FEE_PERCENTAGE_VALUE = FEE_PERCENTAGE.times(100).toFixed(0)
+export const FEE_PERCENTAGE_DISPLAY = `${FEE_PERCENTAGE_VALUE}%`
 
 export const QUOTE_EXPIRY_SECONDS = 60
 
@@ -70,6 +72,7 @@ export const PAYMENT_MESSAGE_ROLES: TPaymentMessageRole[] = ['USER', 'ASSISTANT'
 export const PAYMENT_STATUSES: TPaymentStatus[] = [
   'CREATED',
   'FUNDED',
+  'PROCESSING',
   'COMPLETED',
   'FAILED',
   'REFUNDED',

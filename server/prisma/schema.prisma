@@ -35,6 +35,7 @@ enum PaymentMessageRole {
 enum PaymentStatus {
   CREATED
   FUNDED
+  PROCESSING
   COMPLETED
   FAILED
   REFUNDED
@@ -65,7 +66,7 @@ model User {
 
 model Destination {
   id         String     @id @default(cuid())
-  userId     String
+  userId     String     @db.VarChar(25)
   name       String     @db.VarChar(200)
   token      Token
   pixKey     String     @db.Text
@@ -91,11 +92,12 @@ model Payment {
   feeAmount           String        @db.VarChar(50)
   feePercentage       String        @db.VarChar(2)
   tokenAmount         String        @db.VarChar(50)
-  externalId         String @db.VarChar(200)
-  externalCustomerId String @db.VarChar(200)
+  externalId         String @db.VarChar(36)
+  externalCustomerId String @db.VarChar(36)
+  externalBankAccountId String?     @db.VarChar(36)
   address      String      @db.VarChar(200)
   exchangeRate String      @db.VarChar(50)
-  transactionHash     String?       @db.VarChar(200)
+  transactionHash     String?     @db.VarChar(200)
   pixData             String?       @db.VarChar(800)
   isRecurrence        Boolean       @default(false)
   errorMessage        String?       @db.VarChar(2000)
@@ -132,9 +134,13 @@ model PaymentDestination {
   token         Token
   pixKey        String     @db.VarChar(800)
   pixKeyType    PixKeyType
-  percentage    Int
-  amount        String     @db.VarChar(50)
-  createdAt     DateTime   @default(now())
+  percentage           Int
+  amount               String     @db.VarChar(50)
+  externalId              String?  @db.VarChar(36)
+  completed               Boolean  @default(false)
+  transactionData         String?  @db.Text
+  transactionHash         String?  @db.VarChar(200)
+  createdAt            DateTime   @default(now())
 
   payment     Payment      @relation(fields: [paymentId], references: [id], onDelete: Cascade)
   destination Destination? @relation(fields: [destinationId], references: [id], onDelete: SetNull)
@@ -168,17 +174,17 @@ model EmailVerificationChallenge {
 model Customer {
   id                    String   @id @default(cuid())
   address               String   @unique
-  externalCustomerId    String   @db.VarChar(200)
-  externalBankAccountId String?  @db.VarChar(200)
+  externalCustomerId    String   @db.VarChar(36)
+  externalBankAccountId String?  @db.VarChar(36)
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
 }
 
 model OAuthAccount {
   id                String    @id @default(cuid())
-  userId            String
+  userId            String    @db.VarChar(25)
   provider          String
-  providerAccountId String
+  providerAccountId String    @db.VarChar(200)
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 

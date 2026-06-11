@@ -20,6 +20,7 @@ const envSchema = z.object({
   WEB_LOGIN_FAILURE_URL: z.url().optional(),
   RESEND_API_KEY: z.string().min(1, 'RESEND_API_KEY is required'),
   RESEND_EMAIL: z.email(),
+  FEE_PAYER_SECRET_KEY: z.string().min(1, 'FEE_PAYER_SECRET_KEY is required'),
 })
 
 const parsed = envSchema.safeParse(process.env)
@@ -49,4 +50,5 @@ export class EnvHelper {
     data.WEB_LOGIN_FAILURE_URL || `${data.WEB_BASE_URL}/?login=failed`
   static readonly RESEND_API_KEY = data.RESEND_API_KEY
   static readonly RESEND_EMAIL = data.RESEND_EMAIL
+  static readonly FEE_PAYER_SECRET_KEY = data.FEE_PAYER_SECRET_KEY
 }

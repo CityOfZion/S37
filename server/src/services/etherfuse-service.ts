@@ -1,4 +1,5 @@
 import { Customer } from '@prisma/client'
+import { Keypair, rpc, Transaction } from '@stellar/stellar-sdk'
 import axios, { type AxiosInstance, isAxiosError } from 'axios'
 import BigNumber from 'bignumber.js'
 import * as uuid from 'uuid'
@@ -6,6 +7,7 @@ import * as uuid from 'uuid'
 import {
   EErrorCode,
   FEE_PERCENTAGE,
+  FIAT_BY_TOKEN,
   StringHelper,
   TKycStatus,
   TKycStatusResponse,
@@ -18,11 +20,12 @@ import {
   TToken,
 } from 'fractapay-shared'
 
-import { isMainnet } from '../constants'
+import { isMainnet, NETWORK_PASSPHRASE, SOROBAN_RPC_URL } from '../constants'
 import { EnvHelper } from '../helpers/EnvHelper'
 import { StellarExpertsHelper } from '../helpers/StellarExpertsHelper'
 import { prisma } from './prisma-service'
 
+const FEE_PAYER_KEYPAIR = Keypair.fromSecret(EnvHelper.FEE_PAYER_SECRET_KEY)
 const BLOCKCHAIN = 'stellar'
 const FRIENDBOT_URL = 'https://friendbot.stellar.org'
 
@@ -63,14 +66,14 @@ type TKycRawStatus =
   | 'approved_chain_deploying'
   | 'rejected'
 
-type TCreateOrderPayload = {
+type TCreateOnrampOrderPayload = {
   externalQuoteId: string
   externalCustomerId: string
   externalBankAccountId: string
   address: string
 }
 
-type TOrderResponse = {
+type TOnrampOrderResponse = {
   externalId: string
   status: TPaymentStatus
   pix?: TPaymentPix
@@ -93,7 +96,7 @@ type TQuoteResponse = {
   expiresAt: string
 }
 
-type TCreateOrderResponse = {
+type TCreateOnrampOrderResponse = {
   onramp: {
     orderId: string
     depositAmount: string
@@ -104,7 +107,7 @@ type TCreateOrderResponse = {
   }
 }
 
-type TOrderResult = {
+type TOnrampOrderResult = {
   orderId: string
   status: TPaymentStatus
   amountInFiat?: string
@@ -386,15 +389,15 @@ export const getKycStatus = async (
 }
 
 export const createQuote = async (payload: TQuotePayload): Promise<TQuoteResult> => {
+  const { address, token } = payload
   const externalQuoteId = uuid.v4()
-  const targetAsset = TOKEN_ASSET[payload.token]
-  const { address } = payload
+  const targetAsset = TOKEN_ASSET[token]
 
   const response = await request<TQuoteResponse>('POST', '/ramp/quote', {
     quoteId: externalQuoteId,
     customerId: payload.externalCustomerId,
     blockchain: BLOCKCHAIN,
-    quoteAssets: { type: 'onramp', sourceAsset: 'BRL', targetAsset },
+    quoteAssets: { type: 'onramp', sourceAsset: FIAT_BY_TOKEN[token], targetAsset },
     sourceAmount: payload.sourceAmount,
     walletAddress: address,
   })
@@ -430,7 +433,7 @@ type TOrderListResponse = {
 const findPendingOrder = async (
   externalCustomerId: string,
   externalBankAccountId: string
-): Promise<TOrderResponse | null> => {
+): Promise<TOnrampOrderResponse | null> => {
   try {
     const response = await request<TOrderListResponse>(
       'GET',
@@ -451,13 +454,15 @@ const findPendingOrder = async (
   }
 }
 
-export const createOrder = async (payload: TCreateOrderPayload): Promise<TOrderResponse> => {
+export const createOnrampOrder = async (
+  payload: TCreateOnrampOrderPayload
+): Promise<TOnrampOrderResponse> => {
   const externalId = uuid.v4()
 
   await ensureAccountFunded(payload.address)
 
   try {
-    const response = await request<TCreateOrderResponse>('POST', '/ramp/order', {
+    const response = await request<TCreateOnrampOrderResponse>('POST', '/ramp/order', {
       orderId: externalId,
       quoteId: payload.externalQuoteId,
       bankAccountId: payload.externalBankAccountId,
@@ -491,8 +496,8 @@ export const createOrder = async (payload: TCreateOrderPayload): Promise<TOrderR
   }
 }
 
-export const getOrder = async (externalId: string): Promise<TOrderResponse> => {
-  const response = await request<TOrderResult>(
+export const getOrder = async (externalId: string): Promise<TOnrampOrderResponse> => {
+  const response = await request<TOnrampOrderResult>(
     'GET',
     `/ramp/order/${encodeURIComponent(externalId)}`
   )
@@ -515,6 +520,102 @@ export const getOrder = async (externalId: string): Promise<TOrderResponse> => {
 
 export const simulateFiatReceived = async (externalId: string): Promise<void> => {
   await request<unknown>('POST', '/ramp/order/fiat_received', { orderId: externalId })
+}
+
+type TCreateOfframpOrderPayload = {
+  externalCustomerId: string
+  externalBankAccountId: string
+  address: string
+  tokenAmount: string
+  token: TToken
+}
+
+type TOfframpOrderResult = {
+  externalId: string
+  transactionData: string | null
+}
+
+type TOfframpCreateOrderRawResponse = {
+  orderId?: string
+  burnTransaction?: string
+  offramp?: {
+    orderId?: string
+    burnTransaction?: string
+  }
+}
+
+export const createOfframpOrder = async (
+  payload: TCreateOfframpOrderPayload
+): Promise<TOfframpOrderResult> => {
+  await ensureAccountFunded(FEE_PAYER_KEYPAIR.publicKey())
+
+  const externalQuoteId = uuid.v4()
+  const { token } = payload
+  const sourceAsset = TOKEN_ASSET[token]
+
+  const quote = await request<TQuoteResponse>('POST', '/ramp/quote', {
+    quoteId: externalQuoteId,
+    customerId: payload.externalCustomerId,
+    blockchain: BLOCKCHAIN,
+    quoteAssets: {
+      type: 'offramp',
+      sourceAsset,
+      targetAsset: FIAT_BY_TOKEN[token],
+    },
+    sourceAmount: payload.tokenAmount,
+    walletAddress: payload.address,
+  })
+
+  const externalOrderId = uuid.v4()
+
+  const response = await request<TOfframpCreateOrderRawResponse>('POST', '/ramp/order', {
+    orderId: externalOrderId,
+    quoteId: quote.quoteId,
+    bankAccountId: payload.externalBankAccountId,
+    publicKey: payload.address,
+    feePayer: FEE_PAYER_KEYPAIR.publicKey(),
+  })
+
+  const data = response.offramp || response
+  const externalId = data.orderId || externalOrderId
+  const transactionData = data.burnTransaction || null
+
+  return { externalId, transactionData }
+}
+
+export const signAndSubmitTransaction = async (transactionData: string): Promise<string> => {
+  await ensureAccountFunded(FEE_PAYER_KEYPAIR.publicKey())
+
+  const server = new rpc.Server(SOROBAN_RPC_URL)
+
+  const transaction = await server.prepareTransaction(
+    new Transaction(transactionData, NETWORK_PASSPHRASE)
+  )
+
+  transaction.sign(FEE_PAYER_KEYPAIR)
+
+  const result = await server.sendTransaction(transaction)
+
+  if (result.status === 'ERROR') {
+    throw new Error()
+  }
+
+  return result.hash
+}
+
+type TOfframpOrderResponse = { burnTransaction?: string }
+
+export const getOfframpTransactionData = async (id: string): Promise<string | null> => {
+  try {
+    const response = await request<TOfframpOrderResponse>(
+      'GET',
+      `/ramp/order/${encodeURIComponent(id)}`
+    )
+
+    return response.burnTransaction || null
+  } catch {
+    return null
+  }
 }
 
 export const findCustomerByAddressFromDatabase = async (

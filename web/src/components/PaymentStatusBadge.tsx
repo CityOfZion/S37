@@ -12,6 +12,7 @@ type TProps = {
 const PAYMENT_STATUS_CLASSES: Record<TPaymentStatus, string> = {
   CREATED: 'bg-blue-100 text-blue-700',
   FUNDED: 'bg-yellow-100 text-yellow-700',
+  PROCESSING: 'bg-purple-100 text-purple-700',
   COMPLETED: 'bg-green-100 text-green-700',
   FAILED: 'bg-red-100 text-red-700',
   REFUNDED: 'bg-orange-100 text-orange-700',

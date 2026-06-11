@@ -5,7 +5,6 @@ import {
   BASE_FEE,
   Contract,
   Horizon,
-  Networks,
   rpc,
   scValToNative,
   TransactionBuilder,
@@ -15,7 +14,7 @@ import BigNumber from 'bignumber.js'
 import type { TBalanceResult } from 'fractapay-shared'
 import { EErrorCode, STELLAR_DECIMALS, StringHelper, TOKEN } from 'fractapay-shared'
 
-import { isMainnet } from '../constants'
+import { isMainnet, NETWORK_PASSPHRASE, SOROBAN_RPC_URL } from '../constants'
 
 type TAwesomeApiResponse = {
   USDBRL?: { bid?: string }
@@ -35,12 +34,6 @@ const TESOURO_MAINNET_ASSET = new Asset(
 )
 
 const horizonServer = new Horizon.Server(HORIZON_URL)
-
-const SOROBAN_RPC_URL = isMainnet
-  ? 'https://mainnet.sorobanrpc.com'
-  : 'https://soroban-testnet.stellar.org'
-
-const NETWORK_PASSPHRASE = isMainnet ? Networks.PUBLIC : Networks.TESTNET
 
 const TESOURO_ISSUER = isMainnet
   ? 'GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC'

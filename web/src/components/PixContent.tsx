@@ -22,6 +22,7 @@ type TProps = {
   hideRedirectMessage?: boolean
   refetch?: boolean
   onPaid?: () => void
+  onSimulateSuccess?: () => void
 }
 
 export const PixContent = ({
@@ -31,6 +32,7 @@ export const PixContent = ({
   hideRedirectMessage,
   refetch = false,
   onPaid,
+  onSimulateSuccess,
 }: TProps) => {
   const { t } = useTranslation('components', { keyPrefix: 'pix' })
   const simulateMutation = usePaymentSimulateMutation()
@@ -72,6 +74,7 @@ export const PixContent = ({
     simulateMutation.mutate(paymentId, {
       onSuccess: () => {
         ToastHelper.success(t('simulateSuccess'))
+        onSimulateSuccess?.()
       },
       onError: () => ToastHelper.error(t('simulateError')),
     })

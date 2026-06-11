@@ -6,16 +6,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **FractaPay** — AI-powered batch payment processor. Built for Hackathon Stellar 37° × NearX.
 
-User registers named destinations (recipients with PIX keys) → describes payments via AI chat or uploads a file (CSV/XLS/XLSX/PDF/TXT) → Gemini AI extracts `{ amount, description }` per row → AI asks which destinations receive payments and at what percentage → user clicks **Review and confirm** to open a modal showing the total recipient amount plus `2%` fee → user completes Etherfuse KYC (first-time only) → confirm creates an Etherfuse PIX onramp order → user pays via PIX → TESOURO is delivered on Stellar to the recipient address.
+User registers named destinations (recipients with PIX keys) → describes payments via AI chat or uploads a file (CSV/XLS/XLSX/PDF/TXT) → Gemini AI extracts `{ amount, description }` per row → AI asks which destinations receive payments and at what percentage → user clicks **Review and confirm** to open a modal showing the total recipient amount plus `1%` fee → user completes Etherfuse KYC (first-time only) → confirm creates an Etherfuse PIX onramp order → user pays via PIX → TESOURO arrives on Stellar → server automatically creates one offramp order per destination → each destination receives BRL via their PIX key.
+
+**Payment lifecycle:** `CREATED` (waiting for PIX) → `FUNDED` (onramp complete, per-destination offramp orders created) → `PROCESSING` (offramps in flight) → `COMPLETED` (all destinations received BRL). Terminal error states: `FAILED`, `REFUNDED`, `CANCELED`.
 
 **Tokens:**
-- **TESOURO** (default and only enabled token) — Etherfuse Stellar token tracking BRL with yield. File must be in BRL. Flow: BRL (PIX onramp) → TESOURO (on-chain) → BRL (PIX offramp, optional, recipient-side).
+- **TESOURO** (default and only enabled token) — Etherfuse Stellar token tracking BRL with yield. File must be in BRL. Flow: BRL (PIX onramp) → TESOURO (on-chain) → BRL (PIX offramp per destination).
 
 **UI terminology**: the UI labels the token select as "Coin" / "Moeda" (TESOURO → "Real") to feel familiar to non-crypto users. Internally — types, code, contract, server — uses "token".
 
 **Fee model:**
 - Each destination receives a user-defined percentage (1–100%) of the file's total BRL amount. Multiple destinations are independent — percentages do not need to sum to 100%.
-- `FEE_PERCENTAGE = 0.02` (2%): combined Etherfuse + FractaPay fee charged on top of the total recipient amount.
+- `FEE_PERCENTAGE = 0.01` (1%): combined Etherfuse + FractaPay fee charged on top of the total recipient amount.
 - Total the user pays via PIX = `totalRecipientAmount × (1 + FEE_PERCENTAGE)`.
 - `FEE_PERCENTAGE` lives in `shared/src/constants` so server and web math stay aligned.
 
@@ -65,10 +67,10 @@ web (ChatPage at `/chat`)
     → stored in useDestinationsStore (Zustand persist → localStorage, key: fractapay.destinations)
   → after AI confirms, ReviewModal opens for ALL destinations at once (one combined quote/order):
     → KYC (`/kyc`), quote (`/quote`), onboarding (`/onboarding`) flow for the shared recipientAddress
-    → confirm → POST /payments: server creates Etherfuse order + persists payment to DB (items, destinations, messages, PIX, encrypted fields) → returns TPayment
+    → confirm → POST /payments: server creates Etherfuse onramp order + persists payment to DB (items, destinations, messages, PIX, encrypted fields) → returns TPayment
     → on success: payment added to TanStack Query cache; chat resets; navigate to /chat/$payment.id
   → /payments shows PaymentsListPage: list of DB payments fetched via GET /payments
-  → /payments/$id is the receipt page (polls GET /payments/:id until terminal, status synced from Etherfuse)
+  → /payments/$id is the receipt page (polls GET /payments/:id until COMPLETED/error; FUNDED triggers automatic per-destination offramp via webhook → PROCESSING → COMPLETED when all destinations confirm)
   → /profile lets the authenticated user edit their display name
 ```
 

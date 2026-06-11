@@ -13,14 +13,22 @@ import type {
   TPaymentItem,
   TQuoteResult,
 } from 'fractapay-shared'
-import { FEE_PERCENTAGE, FIAT_BY_TOKEN, QUOTE_EXPIRY_SECONDS, StringHelper } from 'fractapay-shared'
+import {
+  FEE_PERCENTAGE_DISPLAY,
+  FEE_PERCENTAGE_VALUE,
+  FIAT_BY_TOKEN,
+  QUOTE_EXPIRY_SECONDS,
+  StringHelper,
+} from 'fractapay-shared'
 
 import { Accordion } from '../components/Accordion'
 import { Button } from '../components/Button'
 import { CopyButton } from '../components/CopyButton'
 import { CountdownRing } from '../components/CountdownRing'
+import { ErrorBanner } from '../components/ErrorBanner'
 import { ExternalLink } from '../components/ExternalLink'
 import { FeeIcon } from '../components/FeeIcon'
+import { LoadingBanner } from '../components/LoadingBanner'
 import { Modal } from '../components/Modal'
 import { PixContent } from '../components/PixContent'
 import { Skeleton } from '../components/Skeleton'
@@ -124,8 +132,6 @@ export const ReviewModal = ({
     () => StringHelper.formatAmount(new BigNumber(recipientAmount).plus(feeAmount)),
     [recipientAmount, feeAmount]
   )
-
-  const feePercent = FEE_PERCENTAGE.times(100).toFixed(0)
 
   const fetchQuote = useCallback(async () => {
     if (inFlightRef.current) return
@@ -259,7 +265,7 @@ export const ReviewModal = ({
         token,
         amount: recipientAmount,
         feeAmount: quote.feeAmount,
-        feePercentage: FEE_PERCENTAGE.times(100).toString(),
+        feePercentage: FEE_PERCENTAGE_VALUE,
         exchangeRate: quote.exchangeRate,
         tokenAmount: quote.destinationAmount,
         destinations: destinationPayloads,
@@ -292,22 +298,10 @@ export const ReviewModal = ({
       kycStatus,
     })
       .with({ isLookingUpCustomer: true }, () => (
-        <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-xs text-neutral-700 flex items-center gap-2">
-          <span
-            className="inline-block size-4 rounded-full border-2 border-neutral-300 border-t-primary animate-spin shrink-0"
-            aria-hidden="true"
-          />
-          {t('lookingUpCustomer')}
-        </div>
+        <LoadingBanner variant="neutral">{t('lookingUpCustomer')}</LoadingBanner>
       ))
       .with({ isLoadingKyc: true }, () => (
-        <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-xs text-neutral-700 flex items-center gap-2">
-          <span
-            className="inline-block size-4 rounded-full border-2 border-neutral-300 border-t-primary animate-spin shrink-0"
-            aria-hidden="true"
-          />
-          {t('loadingKyc')}
-        </div>
+        <LoadingBanner variant="neutral">{t('loadingKyc')}</LoadingBanner>
       ))
       .with({ hasCustomer: false }, () => (
         <div className="rounded-xl border border-warning-500/30 bg-warning-100 px-4 py-3 text-xs text-neutral-700">
@@ -319,11 +313,7 @@ export const ReviewModal = ({
           {t('kycPending')}
         </div>
       ))
-      .with({ kycStatus: 'REJECTED' }, () => (
-        <div className="rounded-xl border border-danger-500/30 bg-danger-100 px-4 py-3 text-xs text-neutral-700">
-          {t('kycRejected')}
-        </div>
-      ))
+      .with({ kycStatus: 'REJECTED' }, () => <ErrorBanner>{t('kycRejected')}</ErrorBanner>)
       .otherwise(() => null)
 
   return (
@@ -343,6 +333,7 @@ export const ReviewModal = ({
           isPendingOrder={false}
           refetch={true}
           onPaid={handlePaymentDone}
+          onSimulateSuccess={handlePaymentDone}
         />
       ) : (
         <div className="space-y-4">
@@ -399,10 +390,12 @@ export const ReviewModal = ({
                         <td className="px-4 py-2 text-neutral-500">
                           <div className="flex items-center gap-1">
                             {t('feeLabel')}
-                            <FeeIcon label={t('feeTooltip', { fee: feePercent })} />
+                            <FeeIcon label={t('feeTooltip', { fee: FEE_PERCENTAGE_DISPLAY })} />
                           </div>
                         </td>
-                        <td className="px-4 py-2 text-right text-neutral-500">{feePercent}%</td>
+                        <td className="px-4 py-2 text-right text-neutral-500">
+                          {FEE_PERCENTAGE_DISPLAY}
+                        </td>
                         <td className="px-4 py-2 text-right text-neutral-900 whitespace-nowrap">
                           {!quoteReady ? (
                             <Skeleton className="h-3 w-20 ml-auto" />

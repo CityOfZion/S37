@@ -50,7 +50,7 @@
     "percentage": "Percentage",
     "amount": "Amount",
     "technicalDetailsTitle": "Technical details",
-    "feeTooltip": "{{fee}}% fee applied to the recipient amount, covering platform, provider and conversion costs.",
+    "feeTooltip": "{{fee}} fee applied to the recipient amount, covering platform, provider and conversion costs.",
     "feeLabel": "Fee",
     "total": "Total to pay",
     "rate": "Quote",

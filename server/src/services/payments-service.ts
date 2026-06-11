@@ -22,7 +22,11 @@ import {
 
 import { EncryptionHelper } from '../helpers/EncryptionHelper'
 import { StellarExpertsHelper } from '../helpers/StellarExpertsHelper'
-import { createOrder } from './etherfuse-service'
+import {
+  createOfframpOrder,
+  createOnrampOrder,
+  getOfframpTransactionData,
+} from './etherfuse-service'
 import { Prisma, prisma } from './prisma-service'
 
 type TRawPayment = Payment & {
@@ -31,21 +35,21 @@ type TRawPayment = Payment & {
   messages?: PaymentMessage[]
 }
 
-const decryptPixData = (pixData: string | null): TPaymentPix | null => {
-  if (!pixData) return null
-
-  try {
-    return JSON.parse(EncryptionHelper.decrypt(pixData)) as TPaymentPix
-  } catch {
-    return null
-  }
-}
-
 const safeDecrypt = (value: string | null): string | null => {
   if (!value) return null
 
   try {
     return EncryptionHelper.decrypt(value)
+  } catch {
+    return null
+  }
+}
+
+const safeDecryptPixData = (pixData: string | null): TPaymentPix | null => {
+  if (!pixData) return null
+
+  try {
+    return JSON.parse(safeDecrypt(pixData) || '') as TPaymentPix
   } catch {
     return null
   }
@@ -68,6 +72,12 @@ const mapDestinations = (destinations: PaymentDestination[]): TPaymentDestinatio
     pixKeyType: destination.pixKeyType as TPixKeyType,
     percentage: destination.percentage,
     amount: destination.amount,
+    transactionData: destination.transactionData || null,
+    transactionHash: destination.transactionHash || null,
+    transactionUrl: destination.transactionHash
+      ? StellarExpertsHelper.getTransactionUrl(destination.transactionHash)
+      : null,
+    completed: destination.completed,
   }))
 
 const mapMessages = (messages: PaymentMessage[]): TPaymentMessage[] =>
@@ -84,7 +94,7 @@ const mapPayment = (payment: TRawPayment, includeMessages = false): TPayment => 
 
   return {
     id: payment.id,
-    externalId: safeDecrypt(payment.externalId) || '',
+    externalId: payment.externalId,
     transactionHash,
     transactionUrl: transactionHash
       ? StellarExpertsHelper.getTransactionUrl(transactionHash)
@@ -106,7 +116,7 @@ const mapPayment = (payment: TRawPayment, includeMessages = false): TPayment => 
     items: mapItems(payment.items),
     destinations: mapDestinations(payment.destinations),
     messages: includeMessages && payment.messages ? mapMessages(payment.messages) : [],
-    pix: decryptPixData(payment.pixData),
+    pix: safeDecryptPixData(payment.pixData),
   }
 }
 
@@ -114,7 +124,7 @@ export const createPayment = async (
   userId: string,
   data: TCreatePaymentPayload
 ): Promise<TPayment> => {
-  const orderResponse = await createOrder({
+  const orderResponse = await createOnrampOrder({
     externalQuoteId: data.externalQuoteId,
     externalCustomerId: data.externalCustomerId,
     externalBankAccountId: data.externalBankAccountId,
@@ -131,8 +141,9 @@ export const createPayment = async (
       feeAmount: data.feeAmount,
       feePercentage: data.feePercentage,
       tokenAmount: data.tokenAmount,
-      externalId: EncryptionHelper.encrypt(orderResponse.externalId),
-      externalCustomerId: EncryptionHelper.encrypt(data.externalCustomerId),
+      externalId: orderResponse.externalId,
+      externalCustomerId: data.externalCustomerId,
+      externalBankAccountId: data.externalBankAccountId,
       address: data.address,
       exchangeRate: data.exchangeRate,
       transactionHash: orderResponse.confirmedTxSignature || null,
@@ -194,41 +205,200 @@ export const getPaymentById = async (id: string, userId: string): Promise<TPayme
   return mapPayment(payment, true)
 }
 
+export const payDestination = async (paymentId: string): Promise<void> => {
+  const claimed = await prisma.payment.updateMany({
+    where: { id: paymentId, status: 'FUNDED' },
+    data: { status: 'PROCESSING' },
+  })
+
+  if (claimed.count === 0) return
+
+  const payment = await prisma.payment.findUnique({
+    where: { id: paymentId },
+    select: {
+      address: true,
+      token: true,
+      externalCustomerId: true,
+      externalBankAccountId: true,
+      tokenAmount: true,
+      amount: true,
+      destinations: {
+        select: {
+          id: true,
+          amount: true,
+          externalId: true,
+          transactionData: true,
+        },
+      },
+    },
+  })
+
+  if (!payment) return
+
+  const effectiveTokenAmount = payment.tokenAmount
+
+  if (!effectiveTokenAmount || effectiveTokenAmount === '0') return
+
+  const { externalCustomerId, externalBankAccountId } = payment
+
+  if (!externalCustomerId || !externalBankAccountId) return
+
+  const destinations = payment.destinations.filter(
+    destination => !destination.externalId && !destination.transactionData
+  )
+
+  if (destinations.length === 0) return
+
+  await Promise.allSettled(
+    destinations.map(async destination => {
+      try {
+        // TODO: in production each destination should have their own externalCustomerId
+        // and externalBankAccountId registered with their PIX key via Etherfuse KYC
+        const destinationTokenAmount = StringHelper.formatAmount(
+          new BigNumber(effectiveTokenAmount)
+            .multipliedBy(destination.amount)
+            .dividedBy(payment.amount)
+        )
+
+        if (!destinationTokenAmount || destinationTokenAmount === '0') return
+
+        const response = await createOfframpOrder({
+          externalCustomerId,
+          externalBankAccountId,
+          address: payment.address,
+          tokenAmount: destinationTokenAmount,
+          token: payment.token,
+        })
+
+        const { externalId } = response
+        const transactionData =
+          response.transactionData || (await getOfframpTransactionData(externalId))
+
+        await prisma.paymentDestination.update({
+          where: { id: destination.id },
+          data: {
+            externalId,
+            transactionData,
+          },
+        })
+      } catch {
+        /* empty */
+      }
+    })
+  )
+}
+
 export const updatePaymentById = async ({
   id,
   status,
   tokenAmount,
   transactionHash,
+  transactionData,
 }: TUpdatePaymentByIdParams): Promise<void> => {
-  const newStatus = status.toUpperCase() as TPaymentStatus
-
-  if (!PAYMENT_TERMINAL_STATUSES.has(newStatus) && newStatus !== 'CREATED') return
+  const providerStatus = status.toUpperCase()
 
   const nonTerminalPayments = await prisma.payment.findMany({
     where: { status: { notIn: Array.from(PAYMENT_TERMINAL_STATUSES) } },
-    select: { id: true, externalId: true },
+    select: {
+      id: true,
+      externalId: true,
+      tokenAmount: true,
+      status: true,
+      destinations: {
+        select: { id: true, externalId: true, completed: true },
+      },
+    },
   })
 
   for (const payment of nonTerminalPayments) {
-    let decrypted: string
+    let isOnramp = false
 
     try {
-      decrypted = EncryptionHelper.decrypt(payment.externalId)
+      if (payment.externalId === id) isOnramp = true
     } catch {
-      continue
+      /* ignore */
     }
 
-    if (decrypted !== id) continue
+    let matchedDestinationId: string | null = null
 
-    const updateData: Prisma.PaymentUpdateInput = { status: newStatus }
+    if (!isOnramp) {
+      for (const destination of payment.destinations) {
+        if (!destination.externalId) continue
 
-    if (tokenAmount) updateData.tokenAmount = tokenAmount
-    if (transactionHash) updateData.transactionHash = transactionHash
+        try {
+          if (destination.externalId === id) {
+            matchedDestinationId = destination.id
 
-    try {
-      await prisma.payment.update({ where: { id: payment.id }, data: updateData })
-    } catch {
-      /* empty */
+            break
+          }
+        } catch {
+          /* ignore */
+        }
+      }
+    }
+
+    if (!isOnramp && !matchedDestinationId) continue
+
+    if (matchedDestinationId) {
+      const destinationData: Prisma.PaymentDestinationUpdateInput = {}
+
+      if (transactionData) destinationData.transactionData = transactionData
+      if (transactionHash) destinationData.transactionHash = transactionHash
+      if (providerStatus === 'COMPLETED') destinationData.completed = true
+
+      if (Object.keys(destinationData).length > 0) {
+        await prisma.paymentDestination.update({
+          where: { id: matchedDestinationId },
+          data: destinationData,
+        })
+      }
+
+      if (providerStatus === 'COMPLETED') {
+        const allCompleted = payment.destinations.every(
+          destination => destination.id === matchedDestinationId || destination.completed
+        )
+
+        if (allCompleted) {
+          try {
+            await prisma.payment.update({
+              where: { id: payment.id },
+              data: { status: 'COMPLETED' },
+            })
+          } catch {
+            /* empty */
+          }
+        }
+      }
+
+      return
+    }
+
+    if (providerStatus === 'FUNDED' || providerStatus === 'COMPLETED') {
+      const updateData: Prisma.PaymentUpdateInput = {
+        status: payment.status === 'PROCESSING' ? 'PROCESSING' : 'FUNDED',
+      }
+
+      if (tokenAmount) updateData.tokenAmount = tokenAmount
+      if (transactionHash) updateData.transactionHash = transactionHash
+
+      try {
+        await prisma.payment.update({ where: { id: payment.id }, data: updateData })
+      } catch {
+        /* empty */
+      }
+
+      if (payment.status !== 'PROCESSING') {
+        void payDestination(payment.id)
+      }
+    } else if (['FAILED', 'REFUNDED', 'CANCELED'].includes(providerStatus)) {
+      try {
+        await prisma.payment.update({
+          where: { id: payment.id },
+          data: { status: providerStatus as TPaymentStatus },
+        })
+      } catch {
+        /* empty */
+      }
     }
 
     return

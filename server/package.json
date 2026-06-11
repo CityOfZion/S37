@@ -5,6 +5,7 @@
   "scripts": {
     "postinstall": "prisma generate",
     "dev": "tsx watch src/index.ts",
+    "dev:debug": "tsx watch --inspect src/index.ts",
     "dev:expose": "ngrok http 3000",
     "build": "tsc",
     "start": "node dist/index.js",
