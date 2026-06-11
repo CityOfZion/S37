@@ -590,13 +590,10 @@ export const OnboardingPage = () => {
         type="button"
         size="lg"
         disabled={isWalletBusy}
+        loading={createWalletMutation.isPending || completeMutation.isPending}
         onClick={() => void handleCreateWallet()}
         className={GRADIENT_CTA_CLASS}
-        icon={
-          createWalletMutation.isPending || completeMutation.isPending ? undefined : (
-            <ArrowRightIcon className="size-5 shrink-0" aria-hidden="true" />
-          )
-        }
+        icon={<ArrowRightIcon className="size-5 shrink-0" aria-hidden="true" />}
       >
         {createWalletMutation.isPending
           ? t('walletCreating')
@@ -608,6 +605,7 @@ export const OnboardingPage = () => {
       <Button
         type="button"
         disabled={isWalletBusy}
+        loading={connectWalletMutation.isPending}
         onClick={() => void handleUseExistingWallet()}
         className="text-sm font-medium transition-opacity hover:opacity-80 disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary rounded-md"
       >
@@ -663,9 +661,9 @@ export const OnboardingPage = () => {
         <Button
           type="submit"
           size="lg"
-          disabled={isBusy}
+          loading={isBusy}
           className={GRADIENT_CTA_CLASS}
-          icon={isBusy ? undefined : <ArrowRightIcon className="size-5 shrink-0" aria-hidden />}
+          icon={<ArrowRightIcon className="size-5 shrink-0" aria-hidden />}
         >
           {primaryLabel}
         </Button>
@@ -715,7 +713,8 @@ export const OnboardingPage = () => {
           <Button
             type="button"
             variant="tertiary"
-            disabled={remainingSeconds > 0 || isRequestingCode}
+            disabled={remainingSeconds > 0}
+            loading={isRequestingCode}
             onClick={handleResendCode}
           >
             {remainingSeconds > 0
@@ -727,11 +726,10 @@ export const OnboardingPage = () => {
         <Button
           type="submit"
           size="lg"
-          disabled={isVerifyingCode || verificationCode.length !== 6}
+          disabled={verificationCode.length !== 6}
+          loading={isVerifyingCode}
           className={GRADIENT_CTA_CLASS}
-          icon={
-            isVerifyingCode ? undefined : <ArrowRightIcon className="size-5 shrink-0" aria-hidden />
-          }
+          icon={<ArrowRightIcon className="size-5 shrink-0" aria-hidden />}
         >
           {isVerifyingCode ? t('verifying') : t('verifyCtaLabel')}
         </Button>
