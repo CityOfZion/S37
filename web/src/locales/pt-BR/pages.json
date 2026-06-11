@@ -18,6 +18,7 @@
     "biometricFailed": "Não foi possível entrar com biometria. Tente novamente.",
     "signInError": "Falha ao entrar. Tente novamente.",
     "signUpPrompt": "Primeira vez aqui? Criar conta",
+    "signingUp": "Abrindo cadastro…",
     "switchLanguage": "Mudar idioma"
   },
   "onboarding": {

@@ -18,6 +18,7 @@
     "biometricFailed": "Could not sign in with biometrics. Please try again.",
     "signInError": "Sign-in failed. Please try again.",
     "signUpPrompt": "First time here? Create account",
+    "signingUp": "Signing up…",
     "switchLanguage": "Switch language"
   },
   "onboarding": {

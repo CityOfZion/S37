@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { useNavigate } from '@tanstack/react-router'
@@ -18,13 +19,16 @@ type TFeatureKey = 'ai' | 'pix' | 'audit'
 
 const FEATURE_KEYS: TFeatureKey[] = ['ai', 'pix', 'audit']
 
+type TPendingAction = 'google' | 'biometric' | 'signup'
+
 type TProps = {
   onBiometric: () => void
   onSignup: () => void
-  isBiometricPending: boolean
+  onGoogleSignInStart: () => void
+  pendingAction: TPendingAction | null
 }
 
-const HeroPanel = ({ onBiometric, onSignup, isBiometricPending }: TProps) => {
+const HeroPanel = ({ onBiometric, onSignup, onGoogleSignInStart, pendingAction }: TProps) => {
   const { t } = useTranslation('pages', { keyPrefix: 'auth' })
   const { t: tCommon } = useTranslation('common')
 
@@ -82,32 +86,37 @@ const HeroPanel = ({ onBiometric, onSignup, isBiometricPending }: TProps) => {
       </div>
 
       <div className="lg:hidden relative flex flex-col gap-3 mt-4">
-        <SignInButton />
+        <SignInButton
+          disabled={!!pendingAction}
+          isPending={pendingAction === 'google'}
+          onSignInStart={onGoogleSignInStart}
+        />
 
         <Button
           size="lg"
           onClick={onBiometric}
-          disabled={isBiometricPending}
+          disabled={!!pendingAction}
           className="w-full bg-linear-to-r from-primary to-primary-300 text-white font-semibold rounded-xl shadow-lg shadow-primary/20 transition-[filter] hover:brightness-110 active:brightness-95"
         >
           <span aria-hidden="true">🔒</span>
-          <span>{isBiometricPending ? t('signingIn') : t('signInWithBiometrics')}</span>
+          <span>{pendingAction === 'biometric' ? t('signingIn') : t('signInWithBiometrics')}</span>
         </Button>
 
         <Button
           variant="ghost"
           onClick={onSignup}
+          disabled={!!pendingAction}
           icon={<ArrowRightIcon className="size-4 shrink-0" aria-hidden="true" />}
           className="text-white/90 hover:text-white hover:bg-transparent font-medium text-sm"
         >
-          {t('signUpPrompt')}
+          {pendingAction === 'signup' ? t('signingUp') : t('signUpPrompt')}
         </Button>
       </div>
     </section>
   )
 }
 
-const SignInCard = ({ onBiometric, onSignup, isBiometricPending }: TProps) => {
+const SignInCard = ({ onBiometric, onSignup, onGoogleSignInStart, pendingAction }: TProps) => {
   const { t } = useTranslation('pages', { keyPrefix: 'auth' })
 
   return (
@@ -126,7 +135,11 @@ const SignInCard = ({ onBiometric, onSignup, isBiometricPending }: TProps) => {
           <p className="text-sm text-neutral-500">{t('signInSubtitle')}</p>
         </header>
 
-        <SignInButton />
+        <SignInButton
+          disabled={!!pendingAction}
+          isPending={pendingAction === 'google'}
+          onSignInStart={onGoogleSignInStart}
+        />
 
         <div className="flex items-center gap-3">
           <span aria-hidden="true" className="h-px flex-1 bg-neutral-200" />
@@ -140,11 +153,13 @@ const SignInCard = ({ onBiometric, onSignup, isBiometricPending }: TProps) => {
           <Button
             size="lg"
             onClick={onBiometric}
-            disabled={isBiometricPending}
+            disabled={!!pendingAction}
             className="w-full bg-linear-to-r from-primary to-accent-500 text-white font-semibold rounded-xl shadow-lg shadow-primary/20 transition-[filter] hover:brightness-110 active:brightness-95"
           >
             <span aria-hidden="true">🔒</span>
-            <span>{isBiometricPending ? t('signingIn') : t('signInWithBiometrics')}</span>
+            <span>
+              {pendingAction === 'biometric' ? t('signingIn') : t('signInWithBiometrics')}
+            </span>
           </Button>
           <p className="text-sm text-neutral-500 text-center leading-relaxed">
             {t('biometricsHint')}
@@ -154,10 +169,11 @@ const SignInCard = ({ onBiometric, onSignup, isBiometricPending }: TProps) => {
         <Button
           variant="ghost"
           onClick={onSignup}
+          disabled={!!pendingAction}
           icon={<ArrowRightIcon className="size-4 shrink-0" aria-hidden="true" />}
           className="w-full bg-brand-50 text-brand-700 hover:bg-brand-100 hover:text-brand-800 font-semibold text-sm py-3"
         >
-          {t('signUpPrompt')}
+          {pendingAction === 'signup' ? t('signingUp') : t('signUpPrompt')}
         </Button>
       </div>
     </section>
@@ -168,21 +184,30 @@ export const LoginPage = () => {
   const { t } = useTranslation('pages', { keyPrefix: 'auth' })
   const navigate = useNavigate()
   const passkeyLoginMutation = usePasskeyLoginMutation()
-
-  const isBiometricPending = passkeyLoginMutation.isPending
+  const [pendingAction, setPendingAction] = useState<TPendingAction | null>(null)
 
   usePageTitle(t('signInTitle'))
 
+  const handleGoogleSignInStart = () => {
+    setPendingAction('google')
+  }
+
   const handleSignup = () => {
+    setPendingAction('signup')
+
     void navigate({ to: '/onboarding', search: { source: 'signup' } })
   }
 
   const handleBiometric = () => {
+    setPendingAction('biometric')
+
     passkeyLoginMutation.mutate(undefined, {
       onSuccess: () => {
         void navigate({ to: '/dashboard' })
       },
       onError: error => {
+        setPendingAction(null)
+
         if (error instanceof DOMException && error.name === 'NotAllowedError') return
 
         const axiosCode: EErrorCode | undefined = isAxiosError(error)
@@ -202,13 +227,15 @@ export const LoginPage = () => {
       <HeroPanel
         onBiometric={handleBiometric}
         onSignup={handleSignup}
-        isBiometricPending={isBiometricPending}
+        onGoogleSignInStart={handleGoogleSignInStart}
+        pendingAction={pendingAction}
       />
 
       <SignInCard
         onBiometric={handleBiometric}
         onSignup={handleSignup}
-        isBiometricPending={isBiometricPending}
+        onGoogleSignInStart={handleGoogleSignInStart}
+        pendingAction={pendingAction}
       />
     </main>
   )
