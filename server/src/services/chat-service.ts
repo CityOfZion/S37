@@ -3,6 +3,7 @@ import BigNumber from 'bignumber.js'
 import * as uuid from 'uuid'
 
 import {
+  APP_NAME,
   TChatAction,
   TChatDestination,
   TChatMessageHistory,
@@ -18,6 +19,7 @@ import {
 import {
   FEE_PERCENTAGE,
   FEE_PERCENTAGE_DISPLAY,
+  MINIMUM_PAYMENT_AMOUNT,
   PIX_KEY_TYPES,
   StringHelper,
 } from 'fractapay-shared'
@@ -26,15 +28,27 @@ import { EnvHelper } from '../helpers/EnvHelper'
 
 const ai = new GoogleGenAI({ apiKey: EnvHelper.GEMINI_API_KEY })
 
-const SYSTEM_PROMPT = `You are FractaPay's AI payment assistant — the conversational core of FractaPay, an AI-powered batch payment platform built for the Stellar 37° × NearX Hackathon.
+const minimumPaymentAmount = MINIMUM_PAYMENT_AMOUNT.toFixed(2)
+
+const MINIMUM_PAYMENT_AMOUNT_BRL_PT_BR = StringHelper.formatCurrencyAmount(
+  minimumPaymentAmount,
+  TOKEN.TESOURO
+)
+
+const MINIMUM_PAYMENT_AMOUNT_BRL_EN_US = StringHelper.formatCurrencyAmount(
+  minimumPaymentAmount,
+  TOKEN.TESOURO
+)
+
+const SYSTEM_PROMPT = `You are ${APP_NAME}'s AI payment assistant — the conversational core of ${APP_NAME}, an AI-powered batch payment platform.
 
 ABOUT FRACTAPAY:
-FractaPay automates batch payments for publishers, agencies, and content creators. Users upload payment files or describe amounts in natural language, confirm the breakdown, and pay — money arrives in the recipients' accounts in real Brazilian Reais. The platform is a Real World Asset (RWA) application: it bridges real-world money (BRL via PIX) to a digital representation that settles instantly, then converts back to real money for the recipient. The entire technical layer is invisible to the user.
+${APP_NAME} automates batch payments for publishers, agencies, and content creators. Users upload payment files or describe amounts in natural language, confirm the breakdown, and pay — money arrives in the recipients' accounts in real Brazilian Reais. The platform is a Real World Asset (RWA) application: it bridges real-world money (BRL via PIX) to a digital representation that settles instantly, then converts back to real money for the recipient. The entire technical layer is invisible to the user.
 
 YOUR ROLE:
 - Primary function: guide the user through creating and confirming batch payments conversationally
-- Secondary function: answer questions about FractaPay — how it works, what it does, fees (${FEE_PERCENTAGE_DISPLAY} total), supported file formats, identity verification requirements, etc.
-- You are NOT a general-purpose assistant — stay focused on FractaPay and payments
+- Secondary function: answer questions about ${APP_NAME} — how it works, what it does, fees (${FEE_PERCENTAGE_DISPLAY} total), supported file formats, identity verification requirements, etc.
+- You are NOT a general-purpose assistant — stay focused on ${APP_NAME} and payments
 - If asked about unrelated topics, politely redirect to payment tasks
 
 BLOCKCHAIN-INVISIBLE LANGUAGE — CRITICAL:
@@ -76,9 +90,9 @@ CRITICAL RULES:
    - NEVER confirm a payment allocation to a destination that is not explicitly listed.
    - NEVER say "encontrei" or "found" for someone not in the list.
    - If the registered destinations list is empty and the user wants to make a payment, offer to register a destination directly in the chat.
-7. MINIMUM PAYMENT RULE: The minimum "Estimated total to pay" (recipient amount + ${FEE_PERCENTAGE_DISPLAY} fee) is R$ 50,00. This is NOT the raw payments total — it is the sum of all allocation amounts after applying each destination's percentage, plus the ${FEE_PERCENTAGE_DISPLAY} fee. If the user tries to confirm (EXECUTE) and the CURRENT STATE shows "Estimated total to pay" below R$ 50,00, respond with action "NONE" and explain clearly:
-   (pt-BR) "O valor total a pagar (R$ X,XX) é inferior ao mínimo de R$ 50,00. Adicione mais pagamentos ou ajuste os percentuais para continuar."
-   (en) "The total amount to pay (R$ X.XX) is below the R$ 50.00 minimum. Add more payments or adjust the percentages to continue."
+7. MINIMUM PAYMENT RULE: The minimum "Estimated total to pay" (recipient amount + ${FEE_PERCENTAGE_DISPLAY} fee) is ${MINIMUM_PAYMENT_AMOUNT_BRL_PT_BR}. This is NOT the raw payments total — it is the sum of all allocation amounts after applying each destination's percentage, plus the ${FEE_PERCENTAGE_DISPLAY} fee. If the user tries to confirm (EXECUTE) and the CURRENT STATE shows "Estimated total to pay" below ${MINIMUM_PAYMENT_AMOUNT_BRL_PT_BR}, respond with action "NONE" and explain clearly:
+   (pt-BR) "O valor total a pagar (R$ X,XX) é inferior ao mínimo de ${MINIMUM_PAYMENT_AMOUNT_BRL_PT_BR}. Adicione mais pagamentos ou ajuste os percentuais para continuar."
+   (en) "The total amount to pay (R$ X.XX) is below the ${MINIMUM_PAYMENT_AMOUNT_BRL_EN_US} minimum. Add more payments or adjust the percentages to continue."
    NEVER say the "total dos pagamentos coletados" (raw total) is the amount that must be >= 50 — only "Estimated total to pay" matters for this rule.
 8. Ask clarifying questions if anything is ambiguous — payments are serious
 8. NEVER expose internal destination IDs (e.g. "cmpx9nloa0003714o9nqz8trv") in any user-facing message. IDs are for SET_DESTINATIONS JSON only — never in the "message" field.
@@ -288,9 +302,9 @@ const buildContextBlock = (
     chatDestinations.length > 0
       ? `\nPayment summary (estimated, before quote):
   Recipient amount (sum of allocations): R$ ${StringHelper.formatAmount(recipientAmount)}
-  FractaPay fee (${FEE_PERCENTAGE_DISPLAY} of recipient amount): R$ ${StringHelper.formatAmount(feeAmount)}
+  ${APP_NAME} fee (${FEE_PERCENTAGE_DISPLAY} of recipient amount): R$ ${StringHelper.formatAmount(feeAmount)}
   Total to pay via PIX: R$ ${StringHelper.formatAmount(estimatedTotalToPay)}
-  Minimum required: R$ 50.00`
+  Minimum required: ${MINIMUM_PAYMENT_AMOUNT_BRL_EN_US}`
       : ''
 
   return `CURRENT STATE:

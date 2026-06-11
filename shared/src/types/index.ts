@@ -4,6 +4,8 @@ export type TLanguage = 'en-US' | 'pt-BR'
 
 export type TPixKeyType = 'EVP' | 'CPF' | 'CNPJ' | 'EMAIL' | 'PHONE'
 
+export type TFiatSymbol = 'R$'
+
 export type TFiatCurrency = 'BRL'
 
 export type TPaymentStatus =

@@ -9,6 +9,7 @@ import { TOKEN } from 'fractapay-shared'
 import { Button } from '../../components/Button'
 import { EmptyState } from '../../components/EmptyState'
 import { Modal } from '../../components/Modal'
+import { PageContainer } from '../../components/PageContainer'
 import { Tooltip } from '../../components/Tooltip'
 import { InputHelper } from '../../helpers/InputHelper'
 import { ToastHelper } from '../../helpers/ToastHelper'
@@ -100,7 +101,7 @@ export const DestinationsPage = () => {
   }
 
   return (
-    <main className="max-w-5xl mx-auto px-4 py-8 space-y-6">
+    <PageContainer>
       <div className="flex items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-neutral-900">{t('title')}</h2>
@@ -217,6 +218,6 @@ export const DestinationsPage = () => {
           </Button>
         </div>
       </Modal>
-    </main>
+    </PageContainer>
   )
 }

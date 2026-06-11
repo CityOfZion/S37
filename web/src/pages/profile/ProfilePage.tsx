@@ -6,12 +6,14 @@ import { useQueryClient } from '@tanstack/react-query'
 import { Button } from '../../components/Button'
 import { CopyButton } from '../../components/CopyButton'
 import { Input } from '../../components/Input'
+import { PageContainer } from '../../components/PageContainer'
 import { ToastHelper } from '../../helpers/ToastHelper'
 import { useBreadcrumb } from '../../hooks/use-breadcrumb-store'
 import { usePageTitle } from '../../hooks/use-page-title'
 import { USER_QUERY_KEY, useUserQuery } from '../../hooks/use-user-query'
 import { server } from '../../services/server'
 
+// TODO: implement save
 export const ProfilePage = () => {
   const { t } = useTranslation('pages', { keyPrefix: 'profile' })
   usePageTitle(t('title'))
@@ -61,7 +63,7 @@ export const ProfilePage = () => {
   const initials = (user?.name || '?').charAt(0).toUpperCase()
 
   return (
-    <main className="max-w-5xl mx-auto px-4 py-8 space-y-8">
+    <PageContainer className="space-y-8">
       <div>
         <h1 className="text-2xl font-bold text-neutral-900">{t('title')}</h1>
         <p className="text-sm text-neutral-500 mt-1">{t('subtitle')}</p>
@@ -128,6 +130,6 @@ export const ProfilePage = () => {
           </div>
         ) : null}
       </div>
-    </main>
+    </PageContainer>
   )
 }

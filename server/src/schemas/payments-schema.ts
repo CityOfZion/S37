@@ -10,7 +10,7 @@ export const createPaymentSchema = z.object({
   token: z.enum(TOKENS),
   amount: z.string().min(1).max(50),
   feeAmount: z.string().min(1).max(50),
-  feePercentage: z.string().min(1).max(10),
+  feePercentage: z.string().min(1).max(2),
   tokenAmount: z.string().min(1).max(50),
   exchangeRate: z.string().min(1).max(50),
   destinations: z

@@ -16,7 +16,7 @@ import type {
 import {
   FEE_PERCENTAGE_DISPLAY,
   FEE_PERCENTAGE_VALUE,
-  FIAT_BY_TOKEN,
+  FIAT_CURRENCY_BY_TOKEN,
   QUOTE_EXPIRY_SECONDS,
   StringHelper,
 } from 'fractapay-shared'
@@ -439,7 +439,9 @@ export const ReviewModal = ({
                         <Skeleton />
                       ) : (
                         tCommon('rateValue', {
-                          fiat: tCommon(`fiatBySymbol.${FIAT_BY_TOKEN[token]}`).toLowerCase(),
+                          fiat: tCommon(
+                            `fiatNameByFiatCurrency.${FIAT_CURRENCY_BY_TOKEN[token]}`
+                          ).toLowerCase(),
                           rate: StringHelper.formatAmount(quote?.exchangeRate || '0'),
                           token,
                         })
