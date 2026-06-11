@@ -10,12 +10,22 @@ import GoogleIcon from '../assets/icons/google-icon.svg?react'
 
 type TProps = {
   className?: string
+  disabled?: boolean
+  isPending?: boolean
+  onSignInStart?: () => void
 }
 
-export const SignInButton = ({ className }: TProps) => {
+export const SignInButton = ({
+  className,
+  disabled = false,
+  isPending = false,
+  onSignInStart,
+}: TProps) => {
   const { t } = useTranslation('pages', { keyPrefix: 'auth' })
 
   const handleClick = async () => {
+    onSignInStart?.()
+
     const verifier = PkceHelper.generateVerifier()
 
     sessionStorage.setItem(PKCE_VERIFIER_STORAGE_KEY, verifier)
@@ -30,10 +40,11 @@ export const SignInButton = ({ className }: TProps) => {
       variant="outline"
       size="lg"
       onClick={handleClick}
+      disabled={disabled || isPending}
       className={StyleHelper.merge('w-full', className)}
     >
       <GoogleIcon className="size-5 shrink-0" aria-hidden="true" />
-      <span>{t('continueWithGoogle')}</span>
+      <span>{isPending ? t('signingIn') : t('continueWithGoogle')}</span>
     </Button>
   )
 }
