@@ -1,6 +1,11 @@
 import BigNumber from 'bignumber.js'
 
-import { FIAT_BY_TOKEN, LANGUAGE_BY_TOKEN, STELLAR_DECIMALS, SYMBOL_BY_TOKEN } from '../constants'
+import {
+  FIAT_CURRENCY_BY_TOKEN,
+  FIAT_SYMBOL_BY_TOKEN,
+  LANGUAGE_BY_TOKEN,
+  STELLAR_DECIMALS,
+} from '../constants'
 import type { TToken } from '../types'
 
 export class StringHelper {
@@ -50,12 +55,12 @@ export class StringHelper {
 
     return new Intl.NumberFormat(LANGUAGE_BY_TOKEN[token], {
       style: 'currency',
-      currency: FIAT_BY_TOKEN[token],
+      currency: FIAT_CURRENCY_BY_TOKEN[token],
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     })
       .formatToParts(safeValue)
-      .map(part => (part.type === 'currency' ? SYMBOL_BY_TOKEN[token] : part.value))
+      .map(part => (part.type === 'currency' ? FIAT_SYMBOL_BY_TOKEN[token] : part.value))
       .join('')
       .trim()
   }

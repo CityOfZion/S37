@@ -7,7 +7,7 @@ import * as uuid from 'uuid'
 import {
   EErrorCode,
   FEE_PERCENTAGE,
-  FIAT_BY_TOKEN,
+  FIAT_CURRENCY_BY_TOKEN,
   StringHelper,
   TKycStatus,
   TKycStatusResponse,
@@ -397,7 +397,7 @@ export const createQuote = async (payload: TQuotePayload): Promise<TQuoteResult>
     quoteId: externalQuoteId,
     customerId: payload.externalCustomerId,
     blockchain: BLOCKCHAIN,
-    quoteAssets: { type: 'onramp', sourceAsset: FIAT_BY_TOKEN[token], targetAsset },
+    quoteAssets: { type: 'onramp', sourceAsset: FIAT_CURRENCY_BY_TOKEN[token], targetAsset },
     sourceAmount: payload.sourceAmount,
     walletAddress: address,
   })
@@ -560,7 +560,7 @@ export const createOfframpOrder = async (
     quoteAssets: {
       type: 'offramp',
       sourceAsset,
-      targetAsset: FIAT_BY_TOKEN[token],
+      targetAsset: FIAT_CURRENCY_BY_TOKEN[token],
     },
     sourceAmount: payload.tokenAmount,
     walletAddress: payload.address,

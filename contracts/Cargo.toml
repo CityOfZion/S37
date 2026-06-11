@@ -2,7 +2,7 @@
 name = "fractapay"
 version = "0.1.0"
 edition = "2021"
-description = "FractaPay — Batch payment smart contract for Stellar"
+description = "FractaPay — Batch payment smart contract"
 license = "GPL-3.0"
 
 [lib]

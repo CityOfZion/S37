@@ -1,7 +1,8 @@
 import BigNumber from 'bignumber.js'
 
-import type {
+import {
   TFiatCurrency,
+  TFiatSymbol,
   TLanguage,
   TPaymentMessageRole,
   TPaymentStatus,
@@ -43,7 +44,7 @@ export const DEFAULT_LANGUAGE: TLanguage = 'en-US'
 
 export const STELLAR_DECIMALS = 7
 
-export const FIAT_BY_TOKEN: Record<TToken, TFiatCurrency> = {
+export const FIAT_CURRENCY_BY_TOKEN: Record<TToken, TFiatCurrency> = {
   [TOKEN.TESOURO]: 'BRL',
 }
 
@@ -51,7 +52,7 @@ export const LANGUAGE_BY_TOKEN: Record<TToken, TLanguage> = {
   [TOKEN.TESOURO]: 'pt-BR',
 }
 
-export const SYMBOL_BY_TOKEN: Record<TToken, 'R$'> = {
+export const FIAT_SYMBOL_BY_TOKEN: Record<TToken, TFiatSymbol> = {
   [TOKEN.TESOURO]: 'R$',
 }
 

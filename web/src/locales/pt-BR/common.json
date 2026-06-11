@@ -9,7 +9,7 @@
   "fiatByToken": {
     "TESOURO": "Real"
   },
-  "fiatBySymbol": {
+  "fiatNameByFiatCurrency": {
     "BRL": "Real"
   },
   "paymentTitle": "{{date}} | {{amount}} | {{recipients}} destinatário",

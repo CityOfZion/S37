@@ -5,7 +5,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useParams } from '@tanstack/react-router'
 import BigNumber from 'bignumber.js'
 
-import { FIAT_BY_TOKEN, PAYMENT_TERMINAL_STATUSES, StringHelper } from 'fractapay-shared'
+import { FIAT_CURRENCY_BY_TOKEN, PAYMENT_TERMINAL_STATUSES, StringHelper } from 'fractapay-shared'
 
 import { Accordion } from '../../components/Accordion'
 import { Button } from '../../components/Button'
@@ -15,6 +15,7 @@ import { ErrorState } from '../../components/ErrorState'
 import { ExternalLink } from '../../components/ExternalLink'
 import { FeeIcon } from '../../components/FeeIcon'
 import { LoadingBanner } from '../../components/LoadingBanner'
+import { PageContainer } from '../../components/PageContainer'
 import { PaymentStatusBadge } from '../../components/PaymentStatusBadge'
 import { PixContent } from '../../components/PixContent'
 import { RightPanel } from '../../components/RightPanel'
@@ -96,7 +97,7 @@ export const PaymentPage = () => {
 
   return (
     <>
-      <main className="max-w-5xl mx-auto px-4 py-8 space-y-6">
+      <PageContainer>
         {isError ? (
           <ErrorState title={t('error')} />
         ) : (
@@ -279,7 +280,7 @@ export const PaymentPage = () => {
                         <span className="font-mono text-xs text-neutral-700">
                           {tCommon('rateValue', {
                             fiat: tCommon(
-                              `fiatBySymbol.${FIAT_BY_TOKEN[payment.token]}`
+                              `fiatNameByFiatCurrency.${FIAT_CURRENCY_BY_TOKEN[payment.token]}`
                             ).toLowerCase(),
                             rate: StringHelper.formatAmount(payment.exchangeRate),
                             token: payment.token,
@@ -348,7 +349,7 @@ export const PaymentPage = () => {
                                 </div>
                               </div>
                               {destination.transactionHash && destination.transactionUrl && (
-                                <div className="flex items-center gap-1 -mt-0.5">
+                                <div className="flex items-center gap-1 -mt-0.75">
                                   <ExternalLink
                                     href={destination.transactionUrl}
                                     label={t('viewOnExplorer')}
@@ -380,7 +381,7 @@ export const PaymentPage = () => {
             )}
           </>
         )}
-      </main>
+      </PageContainer>
 
       <RightPanel open={itemsPanel} onClose={() => setItemsPanel(false)} title={t('viewPayments')}>
         {!payment || payment.items.length === 0 ? (

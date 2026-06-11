@@ -2,8 +2,8 @@ import { GoogleGenAI } from '@google/genai'
 import BigNumber from 'bignumber.js'
 import * as uuid from 'uuid'
 
-import type { TLanguage, TPaymentItem, TToken } from 'fractapay-shared'
-import { EErrorCode, FIAT_BY_TOKEN, StringHelper } from 'fractapay-shared'
+import { TLanguage, TPaymentItem, TToken } from 'fractapay-shared'
+import { EErrorCode, FIAT_CURRENCY_BY_TOKEN, StringHelper } from 'fractapay-shared'
 
 import { EnvHelper } from '../helpers/EnvHelper'
 
@@ -40,7 +40,7 @@ RULES:
 9. If the file currency does not match the FIAT expected for the selected token (see user prompt), return { "payments": [] }.`
 
 const buildUserPrompt = (fileContent: string, options: TAnalyzeOptions): string => {
-  const expectedFiat = FIAT_BY_TOKEN[options.token]
+  const expectedFiat = FIAT_CURRENCY_BY_TOKEN[options.token]
 
   return `The user selected **${options.token}** as the payment token. The expected FIAT currency for this token is **${expectedFiat}**.
 
