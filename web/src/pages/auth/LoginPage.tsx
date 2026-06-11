@@ -32,6 +32,11 @@ const HeroPanel = ({ onBiometric, onSignup, onGoogleSignInStart, pendingAction }
   const { t } = useTranslation('pages', { keyPrefix: 'auth' })
   const { t: tCommon } = useTranslation('common')
 
+  const isPendingSignUp = pendingAction === 'signup'
+  const isPendingSignIn = pendingAction === 'google'
+  const isPendingBiometric = pendingAction === 'biometric'
+  const isDisabled = isPendingSignUp || isPendingSignIn || isPendingBiometric
+
   return (
     <section
       className="relative flex flex-col px-6 py-10 sm:px-10 lg:px-16 lg:py-14 bg-linear-to-br from-primary to-accent-500 text-white min-h-screen lg:min-h-0 lg:h-screen lg:w-1/2 overflow-hidden"
@@ -95,21 +100,23 @@ const HeroPanel = ({ onBiometric, onSignup, onGoogleSignInStart, pendingAction }
         <Button
           size="lg"
           onClick={onBiometric}
-          disabled={!!pendingAction}
+          disabled={isDisabled}
+          loading={isPendingBiometric}
           className="w-full bg-linear-to-r from-primary to-primary-300 text-white font-semibold rounded-xl shadow-lg shadow-primary/20 transition-[filter] hover:brightness-110 active:brightness-95"
         >
           <span aria-hidden="true">🔒</span>
-          <span>{pendingAction === 'biometric' ? t('signingIn') : t('signInWithBiometrics')}</span>
+          <span>{isPendingBiometric ? t('signingIn') : t('signInWithBiometrics')}</span>
         </Button>
 
         <Button
           variant="ghost"
           onClick={onSignup}
-          disabled={!!pendingAction}
+          disabled={isDisabled}
+          loading={isPendingSignUp}
           icon={<ArrowRightIcon className="size-4 shrink-0" aria-hidden="true" />}
           className="text-white/90 hover:text-white hover:bg-transparent font-medium text-sm"
         >
-          {pendingAction === 'signup' ? t('signingUp') : t('signUpPrompt')}
+          {isPendingSignUp ? t('signingUp') : t('signUpPrompt')}
         </Button>
       </div>
     </section>
@@ -118,6 +125,11 @@ const HeroPanel = ({ onBiometric, onSignup, onGoogleSignInStart, pendingAction }
 
 const SignInCard = ({ onBiometric, onSignup, onGoogleSignInStart, pendingAction }: TProps) => {
   const { t } = useTranslation('pages', { keyPrefix: 'auth' })
+
+  const isPendingSignUp = pendingAction === 'signup'
+  const isPendingSignIn = pendingAction === 'google'
+  const isPendingBiometric = pendingAction === 'biometric'
+  const isDisabled = isPendingSignUp || isPendingSignIn || isPendingBiometric
 
   return (
     <section
@@ -136,8 +148,8 @@ const SignInCard = ({ onBiometric, onSignup, onGoogleSignInStart, pendingAction 
         </header>
 
         <SignInButton
-          disabled={!!pendingAction}
-          isPending={pendingAction === 'google'}
+          disabled={isDisabled}
+          isPending={isPendingSignIn}
           onSignInStart={onGoogleSignInStart}
         />
 
@@ -153,13 +165,12 @@ const SignInCard = ({ onBiometric, onSignup, onGoogleSignInStart, pendingAction 
           <Button
             size="lg"
             onClick={onBiometric}
-            disabled={!!pendingAction}
+            disabled={isDisabled}
+            loading={isPendingBiometric}
             className="w-full bg-linear-to-r from-primary to-accent-500 text-white font-semibold rounded-xl shadow-lg shadow-primary/20 transition-[filter] hover:brightness-110 active:brightness-95"
           >
             <span aria-hidden="true">🔒</span>
-            <span>
-              {pendingAction === 'biometric' ? t('signingIn') : t('signInWithBiometrics')}
-            </span>
+            <span>{isPendingBiometric ? t('signingIn') : t('signInWithBiometrics')}</span>
           </Button>
           <p className="text-sm text-neutral-500 text-center leading-relaxed">
             {t('biometricsHint')}
@@ -169,11 +180,12 @@ const SignInCard = ({ onBiometric, onSignup, onGoogleSignInStart, pendingAction 
         <Button
           variant="ghost"
           onClick={onSignup}
-          disabled={!!pendingAction}
+          disabled={isDisabled}
+          loading={isPendingSignUp}
           icon={<ArrowRightIcon className="size-4 shrink-0" aria-hidden="true" />}
           className="w-full bg-brand-50 text-brand-700 hover:bg-brand-100 hover:text-brand-800 font-semibold text-sm py-3"
         >
-          {pendingAction === 'signup' ? t('signingUp') : t('signUpPrompt')}
+          {isPendingSignUp ? t('signingUp') : t('signUpPrompt')}
         </Button>
       </div>
     </section>

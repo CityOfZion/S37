@@ -40,7 +40,8 @@ export const SignInButton = ({
       variant="outline"
       size="lg"
       onClick={handleClick}
-      disabled={disabled || isPending}
+      disabled={disabled}
+      loading={isPending}
       className={StyleHelper.merge('w-full', className)}
     >
       <GoogleIcon className="size-5 shrink-0" aria-hidden="true" />

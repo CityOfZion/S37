@@ -1,6 +1,7 @@
 import { type ButtonHTMLAttributes, forwardRef, type ReactNode } from 'react'
 
 import { StyleHelper } from '../helpers/StyleHelper'
+import { Spinner } from './Spinner'
 
 type TButtonVariant =
   | 'primary'
@@ -18,6 +19,7 @@ type TProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   size?: TButtonSize
   icon?: ReactNode
   iconPosition?: TIconPosition
+  loading?: boolean
 }
 
 const VARIANT_CLASSES: Record<TButtonVariant, string> = {
@@ -46,10 +48,21 @@ const SIZE_CLASSES: Record<TButtonSize, string> = {
 
 export const Button = forwardRef<HTMLButtonElement, TProps>(
   (
-    { variant = 'primary', size = 'md', icon, iconPosition = 'end', className, children, ...props },
+    {
+      variant = 'primary',
+      size = 'md',
+      icon,
+      iconPosition = 'end',
+      loading = false,
+      disabled = false,
+      className,
+      children,
+      ...props
+    },
     ref
   ) => {
     const isGhostOrTertiary = variant === 'ghost' || variant === 'tertiary'
+    const resolvedIcon = loading ? <Spinner className="shrink-0 text-current" /> : icon
 
     return (
       <button
@@ -62,11 +75,13 @@ export const Button = forwardRef<HTMLButtonElement, TProps>(
           className
         )}
         type="button"
+        disabled={disabled || loading}
+        aria-busy={loading || undefined}
         {...props}
       >
-        {icon && iconPosition === 'start' && icon}
+        {resolvedIcon && iconPosition === 'start' && resolvedIcon}
         {children}
-        {icon && iconPosition === 'end' && icon}
+        {resolvedIcon && iconPosition === 'end' && resolvedIcon}
       </button>
     )
   }
