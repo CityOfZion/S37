@@ -17,6 +17,8 @@
   <p>
     Chat with AI to set up batch payments. Register destinations, upload a payment file or type amounts. One confirm sends the batch on Stellar via PIX.
   </p>
+
+  <img src="./docs/demonstration.gif" alt="Demonstration" style="border-radius:8px" />
 </div>
 
 ---
